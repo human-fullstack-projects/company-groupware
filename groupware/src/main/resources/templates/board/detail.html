@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .info {
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            min-height: 300px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+        }
+
+        .file-area {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .file-area h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .file-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .file-list li {
+            margin-bottom: 10px;
+        }
+
+        .file-list a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .file-list a:hover {
+            text-decoration: underline;
+        }
+
+        .file-size {
+            margin-left: 8px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .no-file {
+            color: #777;
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        a {
+            margin-right: 10px;
+            text-decoration: none;
+        }
+
+        .delete-form {
+            display: inline;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>게시글 상세</h1>
+
+<div class="title"
+     th:text="${board.boardTitle}">
+    게시글 제목
+</div>
+
+<div class="info">
+
+    작성일 :
+    <span th:text="${board.createdAt}">
+        2026-09-09
+    </span>
+
+    |
+
+    조회수 :
+    <span th:text="${board.readCount}">
+        0
+    </span>
+
+    <span th:if="${board.updatedAt != null}">
+        |
+        수정일 :
+        <span th:text="${board.updatedAt}">
+            2026-09-09
+        </span>
+    </span>
+
+</div>
+
+<div class="content"
+     th:text="${board.boardContent}">
+    게시글 내용
+</div>
+
+<!-- 첨부파일 -->
+<div class="file-area">
+
+    <h3>첨부파일</h3>
+
+    <!-- 첨부파일이 있는 경우 -->
+    <ul class="file-list"
+        th:if="${!#lists.isEmpty(boardFiles)}">
+
+        <li th:each="file : ${boardFiles}">
+
+            <a th:href="@{/boards/files/{boardFileId}/download(boardFileId=${file.boardFileId})}"
+               th:text="${file.boardFileOriginName}">
+                첨부파일
+            </a>
+
+            <span class="file-size"
+                  th:text="${'(' + file.boardFileSize + ' bytes)'}">
+                (0 bytes)
+            </span>
+
+        </li>
+
+    </ul>
+
+    <!-- 첨부파일이 없는 경우 -->
+    <div class="no-file"
+         th:if="${#lists.isEmpty(boardFiles)}">
+
+        첨부파일이 없습니다.
+
+    </div>
+
+</div>
+
+<div class="buttons">
+
+    <!-- 목록 -->
+    <a th:href="@{/boards}">
+        <button type="button">
+            목록
+        </button>
+    </a>
+
+    <!-- 수정 -->
+    <a th:href="@{/boards/{boardId}/edit(boardId=${board.boardId})}">
+        <button type="button">
+            수정
+        </button>
+    </a>
+
+    <!-- 삭제 -->
+    <form class="delete-form"
+          th:action="@{/boards/{boardId}/delete(boardId=${board.boardId})}"
+          method="post"
+          onsubmit="return confirm('정말 삭제하시겠습니까?');">
+
+        <button type="submit">
+            삭제
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+
+</html>

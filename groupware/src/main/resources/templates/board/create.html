@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 작성</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        textarea {
+            height: 300px;
+            resize: vertical;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        a {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>게시글 작성</h1>
+
+<form action="/boards"
+      method="post"
+      enctype="multipart/form-data">
+
+    <!-- 제목 -->
+    <div class="form-group">
+
+        <label for="boardTitle">
+            제목
+        </label>
+
+        <input type="text"
+               id="boardTitle"
+               name="boardTitle"
+               maxlength="50"
+               required>
+
+    </div>
+
+    <!-- 카테고리 -->
+    <div class="form-group">
+
+        <label for="categoryId">
+            카테고리
+        </label>
+
+        <select id="categoryId"
+                name="categoryId">
+
+            <option value="">
+                카테고리 선택
+            </option>
+
+            <option th:each="category : ${categories}"
+                    th:value="${category.boardCategoryId}"
+                    th:text="${category.boardCategoryName}">
+                카테고리
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- 내용 -->
+    <div class="form-group">
+
+        <label for="boardContent">
+            내용
+        </label>
+
+        <textarea id="boardContent"
+                  name="boardContent"
+                  required></textarea>
+
+    </div>
+
+    <!-- 첨부파일 -->
+    <div class="form-group">
+
+        <label for="files">
+            첨부파일
+        </label>
+
+        <input type="file"
+               id="files"
+               name="files"
+               multiple>
+
+        <div>
+            여러 개의 파일을 선택할 수 있습니다.
+        </div>
+
+    </div>
+
+    <!-- 버튼 -->
+    <button type="submit">
+        등록
+    </button>
+
+    <a href="/boards">
+        취소
+    </a>
+
+</form>
+
+</body>
+
+</html>
