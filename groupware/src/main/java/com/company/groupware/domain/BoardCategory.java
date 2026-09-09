@@ -8,8 +8,8 @@ import lombok.Setter;
 /**
  * 게시판카테고리
  */
-@Entity
-@Table(name = "Board_category")
+//@Entity
+//@Table(name = "Board_category")
 @Getter
 @Setter
 @NoArgsConstructor

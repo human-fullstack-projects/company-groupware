@@ -8,8 +8,8 @@ import lombok.Setter;
 /**
  * 직원
  */
-@Entity
-@Table(name = "employee")
+//@Entity
+//@Table(name = "employee")
 @Getter
 @Setter
 @NoArgsConstructor

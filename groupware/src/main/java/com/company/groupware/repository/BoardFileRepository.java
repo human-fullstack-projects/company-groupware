@@ -1,7 +1,8 @@
 package com.company.groupware.repository;
 
-import com.company.groupware.domain.Board;
-import com.company.groupware.domain.BoardFile;
+
+import com.company.groupware.entity.Board;
+import com.company.groupware.entity.BoardFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -8,8 +8,8 @@ import lombok.Setter;
 /**
  * 직급
  */
-@Entity
-@Table(name = "grade")
+//@Entity
+//@Table(name = "grade")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,8 +1,9 @@
 package com.company.groupware.service;
 
-import com.company.groupware.domain.Board;
-import com.company.groupware.domain.BoardCategory;
-import com.company.groupware.domain.BoardFile;
+
+import com.company.groupware.entity.Board;
+import com.company.groupware.entity.BoardCategory;
+import com.company.groupware.entity.BoardFile;
 import com.company.groupware.repository.BoardCategoryRepository;
 import com.company.groupware.repository.BoardFileRepository;
 import com.company.groupware.repository.BoardRepository;
@@ -84,7 +85,7 @@ public class BoardService {
         }
 
         if (board.getReadCount() == null) {
-            board.setReadCount(0);
+            board.setReadCount(0L);
         }
 
         if (board.getBoardStatus() == null) {
@@ -197,7 +198,7 @@ public class BoardService {
             );
 
             boardFile.setBoardFileSize(
-                    (int) file.getSize()
+                    file.getSize()
             );
 
             boardFile.setBoardFileOriginName(
@@ -225,7 +226,7 @@ public class BoardService {
      * 게시글 상세 조회
      */
     public Board findById(
-            Integer boardId) {
+            Long boardId) {
 
         return boardRepository.findById(boardId)
                 .orElseThrow(() ->
@@ -238,7 +239,7 @@ public class BoardService {
      * 특정 게시글의 첨부파일 조회
      */
     public List<BoardFile> findBoardFiles(
-            Integer boardId) {
+            Long boardId) {
 
         Board board =
                 findById(boardId);
@@ -316,7 +317,7 @@ public class BoardService {
      */
     @Transactional
     public void update(
-            Integer boardId,
+            Long boardId,
             String boardTitle,
             String boardContent) {
 
@@ -343,10 +344,10 @@ public class BoardService {
      */
     @Transactional
     public void update(
-            Integer boardId,
+            Long boardId,
             String boardTitle,
             String boardContent,
-            Integer categoryId) {
+            Long categoryId) {
 
         Board board =
                 findById(boardId);
@@ -386,7 +387,7 @@ public class BoardService {
      * 게시글 삭제
      */
     public void delete(
-            Integer boardId) {
+            Long boardId) {
 
         Board board =
                 findById(boardId);
@@ -401,16 +402,16 @@ public class BoardService {
      */
     @Transactional
     public void increaseReadCount(
-            Integer boardId) {
+            Long boardId) {
 
         Board board =
                 findById(boardId);
 
-        Integer currentReadCount =
+        Long currentReadCount =
                 board.getReadCount();
 
         if (currentReadCount == null) {
-            currentReadCount = 0;
+            currentReadCount = 0L;
         }
 
         board.setReadCount(
@@ -430,7 +431,7 @@ public class BoardService {
      * 카테고리 조회
      */
     public BoardCategory findCategoryById(
-            Integer categoryId) {
+            Long categoryId) {
 
         return boardCategoryRepository
                 .findById(categoryId)

@@ -1,8 +1,8 @@
 package com.company.groupware.controller;
 
-import com.company.groupware.domain.Board;
-import com.company.groupware.domain.BoardCategory;
-import com.company.groupware.domain.BoardFile;
+import com.company.groupware.entity.Board;
+import com.company.groupware.entity.BoardCategory;
+import com.company.groupware.entity.BoardFile;
 import com.company.groupware.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -95,7 +95,7 @@ public class BoardController {
     public String create(
             @RequestParam String boardTitle,
             @RequestParam String boardContent,
-            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) List<MultipartFile> files) {
 
         Board board =
@@ -134,7 +134,7 @@ public class BoardController {
      */
     @GetMapping("/boards/{boardId}")
     public String detail(
-            @PathVariable Integer boardId,
+            @PathVariable Long boardId,
             Model model) {
 
         boardService.increaseReadCount(
@@ -216,7 +216,7 @@ public class BoardController {
      */
     @GetMapping("/boards/{boardId}/edit")
     public String editForm(
-            @PathVariable Integer boardId,
+            @PathVariable Long boardId,
             Model model) {
 
         Board board =
@@ -245,10 +245,10 @@ public class BoardController {
      */
     @PostMapping("/boards/{boardId}/edit")
     public String edit(
-            @PathVariable Integer boardId,
+            @PathVariable Long boardId,
             @RequestParam String boardTitle,
             @RequestParam String boardContent,
-            @RequestParam(required = false) Integer categoryId) {
+            @RequestParam(required = false) Long categoryId) {
 
         boardService.update(
                 boardId,
@@ -265,7 +265,7 @@ public class BoardController {
      */
     @PostMapping("/boards/{boardId}/delete")
     public String delete(
-            @PathVariable Integer boardId) {
+            @PathVariable Long boardId) {
 
         boardService.delete(
                 boardId

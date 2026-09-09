@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 /**
  * 게시판
  */
-@Entity
-@Table(name = "Board")
+//@Entity
+//@Table(name = "Board")
 @Getter
 @Setter
 @NoArgsConstructor

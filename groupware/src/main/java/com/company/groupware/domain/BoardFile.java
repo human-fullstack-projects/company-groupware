@@ -8,8 +8,8 @@ import lombok.Setter;
 /**
  * 게시판 첨부파일
  */
-@Entity
-@Table(name = "Board_file")
+//@Entity
+//@Table(name = "Board_file")
 @Getter
 @Setter
 @NoArgsConstructor
