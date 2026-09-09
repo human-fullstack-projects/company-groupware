@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>menubar</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" href="../../static/css/common.css">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../../static/css/menubar.css">
+</head>
+<body>
+<aside class="menubar" th:fragment="menubar">
+    <nav class="menubar__nav">
+        <button type="button" class="menubar__btn">유저 정보</button>
+        <button type="button" class="menubar__btn">메신저</button>
+        <button type="button" class="menubar__btn">게시판</button>
+        <button type="button" class="menubar__btn">관리자</button>
+    </nav>
+</aside>
+</body>
+</html>

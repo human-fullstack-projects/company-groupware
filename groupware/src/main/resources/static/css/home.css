@@ -1,0 +1,16 @@
+/* 메인 화면(home) 레이아웃 */
+.home-content {
+    margin-top: var(--topinfo-height);
+    margin-left: var(--menubar-width);
+    min-height: calc(100vh - var(--topinfo-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+}
+
+.home-content__title {
+    color: var(--color-navy-dark);
+    font-size: 28px;
+    font-weight: 700;
+}

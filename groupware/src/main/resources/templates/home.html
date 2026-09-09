@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>사내 메신저</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../static/css/menubar.css">
+    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
+</head>
+<body>
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main class="home-content">
+    <h2 class="home-content__title">사내 메신저 메인</h2>
+</main>
+</body>
+</html>

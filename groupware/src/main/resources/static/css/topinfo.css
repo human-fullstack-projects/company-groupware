@@ -1,0 +1,47 @@
+/* 최상단 사이트 정보 바 */
+.topinfo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--topinfo-height);
+    background-color: var(--color-navy-dark);
+    border-bottom: 1px solid var(--color-black);
+    padding: 18px 32px 0;
+    z-index: 10;
+}
+
+.topinfo__title {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    color: var(--color-white);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+/* 사이트 제목에서 20px 아래, 우측에 위치하는 로그인 버튼 */
+.topinfo__auth {
+    position: absolute;
+    top: calc(22px + 20px);
+    right: 32px;
+}
+
+.topinfo__login-btn {
+    padding: 8px 22px;
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.topinfo__login-btn:hover {
+    background-color: var(--color-navy-light);
+}

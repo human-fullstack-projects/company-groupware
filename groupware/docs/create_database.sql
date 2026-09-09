@@ -1,0 +1,6 @@
+CREATE DATABASE groupware
+	CHARACTER SET UTF8MB4
+	COLLATE UTF8MB4_UNICODE_CI;
+	
+GRANT ALL PRIVILEGES ON groupware.* TO human@localhost;	
+GRANT ALL PRIVILEGES ON groupware.* TO human@"%";		

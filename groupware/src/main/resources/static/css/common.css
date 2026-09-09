@@ -1,0 +1,22 @@
+/* 사이트 공통 색상 팔레트 (남색 기준 + 검정/흰색) */
+:root {
+    --color-navy-dark: #101a33;
+    --color-navy: #1b2a4e;
+    --color-navy-light: #2c4270;
+    --color-black: #111111;
+    --color-white: #ffffff;
+
+    --topinfo-height: 90px;
+    --menubar-width: 220px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    background-color: var(--color-white);
+    color: var(--color-black);
+}

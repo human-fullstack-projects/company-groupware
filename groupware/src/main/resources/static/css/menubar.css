@@ -1,0 +1,41 @@
+/* 좌측 고정 메뉴바 */
+.menubar {
+    position: fixed;
+    top: var(--topinfo-height);
+    left: 0;
+    width: var(--menubar-width);
+    height: calc(100vh - var(--topinfo-height));
+    background-color: var(--color-navy-dark);
+    border-right: 1px solid var(--color-black);
+    padding: 24px 16px;
+    z-index: 5;
+}
+
+.menubar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.menubar__btn {
+    width: 100%;
+    padding: 14px 16px;
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.menubar__btn:hover {
+    background-color: var(--color-navy-light);
+    transform: translateX(3px);
+}
+
+.menubar__btn:active {
+    background-color: var(--color-black);
+}
