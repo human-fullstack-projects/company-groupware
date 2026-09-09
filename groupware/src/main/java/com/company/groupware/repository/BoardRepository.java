@@ -1,5 +1,6 @@
 package com.company.groupware.repository;
 
+<<<<<<< HEAD
 import com.company.groupware.domain.Board;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,3 +34,10 @@ public interface BoardRepository extends JpaRepository<Board, Integer> {
     );
 }
 
+=======
+import com.company.groupware.entity.Board;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BoardRepository extends JpaRepository<Board, Long> {
+}
+>>>>>>> 644c53f147f15fcd6964c552d3752603828996fb
