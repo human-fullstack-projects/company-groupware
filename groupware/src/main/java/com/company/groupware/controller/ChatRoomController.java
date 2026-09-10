@@ -1,10 +1,12 @@
 package com.company.groupware.controller;
 
 
+import com.company.groupware.dto.ChatMessageResponse;
 import com.company.groupware.dto.ChatRoomCreateRequest;
 import com.company.groupware.dto.ChatRoomJoinRequest;
 import com.company.groupware.dto.ChatRoomMemberResponse;
 import com.company.groupware.dto.ChatRoomResponse;
+import com.company.groupware.service.ChatMessageService;
 import com.company.groupware.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
 
     // 채팅방 생성 (개설자 + 초대 멤버 한 번에 참여 처리)
     @PostMapping
@@ -47,6 +50,12 @@ public class ChatRoomController {
             @RequestBody ChatRoomJoinRequest request) {
         ChatRoomMemberResponse response = chatRoomService.joinRoom(roomId, request.getEmplId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 특정 방의 전체 대화 이력 (오래된 순)
+    @GetMapping("/{roomId}/messages")
+    public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long roomId) {
+        return ResponseEntity.ok(chatMessageService.getHistory(roomId));
     }
 
     // 방 퇴장
