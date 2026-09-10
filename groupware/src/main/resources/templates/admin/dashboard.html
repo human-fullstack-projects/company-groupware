@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>관리자</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            margin-top: calc(var(--topinfo-height) + 40px);
+            margin-left: calc(var(--menubar-width) + 40px);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 22px;
+            color: var(--color-navy-dark);
+        }
+
+        .sub {
+            margin: 0 0 30px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .admin-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fcfcfd;
+            position: relative;
+        }
+
+        .admin-card__badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            background: #eee;
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .admin-card__icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--color-navy);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .admin-card__title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-navy-dark);
+            margin-bottom: 6px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<h1>관리자</h1>
+<p class="sub">관리자 전용 페이지</p>
+
+<div class="card-grid">
+
+    <div class="admin-card">
+        <span class="admin-card__badge">준비 중</span>
+        <div class="admin-card__icon">인</div>
+        <div class="admin-card__title">직원계정 관리</div>
+    </div>
+
+    <div class="admin-card">
+        <span class="admin-card__badge">준비 중</span>
+        <div class="admin-card__icon">부</div>
+        <div class="admin-card__title">부서 관리</div>
+    </div>
+
+    <div class="admin-card">
+        <span class="admin-card__badge">준비 중</span>
+        <div class="admin-card__icon">직</div>
+        <div class="admin-card__title">직급·직책 관리</div>
+    </div>
+
+    <div class="admin-card">
+        <span class="admin-card__badge">준비 중</span>
+        <div class="admin-card__icon">권</div>
+        <div class="admin-card__title">권한 관리</div>
+    </div>
+
+</div>
+
+</body>
+
+</html>
