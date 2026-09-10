@@ -40,4 +40,14 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "com_id2", foreignKey = @ForeignKey(name = "FK_Comment_TO_Comment"))
     private Comment parentComment; // 원댓글(댓글번호2)
+    
+        public static Comment create(String content, Employee employee, Board board, Comment parent){
+        Comment comment = new Comment();
+        comment.comContent = content;
+        comment.employee = employee;
+        comment.board = board;
+        comment.parentComment = parent;
+        return comment;
+    }
+
 }

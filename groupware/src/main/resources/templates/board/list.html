@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게시판</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .search-area {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .search-area input {
+            width: 250px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .search-area button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .board-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .board-table th,
+        .board-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .board-table th {
+            background-color: #f5f5f5;
+        }
+
+        .board-table td.title {
+            text-align: left;
+        }
+
+        .board-table a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .board-table a:hover {
+            text-decoration: underline;
+        }
+
+        .button-area {
+            text-align: right;
+        }
+
+        .write-button {
+            display: inline-block;
+            padding: 10px 18px;
+            background-color: #333;
+            color: white !important;
+            text-decoration: none !important;
+            border-radius: 4px;
+        }
+
+        .write-button:hover {
+            background-color: #555;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 50px 0;
+            color: #777;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin: 30px 0;
+        }
+
+        .pagination a,
+        .pagination span {
+            display: inline-block;
+            min-width: 32px;
+            padding: 7px 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .pagination a {
+            color: #333;
+        }
+
+        .pagination a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .pagination .current {
+            background-color: #333;
+            color: white;
+            border-color: #333;
+        }
+
+        .pagination .disabled {
+            color: #aaa;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>게시판</h1>
+
+<!-- 검색 -->
+<div class="search-area">
+
+    <form th:action="@{/boards}" method="get">
+
+        <input type="text"
+               name="keyword"
+               th:value="${keyword}"
+               placeholder="제목 또는 내용 검색">
+
+        <button type="submit">검색</button>
+
+    </form>
+
+</div>
+
+<table class="board-table">
+
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>작성일</th>
+        <th>조회수</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+    <!-- 게시글이 존재하는 경우 -->
+    <tr th:each="board : ${boardPage.content}">
+
+        <td th:text="${board.boardId}">
+            1
+        </td>
+
+        <td class="title">
+            <a th:href="@{/boards/{boardId}(boardId=${board.boardId})}"
+               th:text="${board.boardTitle}">
+                게시글 제목
+            </a>
+        </td>
+
+        <td th:text="${board.createdAt}">
+            2026-09-09
+        </td>
+
+        <td th:text="${board.readCount}">
+            0
+        </td>
+
+    </tr>
+
+    <!-- 게시글이 없는 경우 -->
+    <tr th:if="${boardPage.empty}">
+
+        <td colspan="4" class="empty-message">
+            등록된 게시글이 없습니다.
+        </td>
+
+    </tr>
+
+    </tbody>
+
+</table>
+
+<!-- 페이지네이션 -->
+<div class="pagination" th:if="${boardPage.totalPages > 0}">
+
+    <!-- 이전 -->
+    <span class="disabled" th:if="${boardPage.first}">
+        이전
+    </span>
+
+    <a th:if="${!boardPage.first}"
+       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword})}">
+        이전
+    </a>
+
+    <!-- 페이지 번호 -->
+    <span th:each="pageNumber : ${#numbers.sequence(0, boardPage.totalPages - 1)}">
+
+        <span class="current"
+              th:if="${pageNumber == currentPage}"
+              th:text="${pageNumber + 1}">
+            1
+        </span>
+
+        <a th:if="${pageNumber != currentPage}"
+           th:href="@{/boards(page=${pageNumber}, keyword=${keyword})}"
+           th:text="${pageNumber + 1}">
+            2
+        </a>
+
+    </span>
+
+    <!-- 다음 -->
+    <span class="disabled" th:if="${boardPage.last}">
+        다음
+    </span>
+
+    <a th:if="${!boardPage.last}"
+       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword})}">
+        다음
+    </a>
+
+</div>
+
+<!-- 글쓰기 버튼 -->
+<div class="button-area">
+
+    <a class="write-button"
+       th:href="@{/boards/create}">
+        글쓰기
+    </a>
+
+</div>
+
+</body>
+
+</html>
