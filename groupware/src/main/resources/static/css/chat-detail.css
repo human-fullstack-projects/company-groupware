@@ -1,0 +1,100 @@
+/* 채팅방 상세 화면 (웹소켓 실시간 메시지 UI) */
+.chat-detail {
+    margin-top: var(--topinfo-height);
+    margin-left: var(--menubar-width);
+    min-height: calc(100vh - var(--topinfo-height));
+    padding: 24px 32px;
+}
+
+.chat-detail__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.chat-detail__back {
+    color: var(--color-navy-dark);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.chat-detail__back:hover {
+    text-decoration: underline;
+}
+
+.chat-detail__title {
+    margin: 0;
+    color: var(--color-navy-dark);
+    font-size: 22px;
+}
+
+.chat-detail__status {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.chat-detail__status.connected {
+    color: #2e7d32;
+}
+
+.chat-detail__status.disconnected {
+    color: #999;
+}
+
+.chat-detail__messages {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 12px;
+    height: calc(100vh - var(--topinfo-height) - 220px);
+    overflow-y: auto;
+    border: 1px solid var(--color-navy);
+    border-radius: 8px;
+}
+
+.chat-detail__messages li {
+    margin-bottom: 8px;
+}
+
+.chat-detail__meta {
+    color: #888;
+    font-size: 12px;
+    margin-right: 8px;
+}
+
+.chat-detail__error {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: #fdecea;
+    color: #c0392b;
+    font-size: 13px;
+}
+
+.chat-detail__send-row {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-detail__input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--color-navy);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.chat-detail__send-btn {
+    padding: 10px 20px;
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.chat-detail__send-btn:hover {
+    background-color: var(--color-navy-light);
+}

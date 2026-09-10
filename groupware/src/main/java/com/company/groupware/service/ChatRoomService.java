@@ -13,6 +13,7 @@ import com.company.groupware.repository.ChatRoomRepository;
 import com.company.groupware.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +28,7 @@ public class ChatRoomService {
     private final ChatRoomAffiliationRepository affiliationRepository;
     private final EmployeeRepository employeeRepository;
 
-
+    @Transactional
     public ChatRoomResponse createRoom(ChatRoomCreateRequest request) {
         Employee creator = employeeRepository.findById(request.getCreatorEmplId())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -63,7 +64,7 @@ public class ChatRoomService {
      *   (empl_id + room_id 유니크 제약 때문에 새 row 를 만들 수 없음)
      * - 이미 활성 참여자라면 예외 발생 (중복 입장 방지)
      */
-
+    @Transactional
     public ChatRoomMemberResponse joinRoom(Long roomId, Long emplId) {
         ChatRoom chatRoom = getChatRoomOrThrow(roomId);
         Employee employee = getEmployeeOrThrow(emplId);
@@ -88,6 +89,7 @@ public class ChatRoomService {
     /**
      * 방 퇴장 처리 (row 삭제가 아니라 room_out_date 를 채워서 이력을 남김)
      */
+    @Transactional
     public void leaveRoom(Long roomId, Long emplId) {
         ChatRoomAffiliation affiliation = affiliationRepository
                 .findByEmployee_EmplIdAndChatRoom_RoomId(emplId, roomId)

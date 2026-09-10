@@ -18,6 +18,7 @@
 }
 
 .menubar__btn {
+    display: block;
     width: 100%;
     padding: 14px 16px;
     background-color: var(--color-navy);
@@ -27,6 +28,7 @@
     font-size: 15px;
     font-weight: 600;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     transition: background-color 0.15s ease, transform 0.15s ease;
 }

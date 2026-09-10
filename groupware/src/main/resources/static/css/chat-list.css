@@ -1,0 +1,81 @@
+/* 메신저 목록 화면 (좌측: 소속 방 리스트 + 방 생성 / 우측: 컨텐츠 영역) */
+.chat-list {
+    margin-top: var(--topinfo-height);
+    margin-left: var(--menubar-width);
+    min-height: calc(100vh - var(--topinfo-height));
+    display: flex;
+    background-color: var(--color-white);
+}
+
+.chat-list__sidebar {
+    width: 260px;
+    min-height: calc(100vh - var(--topinfo-height));
+    border-right: 1px solid var(--color-navy);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.chat-list__rooms {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+.chat-list__heading {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-navy);
+    border-radius: 6px;
+    font-size: 15px;
+    color: var(--color-navy-dark);
+}
+
+.chat-list__room-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.chat-list__room-items li {
+    margin-bottom: 8px;
+}
+
+.chat-list__room-items a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--color-black);
+    text-decoration: none;
+    background-color: rgba(27, 42, 78, 0.06);
+}
+
+.chat-list__room-items a:hover {
+    background-color: rgba(27, 42, 78, 0.14);
+}
+
+.chat-list__create-btn {
+    padding: 14px 16px;
+    border: 1px solid var(--color-navy);
+    border-radius: 8px;
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.chat-list__create-btn:hover {
+    background-color: var(--color-navy-light);
+}
+
+.chat-list__content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+}

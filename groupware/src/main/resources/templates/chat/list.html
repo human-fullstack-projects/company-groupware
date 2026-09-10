@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="_login_empl_id" th:content="${loginEmplId}">
+    <title>메신저</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-list.css}">
+</head>
+<body>
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main class="chat-list">
+    <aside class="chat-list__sidebar">
+        <div class="chat-list__rooms">
+            <h2 class="chat-list__heading">소속된 채팅방 리스트</h2>
+            <ul class="chat-list__room-items">
+                <li th:each="affiliation : ${chatRoomList}">
+                    <a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
+                       th:text="${affiliation.chatRoom.roomId} + ' - ' + ${affiliation.chatRoom.roomName}"></a>
+                </li>
+            </ul>
+        </div>
+        <button type="button" class="chat-list__create-btn" onclick="createRoomWithInvite()">채팅방 생성 +</button>
+    </aside>
+    <section class="chat-list__content">
+        좌측 목록에서 채팅방을 선택하세요.
+    </section>
+</main>
+
+<script th:inline="none">
+    function csrfHeader() {
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+        return { [header]: token };
+    }
+
+    function loginEmplId() {
+        return document.querySelector('meta[name="_login_empl_id"]').content;
+    }
+
+    // 방 생성 + 초대 (chat-test.html 의 createRoomWithInvite 참조)
+    async function createRoomWithInvite() {
+        const roomName = prompt('생성할 채팅방 이름을 입력하세요', '새 채팅방');
+        if (!roomName) {
+            return;
+        }
+        const inviteInput = prompt('초대할 emplId를 쉼표로 구분해 입력하세요 (예: 2,3)', '');
+        const inviteIds = (inviteInput || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0)
+            .map(Number);
+
+        const res = await fetch('/api/chat/rooms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+            body: JSON.stringify({
+                roomName: roomName,
+                creatorEmplId: Number(loginEmplId()),
+                memberEmplIds: inviteIds
+            })
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            alert('방 생성 실패: ' + (err.message || res.status));
+            return;
+        }
+
+        location.reload();
+    }
+</script>
+</body>
+</html>

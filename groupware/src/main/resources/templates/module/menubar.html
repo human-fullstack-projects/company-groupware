@@ -9,10 +9,10 @@
 <body>
 <aside class="menubar" th:fragment="menubar">
     <nav class="menubar__nav">
-        <button type="button" class="menubar__btn">유저 정보</button>
-        <button type="button" class="menubar__btn">메신저</button>
-        <button type="button" class="menubar__btn">게시판</button>
-        <button type="button" class="menubar__btn">관리자</button>
+        <a href="#" class="menubar__btn">유저 정보</a>
+        <a th:href="@{/chat/list}" class="menubar__btn">메신저</a>
+        <a th:href="@{/boards}" class="menubar__btn">게시판</a>
+        <a href="#" class="menubar__btn">관리자</a>
     </nav>
 </aside>
 </body>
