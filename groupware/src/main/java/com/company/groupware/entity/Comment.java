@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 게시판댓글
@@ -41,7 +42,7 @@ public class Comment {
     @JoinColumn(name = "com_id2", foreignKey = @ForeignKey(name = "FK_Comment_TO_Comment"))
     private Comment parentComment; // 원댓글(댓글번호2)
     
-        public static Comment create(String content, Employee employee, Board board, Comment parent){
+    public static Comment create(String content, Employee employee, Board board, Comment parent){
         Comment comment = new Comment();
         comment.comContent = content;
         comment.employee = employee;
@@ -49,5 +50,9 @@ public class Comment {
         comment.parentComment = parent;
         return comment;
     }
+
+//    public static List<Comment> findAllByBoardOrderByCreatedAtAsc(){
+//
+//    }
 
 }

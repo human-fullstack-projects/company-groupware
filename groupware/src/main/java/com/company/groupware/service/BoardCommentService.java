@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BoardCommentService {
@@ -19,12 +21,12 @@ public class BoardCommentService {
     private final EmployeeRepository employeeRepository;
     private final BoardRepository boardRepository;
 
+    //댓글 입력
     @Transactional
-    public void createComment(BoardCommentRequest request) {
+    public Comment insertComment(BoardCommentRequest request) {
 
         Employee employee = employeeRepository.findById(request.getEmplId())
                 .orElseThrow();
-
         Board board = boardRepository.getReferenceById(request.getBoardId());
 
         Comment parent = null;
@@ -39,11 +41,34 @@ public class BoardCommentService {
                 parent
         );
 
-        commentRepository.save(comment);
+        return commentRepository.save(comment);
     }
 
 
+    //전체 댓글 조회
+    public List<Comment> getComments(Long boardId) {
+//        Board board = boardRepository.getReferenceById(boardId);
+//        return boardRepository.findAllByBoardOrderByCreatedAtAsc(board);
+        return commentRepository.findByBoardBoardIdOrderByCreatedAtAscComIdAsc(boardId);
+    }
 
+    //댓글 수정
+    @Transactional
+    public void updateComment(Long commentId, String content) {
 
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow();
+
+        comment.setComContent(content);
+    }
+
+    //댓글 삭제
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow();
+
+        commentRepository.delete(comment);
+    }
 
 }

@@ -1,37 +1,84 @@
 package com.company.groupware.controller;
 
 import com.company.groupware.dto.BoardCommentRequest;
+import com.company.groupware.dto.BoardCommentResponse;
+import com.company.groupware.entity.Comment;
 import com.company.groupware.service.BoardCommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.time.LocalDateTime;
+import java.util.List;
+
+//@Controller
+@RestController
 @RequiredArgsConstructor
 public class BoardCommentController {
     //이 컨트롤러에서 처리하는 것들은 기본적으로 페이지 이동 없음. 자바스크립트에서 페이지 일부 요소 수정처리
-
     private final BoardCommentService boardCommentService;
 
 
-    //add
-    @PostMapping("/api/boards/{boardId}/comments")
-    @ResponseBody
-    public void addComment(
+    @GetMapping("/api/boards/{boardId}/comments")
+    public List<BoardCommentResponse> getComments(
+            @PathVariable Long boardId) {
+
+        List<Comment> comments = boardCommentService.getComments(boardId);
+
+        List<BoardCommentResponse> responseList = comments.stream()
+                .map(comment -> BoardCommentResponse.from(comment))
+                .toList();
+
+        return responseList;
+        //response 변환 작업
+    }
+
+    @PostMapping("/api/boards/{boardId}/comments/add")
+//    @ResponseBody RestController로 변경하면서 불필요해짐
+    public BoardCommentResponse addComment(
             @PathVariable Long boardId,
             @Valid BoardCommentRequest request,
             Model model){
-        long emplId=1; //세션 또는 어딘가 저장된 아이디로 변경 필요
+
+//        //테스트용. build(); 까지 주석처리 및 아래꺼 주석 풀고 사용
+//        long testId = 1;
+//        return BoardCommentResponse.builder()
+//                .comId(testId)
+//                .comContent("테스트 댓글")
+//                .emplId(testId)
+//                .emplName("테스트")
+//                .createdAt(LocalDateTime.now())
+//                .build();
+
+
+        long emplId=20; //세션 또는 어딘가 저장된 아이디로 변경 필요
         request.setEmplId(emplId);
         request.setBoardId(boardId);
-        boardCommentService.createComment(request);
-        return;
+
+        Comment comment = boardCommentService.insertComment(request);
+
+        return BoardCommentResponse.from(comment);
     }
+
     //edit
+    @PostMapping("/api/boards/{commentId}/comments/edit")
+    public ResponseEntity<Void> editComment(
+            @PathVariable Long commentId,
+            @Valid BoardCommentRequest request){
+
+        boardCommentService.updateComment(commentId, request.getComContent());
+        return ResponseEntity.noContent().build();
+//        return boardCommentService.updateComment(commentId, request.getComContent());
+    }
+
     //delete
-    //add(대댓. 근데 대댓이라고 다르게 들어가진 않을걸용)
+    @PostMapping("/api/boards/{commentId}/comments/remove")
+    public void removeComment(
+            @PathVariable Long commentId){
+        boardCommentService.deleteComment(commentId);
+    }
+
 }

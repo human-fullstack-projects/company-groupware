@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+<!-- 게시글 상세보기 -->
+<div class="board-detail" th:fragment="commentModule(boardId)">
+
+    <link rel="stylesheet" th:href="@{/css/board/comment.css}" href="../static/css/board/board-tmp.css">
+    <script th:src="@{/js/board/comment.js}" src="../static/js/board/comment.js" defer></script>
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <input type="hidden" id="bid" name="bid" th:value="${boardId}"/>
+
+    <div class="comment-section">
+
+        <div class="comment-title">
+            댓글 <span class="comment-count">0</span>
+        </div>
+
+
+        <!-- 댓글 목록 -->
+        <div class="comment-list">
+
+<!--            &lt;!&ndash; 댓글 1 &ndash;&gt;-->
+<!--            <div class="comment-item">-->
+
+<!--                <div class="comment-profile">-->
+<!--                    이-->
+<!--                </div>-->
+
+<!--                <div class="comment-body">-->
+
+<!--                    <div class="comment-header">-->
+<!--                        <span class="comment-writer">이영희</span>-->
+<!--                        <span class="comment-date">2026.09.09 14:45</span>-->
+<!--                    </div>-->
+
+<!--                    <div class="comment-content">-->
+<!--                        확인했습니다! 금요일까지 완료하겠습니다.-->
+<!--                    </div>-->
+
+<!--                </div>-->
+
+<!--            </div>-->
+
+<!--            &lt;!&ndash; 댓글 2 &ndash;&gt;-->
+<!--            <div class="comment-item">-->
+
+<!--                <div class="comment-profile">-->
+<!--                    홍-->
+<!--                </div>-->
+
+<!--                <div class="comment-body">-->
+
+<!--                    <div class="comment-header">-->
+<!--                        <span class="comment-writer">홍길동</span>-->
+<!--                        <span class="comment-date">2026.09.09 15:03</span>-->
+<!--                    </div>-->
+
+<!--                    <div class="comment-content">-->
+<!--                        확인했습니다.-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; 본인 댓글일 경우에만 표시 &ndash;&gt;-->
+<!--                    <div class="comment-actions">-->
+<!--                        <button type="button comment-edit-btn">수정</button>-->
+<!--                        <button type="button comment-delete-btn">삭제</button>-->
+<!--                    </div>-->
+
+<!--                </div>-->
+
+<!--            </div>-->
+
+        </div>
+
+
+        <!-- ===============================
+             댓글 작성
+        ================================ -->
+
+        <form class="comment-form" id="commentForm">
+
+            <div class="comment-form-title">
+                댓글 작성
+            </div>
+
+            <div class="comment-input-wrap">
+
+                <textarea
+                        name="comContent"
+                        class="comment-input"
+                        placeholder="댓글을 입력해주세요."
+                        maxlength="500"></textarea>
+
+                <button type="submit" class="comment-submit">
+                    등록
+                </button>
+
+            </div>
+
+            <div class="comment-limit">
+                최대 500자
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+</body>
+</html>

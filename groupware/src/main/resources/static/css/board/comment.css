@@ -286,7 +286,7 @@
     gap: 10px;
 }
 
-.comment-input {
+.comment-input, .comment-edit-input {
     flex: 1;
 
     height: 90px;
