@@ -3,6 +3,8 @@ package com.company.groupware.controller;
 import com.company.groupware.entity.Board;
 import com.company.groupware.entity.BoardCategory;
 import com.company.groupware.entity.BoardFile;
+import com.company.groupware.entity.Employee;
+import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -11,6 +13,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +22,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpSession;
+
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,13 +35,40 @@ public class BoardController {
 
     private final BoardService boardService;
 
+    private final EmployeeRepository employeeRepository;
+
+    /**
+     * 세션에 저장된, 로그인한 사용자가 읽은 게시글 ID 목록을 가져온다.
+     * 없으면 새로 만들어서 세션에 저장한다.
+     */
+    private Set<Long> getReadBoardIds(HttpSession session) {
+
+        @SuppressWarnings("unchecked")
+        Set<Long> readIds =
+                (Set<Long>) session.getAttribute("readBoardIds");
+
+        if (readIds == null) {
+
+            readIds = new HashSet<>();
+
+            session.setAttribute(
+                    "readBoardIds",
+                    readIds
+            );
+        }
+
+        return readIds;
+    }
+
     /**
      * 게시글 목록
      */
     @GetMapping("/boards")
     public String list(
+            @RequestParam(defaultValue = "title") String searchType,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
+            HttpSession session,
             Model model) {
 
         if (page < 0) {
@@ -45,6 +79,7 @@ public class BoardController {
 
         Page<Board> boardPage =
                 boardService.findAll(
+                        searchType,
                         keyword,
                         page,
                         size
@@ -56,6 +91,11 @@ public class BoardController {
         );
 
         model.addAttribute(
+                "searchType",
+                searchType
+        );
+
+        model.addAttribute(
                 "keyword",
                 keyword
         );
@@ -63,6 +103,11 @@ public class BoardController {
         model.addAttribute(
                 "currentPage",
                 page
+        );
+
+        model.addAttribute(
+                "readBoardIds",
+                getReadBoardIds(session)
         );
 
         return "board/list";
@@ -96,7 +141,8 @@ public class BoardController {
             @RequestParam String boardTitle,
             @RequestParam String boardContent,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) List<MultipartFile> files) {
+            @RequestParam(required = false) List<MultipartFile> files,
+            Authentication authentication) {
 
         Board board =
                 new Board();
@@ -107,6 +153,15 @@ public class BoardController {
 
         board.setBoardContent(
                 boardContent
+        );
+
+        Employee employee =
+                employeeRepository.findByLoginId(
+                        authentication.getName()
+                ).orElse(null);
+
+        board.setEmployee(
+                employee
         );
 
         if (categoryId != null) {
@@ -135,9 +190,14 @@ public class BoardController {
     @GetMapping("/boards/{boardId}")
     public String detail(
             @PathVariable Long boardId,
+            HttpSession session,
             Model model) {
 
         boardService.increaseReadCount(
+                boardId
+        );
+
+        getReadBoardIds(session).add(
                 boardId
         );
 

@@ -32,5 +32,13 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             String contentKeyword,
             Pageable pageable
     );
+
+    /**
+     * 작성자 이름에 검색어가 포함된 게시글 조회
+     */
+    Page<Board> findByEmployee_EmplNameContaining(
+            String nameKeyword,
+            Pageable pageable
+    );
 }
 

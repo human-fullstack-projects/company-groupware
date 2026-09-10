@@ -44,8 +44,11 @@ public class BoardService {
 
     /**
      * 게시글 검색 및 페이지네이션
+     *
+     * searchType에 따라 제목/내용/작성자 중 하나를 기준으로 검색한다.
      */
     public Page<Board> findAll(
+            String searchType,
             String keyword,
             int page,
             int size) {
@@ -59,9 +62,36 @@ public class BoardService {
             return boardRepository.findAll(pageable);
         }
 
+        if ("all".equals(searchType)) {
+
+            return boardRepository
+                    .findByBoardTitleContainingOrBoardContentContaining(
+                            keyword,
+                            keyword,
+                            pageable
+                    );
+        }
+
+        if ("content".equals(searchType)) {
+
+            return boardRepository
+                    .findByBoardContentContaining(
+                            keyword,
+                            pageable
+                    );
+        }
+
+        if ("author".equals(searchType)) {
+
+            return boardRepository
+                    .findByEmployee_EmplNameContaining(
+                            keyword,
+                            pageable
+                    );
+        }
+
         return boardRepository
-                .findByBoardTitleContainingOrBoardContentContaining(
-                        keyword,
+                .findByBoardTitleContaining(
                         keyword,
                         pageable
                 );

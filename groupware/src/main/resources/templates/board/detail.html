@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <title>게시글 상세</title>
 
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
+            margin-top: calc(var(--topinfo-height) + 40px);
+            margin-left: calc(var(--menubar-width) + 40px);
         }
 
         .title {
@@ -91,6 +97,9 @@
 
 <body>
 
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
 <h1>게시글 상세</h1>
 
 <div class="title"
@@ -100,8 +109,22 @@
 
 <div class="info">
 
+    카테고리 :
+    <span th:text="${board.boardCategory != null ? board.boardCategory.boardCategoryName : '-'}">
+        카테고리
+    </span>
+
+    |
+
+    작성자 :
+    <span th:text="${board.employee != null ? board.employee.emplName : '-'}">
+        작성자
+    </span>
+
+    |
+
     작성일 :
-    <span th:text="${board.createdAt}">
+    <span th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd''T''HH:mm:ss') : '-'}">
         2026-09-09
     </span>
 
@@ -115,7 +138,7 @@
     <span th:if="${board.updatedAt != null}">
         |
         수정일 :
-        <span th:text="${board.updatedAt}">
+        <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd''T''HH:mm:ss')}">
             2026-09-09
         </span>
     </span>
