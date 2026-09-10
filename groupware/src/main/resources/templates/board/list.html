@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <title>게시판</title>
 
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
+            margin-top: calc(var(--topinfo-height) + 40px);
+            margin-left: calc(var(--menubar-width) + 40px);
         }
 
         h1 {
@@ -122,10 +128,18 @@
             color: #aaa;
             background-color: #f5f5f5;
         }
+
+        .read-row td {
+            color: #999;
+            background-color: #fafafa;
+        }
     </style>
 </head>
 
 <body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
 
 <h1>게시판</h1>
 
@@ -134,10 +148,17 @@
 
     <form th:action="@{/boards}" method="get">
 
+        <select name="searchType">
+            <option value="all" th:selected="${searchType == 'all'}">전체</option>
+            <option value="title" th:selected="${searchType == 'title'}">제목</option>
+            <option value="content" th:selected="${searchType == 'content'}">내용</option>
+            <option value="author" th:selected="${searchType == 'author'}">작성자</option>
+        </select>
+
         <input type="text"
                name="keyword"
                th:value="${keyword}"
-               placeholder="제목 또는 내용 검색">
+               placeholder="검색어 입력">
 
         <button type="submit">검색</button>
 
@@ -151,6 +172,8 @@
     <tr>
         <th>번호</th>
         <th>제목</th>
+        <th>카테고리</th>
+        <th>작성자</th>
         <th>작성일</th>
         <th>조회수</th>
     </tr>
@@ -159,7 +182,8 @@
     <tbody>
 
     <!-- 게시글이 존재하는 경우 -->
-    <tr th:each="board : ${boardPage.content}">
+    <tr th:each="board : ${boardPage.content}"
+        th:classappend="${readBoardIds.contains(board.boardId)} ? 'read-row' : ''">
 
         <td th:text="${board.boardId}">
             1
@@ -172,7 +196,15 @@
             </a>
         </td>
 
-        <td th:text="${board.createdAt}">
+        <td th:text="${board.boardCategory != null ? board.boardCategory.boardCategoryName : '-'}">
+            카테고리
+        </td>
+
+        <td th:text="${board.employee != null ? board.employee.emplName : '-'}">
+            작성자
+        </td>
+
+        <td th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd''T''HH:mm:ss') : '-'}">
             2026-09-09
         </td>
 
@@ -185,7 +217,7 @@
     <!-- 게시글이 없는 경우 -->
     <tr th:if="${boardPage.empty}">
 
-        <td colspan="4" class="empty-message">
+        <td colspan="6" class="empty-message">
             등록된 게시글이 없습니다.
         </td>
 
@@ -204,7 +236,7 @@
     </span>
 
     <a th:if="${!boardPage.first}"
-       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword})}">
+       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword}, searchType=${searchType})}">
         이전
     </a>
 
@@ -218,7 +250,7 @@
         </span>
 
         <a th:if="${pageNumber != currentPage}"
-           th:href="@{/boards(page=${pageNumber}, keyword=${keyword})}"
+           th:href="@{/boards(page=${pageNumber}, keyword=${keyword}, searchType=${searchType})}"
            th:text="${pageNumber + 1}">
             2
         </a>
@@ -231,7 +263,7 @@
     </span>
 
     <a th:if="${!boardPage.last}"
-       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword})}">
+       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword}, searchType=${searchType})}">
         다음
     </a>
 

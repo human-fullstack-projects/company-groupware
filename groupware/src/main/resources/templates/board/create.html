@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <title>게시글 작성</title>
 
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
+            margin-top: calc(var(--topinfo-height) + 40px);
+            margin-left: calc(var(--menubar-width) + 40px);
         }
 
         h1 {
@@ -55,6 +61,9 @@
 </head>
 
 <body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
 
 <h1>게시글 작성</h1>
 
