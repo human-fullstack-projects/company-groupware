@@ -18,14 +18,17 @@ public class BoardCommentResponse {
 
     private LocalDateTime createdAt;
 
+    private Boolean mine;
 
-    public static BoardCommentResponse from(Comment comment) {
+
+    public static BoardCommentResponse from(Comment comment, Long loginEmplId) {
         return BoardCommentResponse.builder()
                 .comId(comment.getComId())
                 .comContent(comment.getComContent())
                 .emplId(comment.getEmployee().getEmplId())
                 .emplName(comment.getEmployee().getEmplName())
                 .createdAt(comment.getCreatedAt())
+                .mine(comment.getEmployee().getEmplId().equals(loginEmplId))
                 .build();
     }
 }

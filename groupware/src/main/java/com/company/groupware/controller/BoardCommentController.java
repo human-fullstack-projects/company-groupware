@@ -3,10 +3,14 @@ package com.company.groupware.controller;
 import com.company.groupware.dto.BoardCommentRequest;
 import com.company.groupware.dto.BoardCommentResponse;
 import com.company.groupware.entity.Comment;
+import com.company.groupware.entity.Employee;
+import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.service.BoardCommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,15 +25,28 @@ public class BoardCommentController {
     //이 컨트롤러에서 처리하는 것들은 기본적으로 페이지 이동 없음. 자바스크립트에서 페이지 일부 요소 수정처리
     private final BoardCommentService boardCommentService;
 
+    private final EmployeeRepository employeeRepository;
+
+
+    private Long getEidByName(String name){
+        Employee employee = employeeRepository
+                .findByLoginId(name)
+                .orElseThrow();
+
+        return employee.getEmplId();
+    }
 
     @GetMapping("/api/boards/{boardId}/comments")
     public List<BoardCommentResponse> getComments(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long boardId) {
+
+        Long emplId = getEidByName(userDetails.getUsername());
 
         List<Comment> comments = boardCommentService.getComments(boardId);
 
         List<BoardCommentResponse> responseList = comments.stream()
-                .map(comment -> BoardCommentResponse.from(comment))
+                .map(comment -> BoardCommentResponse.from(comment, emplId))
                 .toList();
 
         return responseList;
@@ -41,6 +58,7 @@ public class BoardCommentController {
     public BoardCommentResponse addComment(
             @PathVariable Long boardId,
             @Valid BoardCommentRequest request,
+            @AuthenticationPrincipal UserDetails userDetails,
             Model model){
 
 //        //테스트용. build(); 까지 주석처리 및 아래꺼 주석 풀고 사용
@@ -53,14 +71,22 @@ public class BoardCommentController {
 //                .createdAt(LocalDateTime.now())
 //                .build();
 
+//        long emplId = Long.parseLong(userDetails.getUsername());
 
-        long emplId=20; //세션 또는 어딘가 저장된 아이디로 변경 필요
+
+//        long emplId=20; //testest 계정 아이디
+//        request.setEmplId(emplId);
+
+        Long emplId = getEidByName(userDetails.getUsername());
+
         request.setEmplId(emplId);
+        request.setBoardId(boardId);
+
         request.setBoardId(boardId);
 
         Comment comment = boardCommentService.insertComment(request);
 
-        return BoardCommentResponse.from(comment);
+        return BoardCommentResponse.from(comment, emplId);
     }
 
     //edit

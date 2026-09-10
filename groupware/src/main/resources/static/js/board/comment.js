@@ -98,8 +98,20 @@ document.addEventListener("DOMContentLoaded", function () {
         // 나중에 수정 / 삭제할 때 사용
         commentItem.dataset.commentId = comment.comId;
 
+        const actions = comment.mine
+            ? `
+            <div class="comment-actions">
+                <button type="button" class="comment-edit-btn">
+                    수정
+                </button>
+                <button type="button" class="comment-delete-btn">
+                    삭제
+                </button>
+            </div>
+        `
+            : "";
 
-        // ${formatDate(comment.createdAt)}
+
         commentItem.innerHTML = `
             <div class="comment-profile">
                 ${comment.emplName.charAt(0)}
@@ -114,14 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </span>
                 </div>
                 <div class="comment-content"></div>
-                <div class="comment-actions">
-                    <button type="button" class="comment-edit-btn">
-                        수정
-                    </button>
-                    <button type="button" class="comment-delete-btn">
-                        삭제
-                    </button>
-                </div>
+                ${actions}
             </div>
         `;
         commentItem.querySelector(".comment-content").textContent = comment.comContent;
@@ -259,19 +264,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            // const response = await fetch(
-            //     `/api/boards/${commentId}/comments/remove`,
-            //     {
-            //         method: "POST",
-            //         headers: {
-            //             [csrfHeader]: csrfToken
-            //         },
-            //     }
-            // );
-            //
-            // if (!response.ok) {
-            //     throw new Error("댓글 삭제 실패");
-            // }//임시 주석처리. 저까진 가는데 아직 db에 데이터가 없음+불러오기 안만들었고.. 이것저것 없음
+            const response = await fetch(
+                `/api/boards/${commentId}/comments/remove`,
+                {
+                    method: "POST",
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("댓글 삭제 실패");
+            }
 
             // 화면에서도 제거
             commentItem.remove();
