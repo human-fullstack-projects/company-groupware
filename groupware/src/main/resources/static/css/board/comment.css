@@ -374,3 +374,68 @@
         height: 40px;
     }
 }
+
+
+/* 답글 */
+.comment-item.comment-reply {
+    margin-left: 45px;
+    padding-left: 15px;
+
+    border-left: 2px solid #eef0f5;
+}
+
+
+/* @원댓글 작성자 */
+.reply-target {
+    color: #3949ab;
+    font-weight: 600;
+
+    margin-right: 6px;
+}
+
+
+/* 답글 작성창 */
+.comment-reply-form {
+    margin-top: 12px;
+
+    padding: 12px;
+
+    background: #f8f9fb;
+
+    border: 1px solid #e1e4e9;
+    border-radius: 8px;
+}
+
+
+.comment-reply-input {
+    width: 100%;
+    min-height: 65px;
+
+    resize: vertical;
+
+    box-sizing: border-box;
+
+    padding: 10px;
+
+    border: 1px solid #dcdfe4;
+    border-radius: 6px;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+}
+
+
+.comment-reply-input:focus {
+    border-color: #7986cb;
+}
+
+
+.comment-reply-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+
+    margin-top: 7px;
+}

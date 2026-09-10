@@ -16,17 +16,34 @@ public class BoardCommentResponse {
     private Long emplId;
     private String emplName;
 
+    private Long parentCommentId;
+    private String parentEmplName;
+
     private LocalDateTime createdAt;
+
+
 
     private Boolean mine;
 
 
     public static BoardCommentResponse from(Comment comment, Long loginEmplId) {
+        Comment parent = comment.getParentComment();
+
         return BoardCommentResponse.builder()
                 .comId(comment.getComId())
                 .comContent(comment.getComContent())
                 .emplId(comment.getEmployee().getEmplId())
                 .emplName(comment.getEmployee().getEmplName())
+                .parentCommentId(
+                        parent != null
+                                ? parent.getComId()
+                                : null
+                )
+                .parentEmplName(
+                        parent != null
+                                ? parent.getEmployee().getEmplName()
+                                : null
+                )
                 .createdAt(comment.getCreatedAt())
                 .mine(comment.getEmployee().getEmplId().equals(loginEmplId))
                 .build();

@@ -80,9 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // console.log("댓글 목록:", comments);
 
-                comments.forEach(comment => {
-                    addCommentToScreen(comment);
-                });
+                // comments.forEach(comment => {
+                //     addCommentToScreen(comment);
+                // });
+                renderComments(comments);
 
             })
             .catch(error => {
@@ -90,26 +91,107 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    function addCommentToScreen(comment) {
+
+    function renderComments(comments) {
+
+        commentList.innerHTML = "";
+
+        // 부모가 없는 최상위 댓글들
+        const rootComments = comments.filter(
+            comment => comment.parentCommentId == null
+        );
+
+        rootComments.forEach(comment => {
+            renderCommentTree(comment, comments, 0);
+        });
+
+        setCommentCount();
+    }
+
+    function renderCommentTree(comment, comments, depth) {
+
+        // 현재 댓글 출력
+        addCommentToScreen(comment, depth);
+
+        // 현재 댓글을 부모로 가진 답글 찾기
+        const replies = comments.filter(
+            reply => reply.parentCommentId === comment.comId
+        );
+
+        // 답글도 똑같이 출력
+        replies.forEach(reply => {
+            renderCommentTree(reply, comments, depth + 1);
+        });
+    }
+
+    // function renderComments(comments) {
+    //
+    //     // 기존 내용 초기화
+    //     commentList.innerHTML = "";
+    //
+    //
+    //     // 1. 원댓글만
+    //     const parents = comments.filter(
+    //         comment => comment.parentCommentId == null
+    //     );
+    //
+    //
+    //     parents.forEach(parent => {
+    //
+    //         // 원댓글 출력
+    //         addCommentToScreen(parent);
+    //
+    //
+    //         // 이 댓글에 달린 답글 찾기
+    //         const replies = comments.filter(
+    //             comment =>
+    //                 comment.parentCommentId === parent.comId
+    //         );
+    //
+    //
+    //         // 바로 뒤에 답글 출력
+    //         replies.forEach(reply => {
+    //             addCommentToScreen(reply);
+    //         });
+    //
+    //     });
+    //
+    //
+    //     setCommentCount();
+    // }
+
+    function addCommentToScreen(comment, depth=0) {
         const commentItem = document.createElement("div");
 
         commentItem.classList.add("comment-item");
-
-        // 나중에 수정 / 삭제할 때 사용
         commentItem.dataset.commentId = comment.comId;
 
-        const actions = comment.mine
-            ? `
-            <div class="comment-actions">
+        const isReply =
+            comment.parentCommentId != null;
+
+
+        if (isReply) {
+            commentItem.classList.add("comment-reply");
+        }
+
+        const replyTarget = isReply
+            ? `<span class="reply-target">@${comment.parentEmplName}</span>`
+            : "";
+
+        const actions =
+            (comment.mine ? `
                 <button type="button" class="comment-edit-btn">
                     수정
                 </button>
                 <button type="button" class="comment-delete-btn">
                     삭제
                 </button>
-            </div>
-        `
-            : "";
+            ` : "")
+            +`
+                <button type="button" class="comment-reply-btn">
+                    답글
+                </button>
+            `;
 
 
         commentItem.innerHTML = `
@@ -125,11 +207,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         ${comment.createdAt}
                     </span>
                 </div>
-                <div class="comment-content"></div>
-                ${actions}
+                
+                <div class="comment-content">
+                    ${replyTarget}
+                    <span class="comment-text"></span>
+                </div>
+                
+                <div class="comment-actions">
+                    ${actions}
+                </div>
             </div>
         `;
-        commentItem.querySelector(".comment-content").textContent = comment.comContent;
+        //
+        // commentItem.querySelector(".comment-content").textContent = comment.comContent;
+        commentItem.querySelector(".comment-text").textContent = comment.comContent;
+
         commentList.appendChild(commentItem);
 
         setCommentCount();
@@ -153,6 +245,11 @@ document.addEventListener("DOMContentLoaded", function () {
         // 삭제 버튼
         if (event.target.classList.contains("comment-delete-btn")) {
             await deleteComment(commentItem, commentId);
+        }
+
+        // 답글 버튼
+        if (event.target.classList.contains("comment-reply-btn")) {
+            openReplyInput(commentItem, commentId);
         }
 
     });
@@ -274,6 +371,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
+            if (response.status === 409) {
+                alert("답글이 있는 댓글은 삭제할 수 없습니다.");
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error("댓글 삭제 실패");
             }
@@ -288,6 +390,112 @@ document.addEventListener("DOMContentLoaded", function () {
         setCommentCount();
     }
 
+    function openReplyInput(commentItem, commentId) {
+
+        // 이미 열려있는 답글창 제거
+        document.querySelectorAll(".comment-reply-form")
+            .forEach(form => form.remove());
+
+
+        const replyForm = document.createElement("div");
+
+        replyForm.classList.add("comment-reply-form");
+
+        replyForm.innerHTML = `
+        <textarea
+            class="comment-reply-input"
+            maxlength="200"
+            placeholder="답글을 입력해주세요."></textarea>
+
+        <div class="comment-reply-buttons">
+            <button type="button"
+                    class="comment-reply-submit">
+                등록
+            </button>
+
+            <button type="button"
+                    class="comment-reply-cancel">
+                취소
+            </button>
+        </div>
+    `;
+
+
+        // 댓글의 body 가장 아래에 붙임
+        commentItem
+            .querySelector(".comment-body")
+            .appendChild(replyForm);
+
+
+        const textarea =
+            replyForm.querySelector(".comment-reply-input");
+
+        textarea.focus();
+
+
+        // 취소
+        replyForm
+            .querySelector(".comment-reply-cancel")
+            .addEventListener("click", function () {
+
+                replyForm.remove();
+            });
+
+
+        // 등록
+        replyForm
+            .querySelector(".comment-reply-submit")
+            .addEventListener("click", async function () {
+
+                const content = textarea.value.trim();
+
+                if (!content) {
+                    alert("답글 내용을 입력해주세요.");
+                    textarea.focus();
+                    return;
+                }
+
+
+                const formData = new FormData();
+
+                formData.append("comContent", content);
+
+                // ★ 이거 하나 때문에 일반댓글 → 답글이 됨
+                formData.append("parentCommentId", commentId);
+
+
+                try {
+
+                    const response = await fetch(
+                        `/api/boards/${boardId}/comments/add`,
+                        {
+                            method: "POST",
+                            headers: {
+                                [csrfHeader]: csrfToken
+                            },
+                            body: formData
+                        }
+                    );
+
+
+                    if (!response.ok) {
+                        throw new Error("답글 등록 실패");
+                    }
+
+
+                    replyForm.remove();
+
+                    // 댓글 전체 다시 불러오기
+                    await loadComments();
+
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert("답글 등록 중 오류가 발생했습니다.");
+                }
+            });
+    }
     // function getCurrentDateTime() {
     //
     //     const now = new Date();

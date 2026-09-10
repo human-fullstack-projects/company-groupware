@@ -9,7 +9,9 @@ import com.company.groupware.repository.BoardRepository;
 import com.company.groupware.repository.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -65,8 +67,17 @@ public class BoardCommentService {
     //댓글 삭제
     @Transactional
     public void deleteComment(Long commentId) {
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow();
+
+        // 해당 댓글을 부모로 가진 답글이 있는지 확인
+        if (commentRepository.existsByParentComment_ComId(commentId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "답글이 있는 댓글은 삭제할 수 없습니다."
+            );
+        }
 
         commentRepository.delete(comment);
     }
