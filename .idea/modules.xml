@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/company-groupware.iml" filepath="$PROJECT_DIR$/.idea/company-groupware.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/groupware.main.iml" filepath="$PROJECT_DIR$/.idea/modules/groupware.main.iml" />
     </modules>
   </component>
 </project>
