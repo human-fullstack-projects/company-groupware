@@ -67,6 +67,12 @@
 
 <h1>게시글 작성</h1>
 
+<p class="error"
+   style="color:#c62828;"
+   th:if="${errorMessage != null}"
+   th:text="${errorMessage}">
+</p>
+
 <form th:action="@{/boards}"
       method="post"
       enctype="multipart/form-data">

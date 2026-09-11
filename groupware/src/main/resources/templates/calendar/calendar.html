@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>업무 캘린더</title>
+
+    <!-- 등록·수정 요청에 사용할 Spring Security CSRF 토큰 -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/board/calendar.css}">
+
+    <script defer th:src="@{/js/calendar.js}"></script>
+</head>
+
+<body>
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main id="calendarPage"
+      class="calendar-page"
+      th:attr="data-api=@{/api/schedules}">
+
+    <header class="calendar-heading">
+        <div>
+            <h2>업무 캘린더</h2>
+            <p>전체 업무 일정을 확인하고 부서 일정을 관리하세요.</p>
+        </div>
+
+        <button id="addSchedule" class="primary" type="button">
+            + 일정 추가
+        </button>
+    </header>
+
+    <section class="calendar-card" aria-label="월별 일정">
+        <div class="calendar-toolbar">
+            <h3 id="monthTitle"></h3>
+
+            <div class="calendar-actions">
+                <button id="prevMonth" type="button"
+                        aria-label="이전 달">이전</button>
+                <button id="todayButton" type="button">오늘</button>
+                <button id="nextMonth" type="button"
+                        aria-label="다음 달">다음</button>
+            </div>
+        </div>
+
+        <p class="calendar-guide">
+            날짜를 누르면 등록, 일정을 누르면 상세 확인이 가능합니다.
+            시간은 한국 시간 기준이며, 전체 부서의 일정은 서로 겹치게 등록할 수 없습니다.
+        </p>
+
+        <p id="calendarStatus" class="status" role="status"></p>
+
+        <div class="calendar-scroll">
+            <div class="calendar-weekdays" aria-hidden="true">
+                <span>일</span>
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span>토</span>
+            </div>
+
+            <div id="calendarGrid" class="calendar-grid"></div>
+        </div>
+    </section>
+</main>
+
+<!-- 일정 등록 및 상세·수정 창 -->
+<dialog id="scheduleDialog"
+        class="schedule-dialog"
+        aria-labelledby="dialogTitle">
+
+    <div class="dialog-header">
+        <h2 id="dialogTitle">일정 추가</h2>
+        <button id="closeDialog" type="button">닫기</button>
+    </div>
+
+    <p id="scheduleInfo" class="schedule-info"></p>
+
+    <form id="scheduleForm">
+        <fieldset id="scheduleFields" class="schedule-fields">
+            <legend class="sr-only">일정 입력</legend>
+
+            <label>
+                제목
+                <input id="scheduleTitle"
+                       type="text"
+                       maxlength="100"
+                       required
+                       placeholder="예: 개발팀 주간 회의">
+            </label>
+
+            <label>
+                시작 일시
+                <input id="scheduleStart"
+                       type="datetime-local"
+                       step="60"
+                       required>
+            </label>
+
+            <label>
+                종료 일시
+                <input id="scheduleEnd"
+                       type="datetime-local"
+                       step="60"
+                       required>
+            </label>
+
+            <label>
+                내용
+                <textarea id="scheduleContent"
+                          rows="5"
+                          maxlength="2000"
+                          placeholder="장소, 준비 사항 등을 입력하세요."></textarea>
+            </label>
+        </fieldset>
+
+        <p id="formError" class="form-error" role="alert"></p>
+
+        <div class="dialog-footer">
+            <button id="cancelSchedule" class="danger" type="button" hidden>
+                일정 취소
+            </button>
+            <button id="saveSchedule" class="primary" type="submit">
+                등록
+            </button>
+        </div>
+    </form>
+</dialog>
+</body>
+</html>

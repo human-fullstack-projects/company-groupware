@@ -2,18 +2,22 @@ package com.company.groupware.controller;
 
 import com.company.groupware.dto.BoardCommentRequest;
 import com.company.groupware.dto.BoardCommentResponse;
+import com.company.groupware.entity.Board;
 import com.company.groupware.entity.Comment;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.service.BoardCommentService;
+import com.company.groupware.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,15 +29,15 @@ public class BoardCommentController {
     //이 컨트롤러에서 처리하는 것들은 기본적으로 페이지 이동 없음. 자바스크립트에서 페이지 일부 요소 수정처리
     private final BoardCommentService boardCommentService;
 
+    private final BoardService boardService;
+
     private final EmployeeRepository employeeRepository;
 
 
-    private Long getEidByName(String name){
-        Employee employee = employeeRepository
-                .findByLoginId(name)
+    private Employee getLoginEmployee(String loginId) {
+        return employeeRepository
+                .findByLoginId(loginId)
                 .orElseThrow();
-
-        return employee.getEmplId();
     }
 
     @GetMapping("/api/boards/{boardId}/comments")
@@ -41,12 +45,21 @@ public class BoardCommentController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long boardId) {
 
-        Long emplId = getEidByName(userDetails.getUsername());
+        Employee employee = getLoginEmployee(userDetails.getUsername());
+
+        Board board = boardService.findById(boardId);
+
+        if (!boardService.canRead(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글의 댓글을 볼 권한이 없습니다."
+            );
+        }
 
         List<Comment> comments = boardCommentService.getComments(boardId);
 
         List<BoardCommentResponse> responseList = comments.stream()
-                .map(comment -> BoardCommentResponse.from(comment, emplId))
+                .map(comment -> BoardCommentResponse.from(comment, employee.getEmplId()))
                 .toList();
 
         return responseList;
@@ -77,16 +90,23 @@ public class BoardCommentController {
 //        long emplId=20; //testest 계정 아이디
 //        request.setEmplId(emplId);
 
-        Long emplId = getEidByName(userDetails.getUsername());
+        Employee employee = getLoginEmployee(userDetails.getUsername());
 
-        request.setEmplId(emplId);
-        request.setBoardId(boardId);
+        Board board = boardService.findById(boardId);
 
+        if (!boardService.canRead(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글에 댓글을 작성할 권한이 없습니다."
+            );
+        }
+
+        request.setEmplId(employee.getEmplId());
         request.setBoardId(boardId);
 
         Comment comment = boardCommentService.insertComment(request);
 
-        return BoardCommentResponse.from(comment, emplId);
+        return BoardCommentResponse.from(comment, employee.getEmplId());
     }
 
     //edit

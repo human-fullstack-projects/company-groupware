@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ public class ChatRoomService {
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
+        chatRoom.setCreatedAt(LocalDateTime.now());
         chatRoomRepository.save(chatRoom);
 
         // 개설자 자동 참여
@@ -141,5 +143,18 @@ public class ChatRoomService {
     private Employee getEmployeeOrThrow(Long emplId) {
         return employeeRepository.findById(emplId)
                 .orElseThrow(() -> new ResourceNotFoundException("직원을 찾을 수 없습니다. empl_id=" + emplId));
+    }
+
+    /**
+     * 방을 닫음 처리 (모든 인원이 나갔을 때 호출) - row 삭제가 아니라 room_stat 을 false 로 변경
+     */
+    @Transactional
+    public void closeRoom(Long roomId) {
+        ChatRoom chatRoom = getChatRoomOrThrow(roomId);
+        chatRoom.setRoomStat(false);
+    }
+
+    public int checkTotalMember(Long roomId) {
+        return affiliationRepository.findByChatRoom_RoomIdAndRoomOutDateIsNull(roomId).size();
     }
 }

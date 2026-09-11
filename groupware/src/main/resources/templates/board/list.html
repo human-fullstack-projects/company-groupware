@@ -21,6 +21,41 @@
             margin-bottom: 30px;
         }
 
+        .category-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-pill {
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 999px;
+            padding: 9px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            background-color: #fff;
+            text-decoration: none;
+        }
+
+        .filter-pill.active {
+            background-color: var(--color-navy);
+            border-color: var(--color-navy);
+            color: #fff;
+        }
+
+        .dept-select {
+            border: 1px solid #ccc;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            background-color: #fff;
+        }
+
         .search-area {
             margin-bottom: 20px;
             text-align: right;
@@ -143,10 +178,43 @@
 
 <h1>게시판</h1>
 
+<!-- 카테고리 필터 -->
+<div class="category-filter">
+
+    <a th:each="category : ${categories}"
+       th:if="${category.boardCategoryName == '공지'}"
+       th:href="@{/boards(categoryId=${category.boardCategoryId})}"
+       th:text="${category.boardCategoryName}"
+       th:classappend="${categoryId != null and categoryId == category.boardCategoryId} ? ' active' : ''"
+       class="filter-pill">
+    </a>
+
+    <select class="dept-select" onchange="location.href='/boards?categoryId=' + this.value">
+        <option value="">부서</option>
+        <option th:each="category : ${categories}"
+                th:if="${category.boardCategoryName != '공지' and category.boardCategoryName != '자유게시판'}"
+                th:value="${category.boardCategoryId}"
+                th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
+                th:text="${category.boardCategoryName}">
+        </option>
+    </select>
+
+    <a th:each="category : ${categories}"
+       th:if="${category.boardCategoryName == '자유게시판'}"
+       th:href="@{/boards(categoryId=${category.boardCategoryId})}"
+       th:text="${category.boardCategoryName}"
+       th:classappend="${categoryId != null and categoryId == category.boardCategoryId} ? ' active' : ''"
+       class="filter-pill">
+    </a>
+
+</div>
+
 <!-- 검색 -->
 <div class="search-area">
 
     <form th:action="@{/boards}" method="get">
+
+        <input type="hidden" name="categoryId" th:value="${categoryId}">
 
         <select name="searchType">
             <option value="all" th:selected="${searchType == 'all'}">전체</option>
@@ -204,7 +272,7 @@
             작성자
         </td>
 
-        <td th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd''T''HH:mm:ss') : '-'}">
+        <td th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd HH시mm분') : '-'}">
             2026-09-09
         </td>
 
@@ -236,12 +304,12 @@
     </span>
 
     <a th:if="${!boardPage.first}"
-       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword}, searchType=${searchType})}">
+       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword}, searchType=${searchType}, categoryId=${categoryId})}">
         이전
     </a>
 
     <!-- 페이지 번호 -->
-    <span th:each="pageNumber : ${#numbers.sequence(0, boardPage.totalPages - 1)}">
+    <span th:each="pageNumber : ${#numbers.sequence(startPage, endPage)}">
 
         <span class="current"
               th:if="${pageNumber == currentPage}"
@@ -250,7 +318,7 @@
         </span>
 
         <a th:if="${pageNumber != currentPage}"
-           th:href="@{/boards(page=${pageNumber}, keyword=${keyword}, searchType=${searchType})}"
+           th:href="@{/boards(page=${pageNumber}, keyword=${keyword}, searchType=${searchType}, categoryId=${categoryId})}"
            th:text="${pageNumber + 1}">
             2
         </a>
@@ -263,7 +331,7 @@
     </span>
 
     <a th:if="${!boardPage.last}"
-       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword}, searchType=${searchType})}">
+       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword}, searchType=${searchType}, categoryId=${categoryId})}">
         다음
     </a>
 

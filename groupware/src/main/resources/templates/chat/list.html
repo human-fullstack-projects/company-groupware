@@ -21,8 +21,10 @@
             <h2 class="chat-list__heading">소속된 채팅방 리스트</h2>
             <ul class="chat-list__room-items">
                 <li th:each="affiliation : ${chatRoomList}">
+                    <!--<a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
+                       th:text="${affiliation.chatRoom.roomId} + ' - ' + ${affiliation.chatRoom.roomName}"></a>-->
                     <a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
-                       th:text="${affiliation.chatRoom.roomId} + ' - ' + ${affiliation.chatRoom.roomName}"></a>
+                       th:text="${affiliation.chatRoom.roomName}"></a>
                 </li>
             </ul>
         </div>
@@ -44,18 +46,49 @@
         return document.querySelector('meta[name="_login_empl_id"]').content;
     }
 
+    // 이름으로 직원 검색 (부분 일치, 여러 명이면 목록에서 선택)
+    async function findEmplIdByName(name) {
+        const res = await fetch('/api/employees/search?name=' + encodeURIComponent(name));
+        if (!res.ok) {
+            throw new Error(name + ' 검색 실패');
+        }
+        const candidates = await res.json();
+        if (candidates.length === 0) {
+            throw new Error('"' + name + '"와 일치하는 직원이 없습니다.');
+        }
+        if (candidates.length === 1) {
+            return candidates[0].emplId;
+        }
+        const listText = candidates
+            .map((c, i) => (i + 1) + '. ' + c.emplName + (c.deptName ? ' (' + c.deptName + ')' : '') + ' - emplId:' + c.emplId)
+            .join('\n');
+        const picked = prompt('"' + name + '"와 일치하는 직원이 여러 명입니다. 번호를 선택하세요\n' + listText, '1');
+        const idx = Number(picked) - 1;
+        if (!(idx >= 0 && idx < candidates.length)) {
+            throw new Error('선택이 취소되었습니다.');
+        }
+        return candidates[idx].emplId;
+    }
+
     // 방 생성 + 초대 (chat-test.html 의 createRoomWithInvite 참조)
     async function createRoomWithInvite() {
         const roomName = prompt('생성할 채팅방 이름을 입력하세요', '새 채팅방');
         if (!roomName) {
             return;
         }
-        const inviteInput = prompt('초대할 emplId를 쉼표로 구분해 입력하세요 (예: 2,3)', '');
-        const inviteIds = (inviteInput || '')
+        const inviteInput = prompt('초대할 직원 이름을 쉼표로 구분해 입력하세요 (예: 홍길동,김철수)', '');
+        const inviteNames = (inviteInput || '')
             .split(',')
             .map(s => s.trim())
-            .filter(s => s.length > 0)
-            .map(Number);
+            .filter(s => s.length > 0);
+
+        let inviteIds;
+        try {
+            inviteIds = await Promise.all(inviteNames.map(findEmplIdByName));
+        } catch (e) {
+            alert(e.message);
+            return;
+        }
 
         const res = await fetch('/api/chat/rooms', {
             method: 'POST',

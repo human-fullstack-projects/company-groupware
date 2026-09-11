@@ -38,3 +38,9 @@ out/
 
 ### Uploaded files ###
 uploads/
+
+### Personal notes ###
+docs/board-notice-plan.md
+
+### DB backups (contains password hashes etc.) ###
+docs/db-backups/

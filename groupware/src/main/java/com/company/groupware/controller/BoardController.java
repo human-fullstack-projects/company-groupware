@@ -11,6 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -61,13 +63,25 @@ public class BoardController {
     }
 
     /**
+     * 로그인한 사용자의 Employee 조회 (권한 판별용)
+     */
+    private Employee getLoginEmployee(Authentication authentication) {
+
+        return employeeRepository.findByLoginId(
+                authentication.getName()
+        ).orElse(null);
+    }
+
+    /**
      * 게시글 목록
      */
     @GetMapping("/boards")
     public String list(
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(defaultValue = "title") String searchType,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
+            Authentication authentication,
             HttpSession session,
             Model model) {
 
@@ -77,17 +91,31 @@ public class BoardController {
 
         int size = 5;
 
+        Employee loginEmployee = getLoginEmployee(authentication);
+
         Page<Board> boardPage =
                 boardService.findAll(
+                        categoryId,
                         searchType,
                         keyword,
                         page,
-                        size
+                        size,
+                        loginEmployee
                 );
 
         model.addAttribute(
                 "boardPage",
                 boardPage
+        );
+
+        model.addAttribute(
+                "categoryId",
+                categoryId
+        );
+
+        model.addAttribute(
+                "categories",
+                boardService.visibleCategories(loginEmployee)
         );
 
         model.addAttribute(
@@ -105,6 +133,21 @@ public class BoardController {
                 page
         );
 
+        int blockSize = 5;
+        int currentBlock = page / blockSize;
+        int startPage = currentBlock * blockSize;
+        int endPage = Math.min(startPage + blockSize - 1, boardPage.getTotalPages() - 1);
+
+        model.addAttribute(
+                "startPage",
+                startPage
+        );
+
+        model.addAttribute(
+                "endPage",
+                endPage
+        );
+
         model.addAttribute(
                 "readBoardIds",
                 getReadBoardIds(session)
@@ -118,10 +161,13 @@ public class BoardController {
      */
     @GetMapping("/boards/create")
     public String createForm(
+            Authentication authentication,
             Model model) {
 
+        Employee employee = getLoginEmployee(authentication);
+
         List<BoardCategory> categories =
-                boardService.findAllCategories();
+                boardService.writableCategories(employee);
 
         model.addAttribute(
                 "categories",
@@ -142,7 +188,33 @@ public class BoardController {
             @RequestParam String boardContent,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) List<MultipartFile> files,
-            Authentication authentication) {
+            Authentication authentication,
+            Model model) {
+
+        Employee employee = getLoginEmployee(authentication);
+
+        BoardCategory category;
+
+        if (categoryId != null) {
+            category = boardService.findCategoryById(categoryId);
+        } else {
+            category = boardService.defaultCategory();
+        }
+
+        if (!boardService.canWrite(category, employee)) {
+
+            model.addAttribute(
+                    "errorMessage",
+                    boardService.writeDenialMessage(category)
+            );
+
+            model.addAttribute(
+                    "categories",
+                    boardService.writableCategories(employee)
+            );
+
+            return "board/create";
+        }
 
         Board board =
                 new Board();
@@ -155,26 +227,13 @@ public class BoardController {
                 boardContent
         );
 
-        Employee employee =
-                employeeRepository.findByLoginId(
-                        authentication.getName()
-                ).orElse(null);
-
         board.setEmployee(
                 employee
         );
 
-        if (categoryId != null) {
-
-            BoardCategory category =
-                    boardService.findCategoryById(
-                            categoryId
-                    );
-
-            board.setBoardCategory(
-                    category
-            );
-        }
+        board.setBoardCategory(
+                category
+        );
 
         boardService.save(
                 board,
@@ -190,8 +249,23 @@ public class BoardController {
     @GetMapping("/boards/{boardId}")
     public String detail(
             @PathVariable Long boardId,
+            Authentication authentication,
             HttpSession session,
             Model model) {
+
+        Board board =
+                boardService.findById(
+                        boardId
+                );
+
+        Employee employee = getLoginEmployee(authentication);
+
+        if (!boardService.canRead(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글을 볼 권한이 없습니다."
+            );
+        }
 
         boardService.increaseReadCount(
                 boardId
@@ -200,11 +274,6 @@ public class BoardController {
         getReadBoardIds(session).add(
                 boardId
         );
-
-        Board board =
-                boardService.findById(
-                        boardId
-                );
 
         /*
          * 게시글에 연결된 첨부파일 조회
@@ -220,6 +289,11 @@ public class BoardController {
         );
 
         model.addAttribute(
+                "canModify",
+                boardService.canModify(board.getBoardCategory(), employee)
+        );
+
+        model.addAttribute(
                 "boardFiles",
                 boardFiles
         );
@@ -232,12 +306,22 @@ public class BoardController {
      */
     @GetMapping("/boards/files/{boardFileId}/download")
     public ResponseEntity<Resource> download(
-            @PathVariable Integer boardFileId) {
+            @PathVariable Integer boardFileId,
+            Authentication authentication) {
 
         BoardFile boardFile =
                 boardService.findBoardFile(
                         boardFileId
                 );
+
+        Employee employee = getLoginEmployee(authentication);
+
+        if (!boardService.canRead(boardFile.getBoard().getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 첨부파일을 다운로드할 권한이 없습니다."
+            );
+        }
 
         Resource resource =
                 boardService.loadFileAsResource(
@@ -277,12 +361,22 @@ public class BoardController {
     @GetMapping("/boards/{boardId}/edit")
     public String editForm(
             @PathVariable Long boardId,
+            Authentication authentication,
             Model model) {
 
         Board board =
                 boardService.findById(
                         boardId
                 );
+
+        Employee employee = getLoginEmployee(authentication);
+
+        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글을 수정할 권한이 없습니다."
+            );
+        }
 
         List<BoardCategory> categories =
                 boardService.findAllCategories();
@@ -308,7 +402,34 @@ public class BoardController {
             @PathVariable Long boardId,
             @RequestParam String boardTitle,
             @RequestParam String boardContent,
-            @RequestParam(required = false) Long categoryId) {
+            @RequestParam(required = false) Long categoryId,
+            Authentication authentication) {
+
+        Board board =
+                boardService.findById(
+                        boardId
+                );
+
+        Employee employee = getLoginEmployee(authentication);
+
+        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글을 수정할 권한이 없습니다."
+            );
+        }
+
+        if (categoryId != null) {
+
+            BoardCategory newCategory = boardService.findCategoryById(categoryId);
+
+            if (!boardService.canWrite(newCategory, employee)) {
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "이 카테고리로는 변경할 권한이 없습니다."
+                );
+            }
+        }
 
         boardService.update(
                 boardId,
@@ -325,7 +446,22 @@ public class BoardController {
      */
     @PostMapping("/boards/{boardId}/delete")
     public String delete(
-            @PathVariable Long boardId) {
+            @PathVariable Long boardId,
+            Authentication authentication) {
+
+        Board board =
+                boardService.findById(
+                        boardId
+                );
+
+        Employee employee = getLoginEmployee(authentication);
+
+        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "이 게시글을 삭제할 권한이 없습니다."
+            );
+        }
 
         boardService.delete(
                 boardId

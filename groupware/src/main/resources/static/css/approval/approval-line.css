@@ -1,0 +1,159 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f8fa;
+    margin: 0;
+    padding: 30px;
+}
+
+/*body {*/
+/*    font-family: Arial, sans-serif;*/
+/*    margin: 40px;*/
+/*    margin-top: calc(var(--topinfo-height) + 40px);*/
+/*    margin-left: calc(var(--menubar-width) + 40px);*/
+/*}*/
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 20px;
+}
+
+.approval-box {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-height: 550px;
+}
+
+.line-list-area {
+    border-right: 1px solid #ddd;
+    padding: 20px;
+}
+
+.line-edit-area {
+    padding: 25px;
+}
+
+.line-list {
+    margin-top: 15px;
+}
+
+.line-item {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.line-item:hover {
+    background: #f3f3f3;
+}
+
+.line-item.active {
+    font-weight: bold;
+    background: #eee;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+input,
+select {
+    padding: 9px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#lineName {
+    width: 100%;
+}
+
+.employee-select {
+    display: flex;
+    gap: 8px;
+}
+
+.employee-select select {
+    flex: 1;
+}
+
+.approver-list {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    min-height: 100px;
+}
+
+.approver-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.approver-item:last-child {
+    border-bottom: 0;
+}
+
+.approver-order {
+    width: 35px;
+    font-weight: bold;
+}
+
+.approver-name {
+    flex: 1;
+}
+
+button {
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+button:hover {
+    background: #eee;
+}
+
+.btn-main {
+    font-weight: bold;
+}
+
+.btn-danger {
+    color: #c00;
+}
+
+.button-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 30px;
+}
+
+.empty {
+    padding: 20px;
+    color: #888;
+    text-align: center;
+}

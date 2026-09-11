@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}">
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <title>전자결재 상세</title>
+
+    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}"
+          href="/css/approval/approval-document.css">
+    <!--    <script th:inline="javascript">-->
+    <!--        const documentId = [[${document.documentId}]];-->
+    <!--    </script>-->
+    <script defer th:src="@{/js/approval/approval-document-detail.js}"
+            src="/js/approval/approval-document-detail.js"></script>
+</head>
+
+<body>
+<div class="approval-page" id="approvalPage" th:attr="data-document-id=${document.documentId}">
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">전자결재 상세</h1>
+            <p class="page-desc">
+                문서 번호
+                <strong th:text="${document.documentId}">1</strong>
+                <!--                        · 결재자는 내용을 읽기 전용으로 확인합니다.-->
+            </p>
+        </div>
+
+        <div class="button-row">
+            <a class="btn" th:href="@{/approvals}" href="/approvals">목록</a>
+        </div>
+    </div>
+
+    <!-- TODO: DB 연결 후 실제 문서 값으로 치환 -->
+    <div class="detail-meta">
+        <div class="meta-item">
+            <div class="meta-label">작성자</div>
+            <div class="meta-value" th:text="${document.writerName}">작성자</div>
+            <!--            <div class="meta-value">홍길동</div>-->
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">상신일</div>
+            <!--            <div class="meta-value">2026-09-10</div>-->
+            <div class="meta-value"
+                 th:text="${document.submittedAt != null ? #temporals.format(document.submittedAt, 'yyyy-MM-dd'):'임시저장'}">
+            </div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">
+
+                <div class="meta-item">
+                    <div class="meta-label">결재상태</div>
+                    <div class="meta-value">
+                        <span th:if="${document.status == 'DRAFT'}" class="status draft">
+                            임시저장
+                        </span>
+                        <span th:if="${document.status == 'IN_PROGRESS'}" class="status pending">
+                            진행중
+                        </span>
+                        <span th:if="${document.status == 'APPROVED'}" class="status approved">
+                            승인
+                        </span>
+                        <span th:if="${document.status == 'REJECTED'}" class="status rejected">
+                            반려
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 결재라인 -->
+        <div class="meta-item">
+
+            <div class="meta-label">
+                결재라인
+            </div>
+
+            <div class="meta-value"
+                 th:text="${document.approvalLineName != null
+                      ? document.approvalLineName
+                      : '-'}">
+                결재라인
+            </div>
+        </div>
+
+
+        <!-- 반려 문서일 때만 표시 -->
+        <div class="meta-item reject-reason-meta"
+             th:if="${document.status == 'REJECTED'}">
+            <div class="meta-label">
+                반려 사유
+            </div>
+
+            <div th:each="step : ${document.approvers}"
+                 th:if="${step.status == 'REJECTED'}"
+                 class="meta-value reject-reason-text"
+                 th:text="${step.comment != null
+                      and !#strings.isEmpty(step.comment)
+                      ? step.comment
+                      : '반려 사유가 입력되지 않았습니다.'}">
+                반려 사유
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-card">
+        <div class="form-grid">
+
+            <main>
+                <div class="form-group">
+                    <label class="form-label">제목</label>
+                    <input class="form-control"
+                           id="documentTitle"
+                           type="text"
+                           th:value="${document.title}"
+                           th:readonly="${!canEdit}">
+                </div>
+
+                <textarea class="form-control document-textarea"
+                          id="documentContent"
+                          th:text="${document.content}"
+                          th:readonly="${!canEdit}">
+                    </textarea>
+            </main>
+
+            <aside>
+                <div class="side-box">
+                    <h3 class="side-title">결재 진행상황</h3>
+                    <div class="approval-line-preview">
+                        <div class="approver-step" th:each="step : ${document.approvers}">
+                            <span class="step-number" th:text="${step.approvalOrder}">1</span>
+                            <div class="step-info">
+                                <div class="step-name" th:text="${step.approverName}">
+                                    결재자
+                                </div>
+                                <div class="step-sub" th:switch="${step.status}">
+                                    <span th:case="'APPROVED'">승인 완료</span>
+                                    <span th:case="'REJECTED'">반려</span>
+                                    <span th:case="'PENDING'">현재 결재 순서</span>
+                                    <span th:case="*">앞 순서 결재 후 진행</span>
+                                </div>
+                            </div>
+                            <span th:if="${step.status == 'APPROVED'}" class="status approved">승인</span>
+                            <span th:if="${step.status == 'REJECTED'}" class="status rejected">반려</span>
+                            <span th:if="${step.status == 'PENDING'}" class="status pending">결재 대기</span>
+                            <span th:if="${step.status == 'WAITING'}" class="status">대기</span>
+                        </div>
+                        <div th:if="${#lists.isEmpty(document.approvers)}" class="preview-empty">
+                            아직 결재자가 지정되지 않은 임시저장 문서입니다.
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+
+    <div class="action-card">
+        <!-- 작성자이고 수정 가능 -->
+        <div th:if="${canEdit}" class="action-text">
+            아직 결재가 진행되지 않아
+            문서를 수정하거나 삭제할 수 있습니다.
+        </div>
+        <!-- 현재 내 결재 차례 -->
+        <div th:if="${canApprove}" class="action-text">
+            현재 내 결재 순서입니다.
+            문서를 확인한 후 승인 또는 반려해주세요.
+        </div>
+
+        <!-- 그냥 조회 -->
+        <div th:if="${!canEdit and !canApprove}" class="action-text">
+            현재 문서는 읽기 전용입니다.
+        </div>
+        <div class="button-row">
+
+            <!-- 작성자 수정/삭제 -->
+            <th:block th:if="${canEdit}">
+
+                <button class="btn btn-danger"
+                        id="deleteButton"
+                        type="button">
+                    삭제
+                </button>
+                <button class="btn btn-primary"
+                        id="saveButton"
+                        type="button">
+                    수정 저장
+                </button>
+            </th:block>
+
+            <!-- 결재자 -->
+            <th:block th:if="${canApprove}">
+                <button class="btn btn-danger"
+                        id="rejectButton"
+                        type="button">
+                    반려
+                </button>
+                <button class="btn btn-primary"
+                        id="approveButton"
+                        type="button">
+                    승인
+                </button>
+            </th:block>
+        </div>
+    </div>
+
+
+    <!-- TODO: 로그인 사용자가 현재 PENDING 결재자인 경우에만 노출 -->
+    <!--    <div class="action-card">-->
+    <!--        <div class="action-text">-->
+    <!--            현재 화면은 기능 연결 전입니다. 나중에 내 결재 순서일 때만 승인/반려 버튼을 보여주면 됩니다.-->
+    <!--        </div>-->
+
+    <!--        <div class="button-row">-->
+
+    <!--&lt;!&ndash;            <button class="btn btn-danger" type="button">반려</button>&ndash;&gt;-->
+    <!--&lt;!&ndash;            <button class="btn btn-primary" type="button">승인</button>&ndash;&gt;-->
+    <!--        </div>-->
+    <!--    </div>-->
+</div>
+</body>
+</html>
