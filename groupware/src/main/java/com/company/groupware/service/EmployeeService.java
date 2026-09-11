@@ -1,11 +1,11 @@
 package com.company.groupware.service;
 
-<<<<<<< HEAD
+
 import com.company.groupware.dto.EmployeeSearchRequest;
 import com.company.groupware.dto.EmployeeSearchResponse;
-=======
+
 import com.company.groupware.dto.ChatRoomEmployeeSearchResponse;
->>>>>>> 0eeaacd868e688cb14cb9333ca027ea47ad3bc03
+
 import com.company.groupware.entity.Department;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.entity.Grade;
@@ -27,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmployeeService {
 
-    private final ChatRoomEmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final GradeRepository gradeRepository;
     private final PasswordEncoder passwordEncoder;
@@ -166,18 +166,18 @@ public class EmployeeService {
 
     }
 
-    @Transactional(readOnly = true)
-    public List<EmployeeSearchResponse> searchEmployees(Long departmentId, Long gradeId, String emplName) {
-        return searchEmployees(new EmployeeSearchRequest(departmentId, gradeId, emplName));
-    }
-    // 이름으로 직원 검색 (초대 대상 검색용)
-    public List<ChatRoomEmployeeSearchResponse> searchByName(String emplName) {
-        if (!StringUtils.hasText(emplName)) {
-            return List.of();
-        }
-        return employeeRepository.findByEmplNameContaining(emplName.trim())
-                .stream()
-                .map(ChatRoomEmployeeSearchResponse::new)
-                .toList();
-    }
+//    @Transactional(readOnly = true)
+//    public List<EmployeeSearchResponse> searchEmployees(Long departmentId, Long gradeId, String emplName) {
+//        return searchEmployees(new EmployeeSearchRequest(departmentId, gradeId, emplName));
+//    }
+//    // 이름으로 직원 검색 (초대 대상 검색용)
+//    public List<ChatRoomEmployeeSearchResponse> searchByName(String emplName) {
+//        if (!StringUtils.hasText(emplName)) {
+//            return List.of();
+//        }
+//        return employeeRepository.findByEmplNameContaining(emplName.trim())
+//                .stream()
+//                .map(ChatRoomEmployeeSearchResponse::new)
+//                .toList();
+//    }
 }

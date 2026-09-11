@@ -1,6 +1,7 @@
 package com.company.groupware.controller;
 
 import com.company.groupware.dto.ChatRoomEmployeeSearchResponse;
+import com.company.groupware.service.ChatRoomEmployeeService;
 import com.company.groupware.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatEmployeeController {
 
-    private final EmployeeService employeeService;
+    private final ChatRoomEmployeeService employeeService;
 
     // 이름 일부로 직원 검색 (채팅방 초대 대상 검색 등에 사용)
     @GetMapping("/search")
