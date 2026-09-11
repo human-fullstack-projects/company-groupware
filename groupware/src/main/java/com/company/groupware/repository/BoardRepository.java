@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
     /**
@@ -15,10 +17,16 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
      *
      * categoryId가 null이면 카테고리 조건은 무시(전체 카테고리),
      * keyword가 비어있으면 검색 조건도 무시(전체 게시글)한다.
+     * readableCategoryIds에 없는 카테고리의 글은 제외한다.
+     * 카테고리 없는(과거) 글은 관리자(isAdmin=true)에게만 보인다.
      */
     @Query("""
             SELECT b FROM Board b
             WHERE (:categoryId IS NULL OR b.boardCategory.boardCategoryId = :categoryId)
+              AND (
+                    (b.boardCategory IS NULL AND :isAdmin = true)
+                    OR b.boardCategory.boardCategoryId IN :readableCategoryIds
+                  )
               AND (
                     :keyword IS NULL OR :keyword = ''
                     OR (:searchType = 'title'   AND b.boardTitle   LIKE CONCAT('%', :keyword, '%'))
@@ -30,6 +38,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             """)
     Page<Board> search(
             @Param("categoryId") Long categoryId,
+            @Param("readableCategoryIds") List<Long> readableCategoryIds,
+            @Param("isAdmin") boolean isAdmin,
             @Param("searchType") String searchType,
             @Param("keyword") String keyword,
             Pageable pageable

@@ -124,7 +124,7 @@
     |
 
     작성일 :
-    <span th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd''T''HH:mm:ss') : '-'}">
+    <span th:text="${board.createdAt != null ? #temporals.format(board.createdAt, 'yyyy-MM-dd HH시mm분') : '-'}">
         2026-09-09
     </span>
 
@@ -138,7 +138,7 @@
     <span th:if="${board.updatedAt != null}">
         |
         수정일 :
-        <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd''T''HH:mm:ss')}">
+        <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd HH시mm분')}">
             2026-09-09
         </span>
     </span>
@@ -197,14 +197,15 @@
     </a>
 
     <!-- 수정 -->
-    <a th:href="@{/boards/{boardId}/edit(boardId=${board.boardId})}">
+    <a th:if="${canModify}" th:href="@{/boards/{boardId}/edit(boardId=${board.boardId})}">
         <button type="button">
             수정
         </button>
     </a>
 
     <!-- 삭제 -->
-    <form class="delete-form"
+    <form th:if="${canModify}"
+          class="delete-form"
           th:action="@{/boards/{boardId}/delete(boardId=${board.boardId})}"
           method="post"
           onsubmit="return confirm('정말 삭제하시겠습니까?');">
