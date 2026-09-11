@@ -1,11 +1,14 @@
 package com.company.groupware.service;
 
+import com.company.groupware.dto.EmployeeSearchRequest;
+import com.company.groupware.dto.EmployeeSearchResponse;
 import com.company.groupware.entity.Department;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.entity.Grade;
 import com.company.groupware.repository.DepartmentRepository;
 import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.repository.GradeRepository;
+import com.company.groupware.util.EmployeeSortHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -132,5 +136,33 @@ public class EmployeeService {
         // 7. 저장
         Employee savedEmployee = employeeRepository.save(employee);
         return savedEmployee.getEmplId();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmployeeSearchResponse> searchEmployees(EmployeeSearchRequest request) {
+        String emplName = null;
+        Long departmentId = null;
+        Long gradeId = null;
+
+        if (request != null) {
+            departmentId = request.getDepartmentId();
+            gradeId = request.getGradeId();
+            if (StringUtils.hasText(request.getEmplName())) {
+                emplName = request.getEmplName().trim();
+            }
+        }
+
+        List<Employee> employees = employeeRepository.searchEmployees(departmentId, gradeId, emplName);
+
+        return employees.stream()
+                // .sorted(EmployeeSortHelper.EMPLOYEE_COMPARATOR)
+                .map(EmployeeSearchResponse::from)
+                .toList();
+
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmployeeSearchResponse> searchEmployees(Long departmentId, Long gradeId, String emplName) {
+        return searchEmployees(new EmployeeSearchRequest(departmentId, gradeId, emplName));
     }
 }
