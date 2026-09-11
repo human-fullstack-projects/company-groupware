@@ -1,0 +1,275 @@
+.calendar-page {
+    margin-left: var(--menubar-width);
+    padding: calc(var(--topinfo-height) + 28px) 28px 40px;
+    min-height: 100vh;
+    background: #f4f6fa;
+}
+
+.calendar-heading,
+.calendar-toolbar,
+.calendar-actions,
+.dialog-header,
+.dialog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.calendar-heading {
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.calendar-heading h2,
+.calendar-toolbar h3,
+.dialog-header h2 {
+    margin: 0;
+}
+
+.calendar-heading p,
+.calendar-guide,
+.schedule-info {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.calendar-page button,
+.schedule-dialog button {
+    padding: 9px 14px;
+    border: 1px solid #d7deea;
+    border-radius: 8px;
+    background: white;
+    color: #24334e;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.calendar-page button:hover,
+.schedule-dialog button:hover {
+    background: #eef3fb;
+}
+
+.calendar-page button.primary,
+.schedule-dialog button.primary {
+    background: #2456b8;
+    color: white;
+    border-color: #2456b8;
+}
+
+.calendar-page button:focus-visible,
+.schedule-dialog button:focus-visible,
+.schedule-dialog input:focus-visible,
+.schedule-dialog textarea:focus-visible {
+    outline: 3px solid #8bb4ff;
+    outline-offset: 2px;
+}
+
+.schedule-dialog button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.calendar-card {
+    padding: 22px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+}
+
+.calendar-actions {
+    justify-content: flex-end;
+}
+
+.status {
+    min-height: 22px;
+    font-size: 14px;
+    color: #475569;
+}
+
+.calendar-scroll {
+    overflow-x: auto;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    min-width: 700px;
+}
+
+.calendar-weekdays {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.calendar-weekdays span {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.calendar-weekdays span:first-child {
+    color: #dc4141;
+}
+
+.calendar-weekdays span:last-child {
+    color: #2456b8;
+}
+
+.calendar-grid {
+    border-left: 1px solid #e2e8f0;
+}
+
+.calendar-day {
+    min-height: 125px;
+    padding: 8px;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.calendar-day.other-month {
+    background: #f8fafc;
+}
+
+.calendar-day.other-month .day-number {
+    color: #94a3b8;
+}
+
+.calendar-day.today {
+    background: #f0f6ff;
+}
+
+.calendar-page .day-number {
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    font-weight: 700;
+}
+
+.calendar-page .today .day-number {
+    background: #2456b8;
+    color: white;
+}
+
+.calendar-page .schedule-item {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border: 0;
+    border-left: 3px solid #94a3b8;
+    border-radius: 4px;
+    background: #f1f5f9;
+    text-align: left;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.calendar-page .schedule-item.editable {
+    border-left-color: #2456b8;
+    background: #eaf1ff;
+}
+
+.schedule-dialog {
+    width: min(520px, calc(100% - 32px));
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    border: 0;
+    border-radius: 16px;
+    color: #1e293b;
+}
+
+.schedule-dialog::backdrop {
+    background: rgb(15 23 42 / 50%);
+}
+
+.schedule-fields {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.schedule-fields label {
+    display: grid;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.schedule-fields input,
+.schedule-fields textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.schedule-fields textarea {
+    resize: none;     /* 사용자가 크기를 변경하지 못하게 */
+    height: 140px;     /* 높이 고정 */
+    overflow-y: auto; /* 내용이 길어지면 내부 스크롤 */
+}
+
+.schedule-fields :disabled {
+    color: #475569;
+    background: #f1f5f9;
+    opacity: 1;
+}
+
+.form-error {
+    color: #b42318;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+.dialog-footer {
+    justify-content: flex-end;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 800px) {
+    .calendar-page {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .calendar-card {
+        padding: 12px;
+    }
+
+    .calendar-toolbar {
+        flex-wrap: wrap;
+    }
+}
+/* 취소 내역도 달력에서 확인 가능 */
+.calendar-page .schedule-item.cancelled {
+    background: #f1f1f1;
+    color: #707070;
+    border-left-color: #a3a3a3;
+    text-decoration: line-through;
+}
+.schedule-dialog button.danger {
+    color: #b42318;
+    border-color: #f0b4ad;
+    background: #fff4f2;
+}
+.schedule-dialog button[hidden] {
+    display: none;
+}
