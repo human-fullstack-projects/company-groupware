@@ -65,6 +65,7 @@ public class BoardController {
      */
     @GetMapping("/boards")
     public String list(
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(defaultValue = "title") String searchType,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
@@ -79,6 +80,7 @@ public class BoardController {
 
         Page<Board> boardPage =
                 boardService.findAll(
+                        categoryId,
                         searchType,
                         keyword,
                         page,
@@ -88,6 +90,16 @@ public class BoardController {
         model.addAttribute(
                 "boardPage",
                 boardPage
+        );
+
+        model.addAttribute(
+                "categoryId",
+                categoryId
+        );
+
+        model.addAttribute(
+                "categories",
+                boardService.findAllCategories()
         );
 
         model.addAttribute(
@@ -103,6 +115,21 @@ public class BoardController {
         model.addAttribute(
                 "currentPage",
                 page
+        );
+
+        int blockSize = 5;
+        int currentBlock = page / blockSize;
+        int startPage = currentBlock * blockSize;
+        int endPage = Math.min(startPage + blockSize - 1, boardPage.getTotalPages() - 1);
+
+        model.addAttribute(
+                "startPage",
+                startPage
+        );
+
+        model.addAttribute(
+                "endPage",
+                endPage
         );
 
         model.addAttribute(

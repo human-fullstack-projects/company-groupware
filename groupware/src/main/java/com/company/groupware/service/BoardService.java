@@ -13,6 +13,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,53 +49,25 @@ public class BoardService {
      * searchType에 따라 제목/내용/작성자 중 하나를 기준으로 검색한다.
      */
     public Page<Board> findAll(
+            Long categoryId,
             String searchType,
             String keyword,
             int page,
             int size) {
 
         Pageable pageable =
-                PageRequest.of(page, size);
-
-        if (keyword == null ||
-                keyword.trim().isEmpty()) {
-
-            return boardRepository.findAll(pageable);
-        }
-
-        if ("all".equals(searchType)) {
-
-            return boardRepository
-                    .findByBoardTitleContainingOrBoardContentContaining(
-                            keyword,
-                            keyword,
-                            pageable
-                    );
-        }
-
-        if ("content".equals(searchType)) {
-
-            return boardRepository
-                    .findByBoardContentContaining(
-                            keyword,
-                            pageable
-                    );
-        }
-
-        if ("author".equals(searchType)) {
-
-            return boardRepository
-                    .findByEmployee_EmplNameContaining(
-                            keyword,
-                            pageable
-                    );
-        }
-
-        return boardRepository
-                .findByBoardTitleContaining(
-                        keyword,
-                        pageable
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "boardId")
                 );
+
+        return boardRepository.search(
+                categoryId,
+                searchType,
+                keyword,
+                pageable
+        );
     }
 
     /**
