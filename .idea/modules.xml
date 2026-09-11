@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/groupware.main.iml" filepath="$PROJECT_DIR$/.idea/modules/groupware.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/groupware.test.iml" filepath="$PROJECT_DIR$/.idea/modules/groupware.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.company.groupware.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.company.groupware.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/groupware.iml" filepath="$PROJECT_DIR$/.idea/modules/groupware.iml" />
     </modules>
   </component>
 </project>
