@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전자결재</title>
+    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}"
+          href="/css/approval/approval-document.css">
+</head>
+<body>
+<div class="approval-page">
+
+    <div class="page-head">
+        <div>
+            <h1 class="page-title">전자결재</h1>
+            <p class="page-desc">내가 상신한 문서와 현재 내가 결재해야 할 문서를 확인합니다.</p>
+        </div>
+
+        <div class="button-row">
+            <a class="btn" th:href="@{/approval-lines}" href="/approval-lines">결재라인 관리</a>
+            <a class="btn btn-primary" th:href="@{/approvals/write}" href="/approvals/write">문서 상신</a>
+        </div>
+    </div>
+
+    <!-- 내가 결재할 차례인 문서 -->
+    <section class="section-card">
+        <div class="section-head">
+            <h2 class="section-title">결재 대기</h2>
+            <span class="section-count">현재 내 결재 순서인 문서</span>
+        </div>
+
+        <table class="approval-table">
+            <colgroup>
+                <col style="width: 80px;">
+                <col>
+                <col style="width: 130px;">
+                <col style="width: 120px;">
+                <col style="width: 150px;">
+            </colgroup>
+            <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>상태</th>
+                <th>상신일</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="document : ${pendingDocuments}">
+
+                <td th:text="${document.documentId}">
+                    1
+                </td>
+
+                <td class="title-cell">
+
+                    <a class="document-link"
+                       th:href="@{/approvals/{id}(id=${document.documentId})}"
+                       th:text="${document.title}">
+                        문서 제목
+                    </a>
+
+                </td>
+                <td th:text="${document.writerName}">
+                    작성자
+                </td>
+                <td>
+                    <span class="status pending">
+                        결재 대기
+                    </span>
+                </td>
+                <td th:text="${document.submittedAt != null? #temporals.format(document.submittedAt, 'yyyy-MM-dd'): '-'}">
+                    2026-09-10
+                </td>
+            </tr>
+
+            <!-- 결재 대기 문서가 없을 때 -->
+            <tr th:if="${#lists.isEmpty(pendingDocuments)}">
+                <td colspan="5"
+                    style="text-align:center; color:#888; padding:30px;">
+                    현재 결재할 문서가 없습니다.
+                </td>
+            </tr>
+
+<!--            <tr> 테스트용 하드코딩-->
+<!--                <td>1</td>-->
+<!--                <td class="title-cell">-->
+<!--                    <a class="document-link" th:href="@{/approvals/1}" href="/approvals/1">-->
+<!--                        휴가 신청서 - 화면 확인용 예시-->
+<!--                    </a>-->
+<!--                </td>-->
+<!--                <td>홍길동</td>-->
+<!--                <td><span class="status pending">결재 대기</span></td>-->
+<!--                <td>2026-09-10</td>-->
+<!--            </tr>-->
+
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 내가 작성한 문서(임시저장 포함) -->
+    <section class="section-card">
+        <div class="section-head">
+            <h2 class="section-title">내 상신문서</h2>
+            <span class="section-count">내가 작성하거나 상신한 문서</span>
+        </div>
+
+        <table class="approval-table">
+            <colgroup>
+                <col style="width: 80px;">
+                <col>
+                <col style="width: 130px;">
+                <col style="width: 120px;">
+                <col style="width: 150px;">
+            </colgroup>
+            <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>결재라인</th>
+                <th>상태</th>
+                <th>작성일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="document : ${myDocuments}">
+                <td th:text="${document.documentId}">
+                    아이디
+                </td>
+
+                <td class="title-cell">
+                    <a class="document-link"
+                       th:href="@{/approvals/{id}(id=${document.documentId})}"
+                       th:text="${document.title}">
+                        문서 제목
+                    </a>
+                </td>
+                <!--
+                    현재 DB에는 원본 결재라인 이름을
+                    문서에 저장하지 않고 있기 때문에
+                    결재자 수로 우선 표시
+                -->
+                <td>
+
+                <span th:if="${document.status == 'DRAFT'}"> -
+
+                </span>
+                <span th:unless="${document.status == 'DRAFT'}"
+                                  th:text="|결재자 ${#lists.size(document.approvers)}명|">
+                    결재자 명수
+                </span>
+                </td>
+                <!-- 상태 -->
+                <td>
+
+                    <!-- 임시저장 -->
+                    <span th:if="${document.status == 'DRAFT'}" class="status draft">임시저장</span>
+                    <!-- 진행중 -->
+                    <span th:if="${document.status == 'IN_PROGRESS'}" class="status progress">진행중</span>
+                    <!-- 승인 -->
+                    <span th:if="${document.status == 'APPROVED'}" class="status approved">승인</span>
+                    <!-- 반려 -->
+                    <span th:if="${document.status == 'REJECTED'}" class="status rejected">반려</span>
+                </td>
+                <td th:text="${#temporals.format(document.createdAt,'yyyy-MM-dd')}">
+                    저장일자
+                </td>
+
+            </tr>
+
+
+            <!-- 작성한 문서가 없을 때 -->
+            <tr th:if="${#lists.isEmpty(myDocuments)}">
+                <td colspan="5"
+                    style="text-align:center; color:#888; padding:30px;">
+                    작성한 문서가 없습니다.
+                </td>
+            </tr>
+
+<!--            <tr>-->
+<!--                <td>7</td>-->
+<!--                <td class="title-cell">-->
+<!--                    <a class="document-link" th:href="@{/approvals/7}" href="/approvals/7">-->
+<!--                        비품 구매 요청 - 화면 확인용 예시-->
+<!--                    </a>-->
+<!--                </td>-->
+<!--                <td>기본 결재라인</td>-->
+<!--                <td><span class="status progress">진행중</span></td>-->
+<!--                <td>2026-09-10</td>-->
+<!--            </tr>-->
+<!--            <tr>-->
+<!--                <td>6</td>-->
+<!--                <td class="title-cell">지난 결재문서 예시</td>-->
+<!--                <td>팀 결재라인</td>-->
+<!--                <td><span class="status approved">승인</span></td>-->
+<!--                <td>2026-09-09</td>-->
+<!--            </tr>-->
+            </tbody>
+        </table>
+    </section>
+
+</div>
+</body>
+</html>
