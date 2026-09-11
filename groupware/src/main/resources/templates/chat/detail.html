@@ -2,6 +2,8 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="_login_empl_id" th:content="${loginEmplId}">
     <meta name="_room_id" th:content="${chatRoom.roomId}">
     <title th:text="${chatRoom.roomName}">채팅방</title>
@@ -21,16 +23,28 @@
         <a th:href="@{/chat/list}" class="chat-detail__back">← 목록으로</a>
         <h2 class="chat-detail__title" th:text="${chatRoom.roomId} + ' - ' + ${chatRoom.roomName}">채팅방</h2>
         <span id="status" class="chat-detail__status disconnected">연결 중...</span>
+        <button type="button" id="inviteBtn" class="chat-detail__invite-btn" onclick="inviteMember()">초대</button>
+        <button type="button" id="leaveBtn" class="chat-detail__leave-btn" onclick="leaveRoom()">나가기</button>
     </div>
 
-    <ul id="messages" class="chat-detail__messages"></ul>
+    <div class="chat-detail__body">
+        <aside class="chat-detail__participants">
+            <h3 class="chat-detail__participants-title">참여자</h3>
+            <ul id="participantList" class="chat-detail__participant-list"></ul>
+        </aside>
 
-    <div id="errorLog" class="chat-detail__error" style="display:none;"></div>
+        <div class="chat-detail__main">
+            <ul id="messages" class="chat-detail__messages"></ul>
 
-    <form id="sendForm" class="chat-detail__send-row">
-        <input type="text" id="content" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
-        <button type="submit" class="chat-detail__send-btn">전송</button>
-    </form>
+            <div id="errorLog" class="chat-detail__error" style="display:none;"></div>
+
+            <form id="sendForm" class="chat-detail__send-row">
+                <input type="text" id="content" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
+                <input type="file" id="fileInput" class="chat-detail__file-input">
+                <button type="submit" class="chat-detail__send-btn">전송</button>
+            </form>
+        </div>
+    </div>
 </main>
 
 <script th:inline="none">
@@ -43,11 +57,144 @@
         return document.querySelector('meta[name="_room_id"]').content;
     }
 
+    function csrfHeader() {
+        const token = document.querySelector('meta[name="_csrf"]').content;
+        const header = document.querySelector('meta[name="_csrf_header"]').content;
+        return { [header]: token };
+    }
+
+    // 이름으로 직원 검색 (부분 일치, 여러 명이면 목록에서 선택)
+    async function findEmplIdByName(name) {
+        const res = await fetch('/api/employees/search?name=' + encodeURIComponent(name));
+        if (!res.ok) {
+            throw new Error(name + ' 검색 실패');
+        }
+        const candidates = await res.json();
+        if (candidates.length === 0) {
+            throw new Error('"' + name + '"와 일치하는 직원이 없습니다.');
+        }
+        if (candidates.length === 1) {
+            return candidates[0].emplId;
+        }
+        const listText = candidates
+            .map((c, i) => (i + 1) + '. ' + c.emplName + (c.deptName ? ' (' + c.deptName + ')' : '') + ' - emplId:' + c.emplId)
+            .join('\n');
+        const picked = prompt('"' + name + '"와 일치하는 직원이 여러 명입니다. 번호를 선택하세요\n' + listText, '1');
+        const idx = Number(picked) - 1;
+        if (!(idx >= 0 && idx < candidates.length)) {
+            throw new Error('선택이 취소되었습니다.');
+        }
+        return candidates[idx].emplId;
+    }
+
+    // 현재 방에 직원 초대
+    async function inviteMember() {
+        const inviteInput = prompt('초대할 직원 이름을 쉼표로 구분해 입력하세요 (예: 홍길동,김철수)', '');
+        const inviteNames = (inviteInput || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        if (inviteNames.length === 0) {
+            return;
+        }
+
+        let inviteIds;
+        try {
+            inviteIds = await Promise.all(inviteNames.map(findEmplIdByName));
+        } catch (e) {
+            alert(e.message);
+            return;
+        }
+
+        for (const id of inviteIds) {
+            const res = await fetch(`/api/chat/rooms/${roomId()}/members`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+                body: JSON.stringify({ emplId: id })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                alert('초대 실패 (emplId:' + id + '): ' + (err.message || res.status));
+            }
+        }
+        loadMembers();
+    }
+
+    // 현재 방에서 나가기
+    async function leaveRoom() {
+        if (!confirm('채팅방에서 나가시겠습니까?')) {
+            return;
+        }
+
+        const res = await fetch(`/api/chat/rooms/${roomId()}/members/${emplId()}`, {
+            method: 'DELETE',
+            headers: csrfHeader()
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            alert('나가기 실패: ' + (err.message || res.status));
+            return;
+        }
+
+        location.href = '/chat/list';
+    }
+
+    let lastMessageDate = null; // 마지막으로 렌더링한 메시지의 날짜(YYYY-MM-DD)
+
+    function toDateKey(date) {
+        return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes == null) {
+            return '';
+        }
+        if (bytes < 1024) {
+            return bytes + 'B';
+        }
+        if (bytes < 1024 * 1024) {
+            return (bytes / 1024).toFixed(1) + 'KB';
+        }
+        return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+    }
+
     function appendMessage(msg) {
-        const li = document.createElement('li');
-        const time = msg.createdAt ? msg.createdAt.replace('T', ' ') : '';
-        li.innerHTML = '<span class="chat-detail__meta">[' + time + '] ' + msg.emplName + '</span>' + msg.content;
         const list = document.getElementById('messages');
+        const created = msg.createdAt ? new Date(msg.createdAt) : new Date();
+
+        const dateKey = toDateKey(created);
+        if (dateKey !== lastMessageDate) {
+            const divider = document.createElement('li');
+            divider.className = 'chat-detail__date-divider';
+            divider.textContent = created.toLocaleDateString('ko-KR', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+            list.appendChild(divider);
+            lastMessageDate = dateKey;
+        }
+
+        const li = document.createElement('li');
+        if (String(msg.emplId) === emplId()) {
+            li.className = 'chat-detail__message--mine';
+        }
+        const time = created.toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'});
+
+        const meta = document.createElement('span');
+        meta.className = 'chat-detail__meta';
+        meta.textContent = '[' + time + '] ' + msg.emplName;
+        li.appendChild(meta);
+
+        if (msg.file) {
+            const link = document.createElement('a');
+            link.className = 'chat-detail__file-link';
+            link.href = msg.file.downloadUrl + '?emplId=' + encodeURIComponent(emplId());
+            link.textContent = '📎 ' + msg.file.fileName + ' (' + formatFileSize(msg.file.fileSize) + ')';
+            li.appendChild(link);
+        } else {
+            li.appendChild(document.createTextNode(msg.content));
+        }
+
         list.appendChild(li);
         list.scrollTop = list.scrollHeight;
     }
@@ -59,10 +206,24 @@
     }
 
     async function loadHistory() {
+        lastMessageDate = null; // 새로 그릴 때 날짜 추적 초기화
         const res = await fetch(`/api/chat/rooms/${roomId()}/messages`);
         const history = await res.json();
         document.getElementById('messages').innerHTML = '';
         history.forEach(appendMessage);
+    }
+
+    async function loadMembers() {
+        const res = await fetch(`/api/chat/rooms/${roomId()}/members`);
+        const members = await res.json();
+        const list = document.getElementById('participantList');
+        list.innerHTML = '';
+        members.forEach(m => {
+            const li = document.createElement('li');
+            li.className = 'chat-detail__participant-item';
+            li.textContent = m.emplName;
+            list.appendChild(li);
+        });
     }
 
     function connect() {
@@ -83,6 +244,7 @@
             });
 
             loadHistory();
+            loadMembers();
         }, function (error) {
             appendError({ message: '연결 실패: ' + error });
             document.getElementById('status').textContent = '연결 실패';
@@ -90,8 +252,34 @@
         });
     }
 
-    function sendMessage(event) {
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('emplId', emplId());
+        formData.append('file', file);
+
+        const res = await fetch(`/api/chat/rooms/${roomId()}/files`, {
+            method: 'POST',
+            headers: csrfHeader(),
+            body: formData
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            appendError({ message: '파일 업로드 실패: ' + (err.message || res.status) });
+        }
+    }
+
+    async function sendMessage(event) {
         event.preventDefault();
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (file) {
+            await uploadFile(file);
+            fileInput.value = '';
+            return;
+        }
+
         if (stompClient === null) {
             appendError({ message: '아직 연결되지 않았습니다. 잠시 후 다시 시도해주세요.' });
             return;

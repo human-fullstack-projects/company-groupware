@@ -6,7 +6,6 @@ import com.company.groupware.entity.Employee;
 import com.company.groupware.entity.Grade;
 import com.company.groupware.repository.ChatRoomEmployeeRepository;
 import com.company.groupware.repository.DepartmentRepository;
-import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.repository.GradeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class EmployeeService {
+public class ChatRoomEmployeeService {
 
     private final ChatRoomEmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
