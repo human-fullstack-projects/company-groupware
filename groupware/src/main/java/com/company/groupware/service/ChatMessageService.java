@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,8 +65,8 @@ public class ChatMessageService {
      * 파일 첨부 메시지를 저장합니다. 방에 활성 참여 중인 직원만 업로드할 수 있습니다.
      */
     @Transactional
-    public ChatMessageResponse uploadFile(Long roomId, Long emplId, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
+    public ChatMessageResponse uploadFile(Long roomId, Long emplId, List<MultipartFile> files) {
+        if (files == null || files.isEmpty() || files.stream().allMatch(MultipartFile::isEmpty)) {
             throw new IllegalArgumentException("첨부할 파일이 비어 있습니다.");
         }
 
@@ -78,9 +80,14 @@ public class ChatMessageService {
         message.setCreatedAt(LocalDateTime.now());
         chatRoomMessageRepository.save(message);
 
-        ChatRoomFile chatRoomFile = saveChatFile(message, file);
+        List<ChatRoomFile> chatRoomFiles = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                chatRoomFiles.add(saveChatFile(message, file));
+            }
+        }
 
-        return new ChatMessageResponse(message, chatRoomFile);
+        return new ChatMessageResponse(message, chatRoomFiles);
     }
 
     private ChatRoomFile saveChatFile(ChatRoomMessage message, MultipartFile file) {
@@ -160,12 +167,13 @@ public class ChatMessageService {
 
         List<ChatRoomMessage> messages = chatRoomMessageRepository.findByChatRoom_RoomIdOrderByCreatedAtAsc(roomId);
 
-        Map<Long, ChatRoomFile> filesByMessageId = chatRoomFileRepository
+        Map<Long, List<ChatRoomFile>> filesByMessageId = chatRoomFileRepository
                 .findByChatRoomMessage_ChatRoom_RoomId(roomId).stream()
-                .collect(Collectors.toMap(f -> f.getChatRoomMessage().getMessageId(), f -> f));
+                .collect(Collectors.groupingBy(f -> f.getChatRoomMessage().getMessageId()));
 
         return messages.stream()
-                .map(message -> new ChatMessageResponse(message, filesByMessageId.get(message.getMessageId())))
+                .map(message -> new ChatMessageResponse(message,
+                        filesByMessageId.getOrDefault(message.getMessageId(), Collections.emptyList())))
                 .collect(Collectors.toList());
     }
 

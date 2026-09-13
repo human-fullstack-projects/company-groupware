@@ -69,9 +69,9 @@ public class ChatRoomController {
     public ResponseEntity<ChatMessageResponse> uploadFile(
             @PathVariable Long roomId,
             @RequestParam Long emplId,
-            @RequestParam("file") MultipartFile file) {
-        // uploadFile로 파일을 업로드, messagingTemplate로 출력
-        ChatMessageResponse response = chatMessageService.uploadFile(roomId, emplId, file);
+            @RequestParam("files") List<MultipartFile> files) {
+        // uploadFile로 파일들을 업로드, messagingTemplate로 출력
+        ChatMessageResponse response = chatMessageService.uploadFile(roomId, emplId, files);
         messagingTemplate.convertAndSend("/topic/room/" + roomId, response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

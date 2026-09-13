@@ -40,7 +40,7 @@
 
             <form id="sendForm" class="chat-detail__send-row">
                 <input type="text" id="content" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
-                <input type="file" id="fileInput" class="chat-detail__file-input">
+                <input type="file" id="fileInput" class="chat-detail__file-input" multiple>
                 <button type="submit" class="chat-detail__send-btn">전송</button>
             </form>
         </div>
@@ -146,6 +146,17 @@
         return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
     }
 
+    const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+
+    function isImageFile(fileName) {
+        const dot = (fileName || '').lastIndexOf('.');
+        if (dot === -1) {
+            return false;
+        }
+        const ext = fileName.slice(dot + 1).toLowerCase();
+        return IMAGE_EXTENSIONS.includes(ext);
+    }
+
     function formatFileSize(bytes) {
         if (bytes == null) {
             return '';
@@ -185,12 +196,28 @@
         meta.textContent = '[' + time + '] ' + msg.emplName;
         li.appendChild(meta);
 
-        if (msg.file) {
-            const link = document.createElement('a');
-            link.className = 'chat-detail__file-link';
-            link.href = msg.file.downloadUrl + '?emplId=' + encodeURIComponent(emplId());
-            link.textContent = '📎 ' + msg.file.fileName + ' (' + formatFileSize(msg.file.fileSize) + ')';
-            li.appendChild(link);
+        if (msg.files && msg.files.length > 0) {
+            msg.files.forEach(file => {
+                const url = file.downloadUrl + '?emplId=' + encodeURIComponent(emplId());
+
+                const link = document.createElement('a');
+                link.className = 'chat-detail__file-link';
+                link.href = url;
+                link.textContent = '📎 ' + file.fileName + ' (' + formatFileSize(file.fileSize) + ')';
+                li.appendChild(link);
+
+                if (isImageFile(file.fileName)) {
+                    const preview = document.createElement('a');
+                    preview.href = url;
+                    preview.target = '_blank';
+                    const img = document.createElement('img');
+                    img.className = 'chat-detail__file-image';
+                    img.src = url;
+                    img.alt = file.fileName;
+                    preview.appendChild(img);
+                    li.appendChild(preview);
+                }
+            });
         } else {
             li.appendChild(document.createTextNode(msg.content));
         }
@@ -252,10 +279,12 @@
         });
     }
 
-    async function uploadFile(file) {
+    async function uploadFiles(files) {
         const formData = new FormData();
         formData.append('emplId', emplId());
-        formData.append('file', file);
+        for (const file of files) {
+            formData.append('files', file);
+        }
 
         const res = await fetch(`/api/chat/rooms/${roomId()}/files`, {
             method: 'POST',
@@ -272,10 +301,8 @@
     async function sendMessage(event) {
         event.preventDefault();
         const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-
-        if (file) {
-            await uploadFile(file);
+        if (fileInput.files.length > 0) {
+            await uploadFiles(fileInput.files);
             fileInput.value = '';
             return;
         }

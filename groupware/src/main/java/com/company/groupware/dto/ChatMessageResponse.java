@@ -5,6 +5,9 @@ import com.company.groupware.entity.ChatRoomMessage;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class ChatMessageResponse {
@@ -16,19 +19,19 @@ public class ChatMessageResponse {
     private final String content;
     private final LocalDateTime createdAt;
 
-    private final ChatFileResponse file;
+    private final List<ChatFileResponse> files;
 
     public ChatMessageResponse(ChatRoomMessage message) {
-        this(message, null);
+        this(message, Collections.emptyList());
     }
 
-    public ChatMessageResponse(ChatRoomMessage message, ChatRoomFile chatRoomFile) {
+    public ChatMessageResponse(ChatRoomMessage message, List<ChatRoomFile> chatRoomFiles) {
         this.messageId = message.getMessageId();
         this.roomId = message.getChatRoom().getRoomId();
         this.emplId = message.getEmployee().getEmplId();
         this.emplName = message.getEmployee().getEmplName();
         this.content = message.getMessageContent();
         this.createdAt = message.getCreatedAt();
-        this.file = chatRoomFile != null ? new ChatFileResponse(chatRoomFile) : null;
+        this.files = chatRoomFiles.stream().map(ChatFileResponse::new).collect(Collectors.toList());
     }
 }
