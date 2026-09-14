@@ -8,16 +8,22 @@
 
     <title>전자결재 상세</title>
 
-    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}"
-          href="/css/approval/approval-document.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
+    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
     <!--    <script th:inline="javascript">-->
     <!--        const documentId = [[${document.documentId}]];-->
     <!--    </script>-->
-    <script defer th:src="@{/js/approval/approval-document-detail.js}"
-            src="/js/approval/approval-document-detail.js"></script>
+    <script defer th:src="@{/js/approval/approval-document-detail.js}"></script>
 </head>
 
 <body>
+
+<!--<div th:replace="~{module/topinfo :: topinfo}"></div>-->
+<!--<div th:replace="~{module/menubar :: menubar}"></div>-->
+
 <div class="approval-page" id="approvalPage" th:attr="data-document-id=${document.documentId}">
     <div class="page-head">
         <div>
@@ -144,6 +150,17 @@
                                     <span th:case="'PENDING'">현재 결재 순서</span>
                                     <span th:case="*">앞 순서 결재 후 진행</span>
                                 </div>
+                            </div>
+                            <div class="step-signature"
+                                 th:if="${step.status == 'APPROVED'}">
+
+                                <img class="step-signature-image"
+                                     th:src="@{/approvals/{documentId}/signature/{approverId}(
+                                                                documentId=${document.documentId},
+                                                                approverId=${step.approverId}
+                                                             )}"
+                                     alt=""
+                                     onerror="this.style.display='none'">
                             </div>
                             <span th:if="${step.status == 'APPROVED'}" class="status approved">승인</span>
                             <span th:if="${step.status == 'REJECTED'}" class="status rejected">반려</span>

@@ -8,6 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitButton = document.getElementById("submitButton");
 
 
+    const documentTemplate = document.getElementById("documentTemplate");
+    const documentContent = document.getElementById("documentContent");
+
+
     if (!approvalLineSelect || !preview) {
         return;
     }
@@ -44,6 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+
+    documentTemplate?.addEventListener("change", () => {
+        setText(documentTemplate, documentContent);
+    });
 });
 
 function renderApprovers(container, approvers) {
@@ -304,3 +312,63 @@ function renderEmpty(container,message) {
 }
 
 
+function setText(documentTemplate, documentContent){
+        const templates = {
+
+            vacation:
+                `[휴가 종류]
+- 연차 / 반차 / 병가 / 기타
+
+[휴가 기간]
+- 시작일 :
+- 종료일 :
+
+[휴가 사유]
+-
+
+[업무 인수인계]
+-`,
+
+            worklog:
+                `[업무 일자]
+-
+
+[주요 업무 내용]
+1.
+2.
+3.
+
+[진행 상황]
+-
+
+[특이사항]
+-
+
+[익일 업무 계획]
+-`,
+
+            proposal:
+                `[품의 일자]
+-
+
+[품의 목적]
+-
+
+[품의 내용]
+-
+
+[예상 비용]
+-
+
+[기대 효과]
+-
+
+[비고]
+-`
+
+        };
+
+        const selectedTemplate = templates[documentTemplate.value];
+        if (!selectedTemplate) {return;}
+        documentContent.value = selectedTemplate;
+}

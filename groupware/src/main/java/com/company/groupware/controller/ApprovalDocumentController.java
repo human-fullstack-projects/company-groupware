@@ -7,6 +7,7 @@ import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.service.ApprovalDocumentService;
 import com.company.groupware.service.ApprovalLineService;
+import com.company.groupware.service.ApprovalSignatureService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
+import com.company.groupware.service.ApprovalSignatureService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 
 @Controller
 @RequestMapping("/approvals")
@@ -25,6 +30,7 @@ public class ApprovalDocumentController {
     private final ApprovalLineService approvalLineService;
     private final EmployeeRepository employeeRepository;
     private final ApprovalDocumentService approvalDocumentService;
+    private final ApprovalSignatureService approvalSignatureService;
 
 //    public ApprovalDocumentController(ApprovalLineService approvalLineService, EmployeeRepository employeeRepository, ApprovalDocumentService approvalDocumentService) {
 //        this.approvalLineService = approvalLineService;
@@ -39,10 +45,17 @@ public class ApprovalDocumentController {
      */
     @GetMapping
     public String approvalList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
             Authentication authentication,
             Model model) {
 
         Long emplId = getLoginEmplId(authentication);
+
+        // 페이지당 표시 건수 제한
+        if (pageSize != 5 && pageSize != 10 && pageSize != 20) {
+            pageSize = 10;
+        }
 
         // 현재 내가 결재해야 하는 문서
         model.addAttribute(
@@ -51,14 +64,48 @@ public class ApprovalDocumentController {
         );
 
         // 내가 작성한 문서
-        // DRAFT / IN_PROGRESS / APPROVED / REJECTED 전부
+        var docPage =
+                approvalDocumentService.getMyDocuments(
+                        emplId,
+                        page,
+                        pageSize
+                );
         model.addAttribute(
                 "myDocuments",
-                approvalDocumentService.getMyDocuments(emplId)
+                docPage.getContent()
+        );
+        model.addAttribute(
+                "page",
+                docPage
+        );
+        model.addAttribute(
+                "pageSize",
+                pageSize
         );
 
         return "approval/document/list";
     }
+//    public String approvalList(
+//            Authentication authentication,
+//            Model model) {
+//
+//        Long emplId = getLoginEmplId(authentication);
+//
+//        // 현재 내가 결재해야 하는 문서
+//        model.addAttribute(
+//                "pendingDocuments",
+//                approvalDocumentService.getPendingDocuments(emplId)
+//        );
+//
+//        // 내가 작성한 문서
+//        // DRAFT / IN_PROGRESS / APPROVED / REJECTED 전부
+//        model.addAttribute(
+//                "myDocuments",
+//                approvalDocumentService.getMyDocuments(emplId)
+//        );
+//
+//        return "approval/document/list";
+//    }
 
     /**
      * 문서 상신 화면
@@ -117,14 +164,6 @@ public class ApprovalDocumentController {
      * 문서 상세 / 결재 화면
      * 아직 DB 연결 전이므로 documentId만 화면에 전달합니다.
      */
-//    @GetMapping("/{documentId}")
-//    public String approvalDetail(
-//            @PathVariable Long documentId,
-//            Model model) {
-//
-//        model.addAttribute("documentId", documentId);
-//        return "approval/document/detail";
-//    }
     @GetMapping("/{documentId}")
     public String approvalDetail(
             @PathVariable Long documentId,
@@ -181,6 +220,50 @@ public class ApprovalDocumentController {
         model.addAttribute("canApprove", canApprove);
 
         return "approval/document/detail";
+    }
+
+    // 결재자 사인 조회하는 부분 추가
+    @GetMapping("/{documentId}/signature/{approverId}")
+    @ResponseBody
+    public ResponseEntity<Resource> approverSignature(
+            @PathVariable Long documentId,
+            @PathVariable Long approverId,
+            Authentication authentication) {
+
+        Long emplId = getLoginEmplId(authentication);
+
+
+        // 현재 로그인 사용자가 이 문서를 조회할 수 있는지 먼저 확인
+        ApprovalDocumentResponse document = approvalDocumentService.getDocument(documentId, emplId);
+
+        // 해당 사람이 이 문서의 결재자인지 + 실제 승인까지 완료한 사람인지 확인
+        boolean approvedApprover =
+                document.getApprovers()
+                        .stream()
+                        .anyMatch(step ->
+                                Objects.equals(step.getApproverId(), approverId)
+                                        && "APPROVED".equals(step.getStatus()));
+
+        if (!approvedApprover) {
+            return ResponseEntity.notFound().build();
+        }
+
+        //등록된 사인 자체가 없는 경우
+        if (approvalSignatureService.getSignature(approverId).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            Resource resource = approvalSignatureService.loadSignature(approverId);
+
+            MediaType mediaType = MediaTypeFactory
+                                  .getMediaType(resource)
+                                  .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+            return ResponseEntity.ok().contentType(mediaType).body(resource);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /* 문서 수정 */

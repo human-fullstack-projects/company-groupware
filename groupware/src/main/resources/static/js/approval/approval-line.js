@@ -1,0 +1,554 @@
+let currentLineId = null;
+let employees = [];
+let approvers = [];
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    await loadEmployees();
+
+    await loadLines();
+
+    newLine();
+});
+
+
+/*
+ * fetch 공통 함수
+ */
+async function request(url, options = {}) {
+
+    const csrfToken =
+        document.querySelector('meta[name="_csrf"]');
+
+    const csrfHeader =
+        document.querySelector('meta[name="_csrf_header"]');
+
+    options.headers = {
+        ...(options.headers || {})
+    };
+
+    if (csrfToken && csrfHeader) {
+        options.headers[csrfHeader.content] =
+            csrfToken.content;
+    }
+
+    const response =
+        await fetch(url, options);
+
+    if (!response.ok) {
+
+        const message =
+            await response.text();
+
+        throw new Error(
+            message || "요청 처리 중 오류가 발생했습니다."
+        );
+    }
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    return await response.json();
+}
+
+
+/*
+ * 직원 목록
+ */
+async function loadEmployees() {
+
+    try {
+
+        employees =
+            await request(
+                "/approval-lines/api/employees"
+            );
+
+        renderEmployeeSelect();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("사원 목록 조회에 실패했습니다.");
+    }
+}
+
+
+function renderEmployeeSelect() {
+
+    const select =
+        document.getElementById("employeeSelect");
+
+    select.innerHTML =
+        `<option value="">사원을 선택하세요</option>`;
+
+    employees.forEach(employee => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = employee.emplId;
+
+        option.textContent =
+            employee.emplName;
+
+        select.appendChild(option);
+    });
+}
+
+
+/*
+ * 내 결재라인 목록
+ */
+async function loadLines() {
+
+    try {
+
+        const lines =
+            await request("/approval-lines/api");
+
+        const container =
+            document.getElementById("lineList");
+
+        container.innerHTML = "";
+
+
+        if (lines.length === 0) {
+
+            container.innerHTML =
+                `<div class="empty">
+                        등록된 결재라인이 없습니다.
+                     </div>`;
+
+            return;
+        }
+
+
+        lines.forEach(line => {
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "line-item";
+
+            if (line.lineId === currentLineId) {
+                button.classList.add("active");
+            }
+
+            button.textContent =
+                line.lineName;
+
+            button.onclick = () =>
+                selectLine(line.lineId);
+
+            container.appendChild(button);
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("결재라인 조회에 실패했습니다.");
+    }
+}
+
+
+/*
+ * 기존 결재라인 선택
+ */
+async function selectLine(lineId) {
+
+    try {
+
+        const line =
+            await request(
+                `/approval-lines/api/${lineId}`
+            );
+
+        currentLineId =
+            line.lineId;
+
+        document.getElementById("lineName").value =
+            line.lineName;
+
+
+        approvers =
+            line.approvers.map(approver => ({
+                emplId: approver.emplId,
+                emplName: approver.emplName
+            }));
+
+
+        renderApprovers();
+
+        await loadLines();
+
+        updateDeleteButton();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("결재라인 조회에 실패했습니다.");
+    }
+}
+
+
+/*
+ * 새 결재라인
+ */
+function newLine() {
+
+    currentLineId = null;
+
+    approvers = [];
+
+    document.getElementById("lineName").value = "";
+
+    document.getElementById("employeeSelect").value = "";
+
+    renderApprovers();
+
+    updateDeleteButton();
+
+    document.getElementById("lineName").focus();
+}
+
+
+/*
+ * 결재자 추가
+ */
+function addApprover() {
+
+    const select =
+        document.getElementById("employeeSelect");
+
+    const emplId =
+        Number(select.value);
+
+
+    if (!emplId) {
+
+        alert("사원을 선택해주세요.");
+
+        return;
+    }
+
+
+    const duplicate =
+        approvers.some(
+            approver =>
+                approver.emplId === emplId
+        );
+
+
+    if (duplicate) {
+
+        alert("이미 추가된 사원입니다.");
+
+        return;
+    }
+
+
+    const employee =
+        employees.find(
+            employee =>
+                employee.emplId === emplId
+        );
+
+
+    approvers.push({
+        emplId: employee.emplId,
+        emplName: employee.emplName
+    });
+
+
+    select.value = "";
+
+    renderApprovers();
+}
+
+
+/*
+ * 결재자 화면 출력
+ */
+function renderApprovers() {
+
+    const container =
+        document.getElementById("approverList");
+
+    container.innerHTML = "";
+
+
+    if (approvers.length === 0) {
+
+        container.innerHTML =
+            `<div class="empty">
+                    결재자를 추가해주세요.
+                 </div>`;
+
+        return;
+    }
+
+
+    approvers.forEach((approver, index) => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "approver-item";
+
+
+        div.innerHTML = `
+
+                <span class="approver-order">
+                    ${index + 1}
+                </span>
+
+                <span class="approver-name">
+                    ${escapeHtml(approver.emplName)}
+                </span>
+
+                <button type="button"
+                        onclick="moveApprover(${index}, -1)">
+                    ↑
+                </button>
+
+                <button type="button"
+                        onclick="moveApprover(${index}, 1)">
+                    ↓
+                </button>
+
+                <button type="button"
+                        class="btn-danger"
+                        onclick="removeApprover(${index})">
+                    삭제
+                </button>
+            `;
+
+        container.appendChild(div);
+    });
+}
+
+
+/*
+ * 순서 이동
+ */
+function moveApprover(index, direction) {
+
+    const newIndex =
+        index + direction;
+
+
+    if (newIndex < 0
+        || newIndex >= approvers.length) {
+
+        return;
+    }
+
+
+    [
+        approvers[index],
+        approvers[newIndex]
+    ] = [
+        approvers[newIndex],
+        approvers[index]
+    ];
+
+
+    renderApprovers();
+}
+
+
+/*
+ * 결재자 삭제
+ */
+function removeApprover(index) {
+
+    approvers.splice(index, 1);
+
+    renderApprovers();
+}
+
+
+/*
+ * 저장
+ */
+async function saveLine() {
+
+    const lineName =
+        document
+            .getElementById("lineName")
+            .value
+            .trim();
+
+
+    if (!lineName) {
+
+        alert("결재라인 이름을 입력해주세요.");
+
+        return;
+    }
+
+
+    if (approvers.length === 0) {
+
+        alert("결재자를 한 명 이상 추가해주세요.");
+
+        return;
+    }
+
+
+    const requestData = {
+
+        lineName: lineName,
+
+        approverIds:
+            approvers.map(
+                approver =>
+                    approver.emplId
+            )
+    };
+
+
+    try {
+
+        let savedLine;
+
+
+        if (currentLineId == null) {
+
+            savedLine =
+                await request(
+                    "/approval-lines/api",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                requestData
+                            )
+                    }
+                );
+
+        } else {
+
+            savedLine =
+                await request(
+                    `/approval-lines/api/${currentLineId}`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                requestData
+                            )
+                    }
+                );
+        }
+
+
+        currentLineId =
+            savedLine.lineId;
+
+        alert("저장되었습니다.");
+
+        await loadLines();
+
+        await selectLine(
+            savedLine.lineId
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("결재라인 저장에 실패했습니다.");
+    }
+}
+
+
+/*
+ * 결재라인 삭제
+ */
+async function deleteLine() {
+
+    if (currentLineId == null) {
+
+        return;
+    }
+
+
+    if (!confirm(
+        "이 결재라인을 삭제하시겠습니까?"
+    )) {
+
+        return;
+    }
+
+
+    try {
+
+        await request(
+            `/approval-lines/api/${currentLineId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        alert("삭제되었습니다.");
+
+        newLine();
+
+        await loadLines();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("결재라인 삭제에 실패했습니다.");
+    }
+}
+
+
+function updateDeleteButton() {
+
+    document
+        .getElementById("deleteButton")
+        .style.display =
+        currentLineId == null
+            ? "none"
+            : "inline-block";
+}
+
+
+/*
+ * 사원 이름 HTML 출력 방어
+ */
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
