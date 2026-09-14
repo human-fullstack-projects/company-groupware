@@ -393,3 +393,30 @@ textarea.form-control {
     line-height: 1.5;
     white-space: pre-wrap;
 }
+
+.step-signature {
+    flex: 0 0 58px;
+
+    width: 58px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #dfe3e8;
+    border-radius: 5px;
+
+    background: #fff;
+
+    overflow: hidden;
+}
+
+.step-signature-image {
+    display: block;
+
+    max-width: 100%;
+    max-height: 100%;
+
+    object-fit: contain;
+}

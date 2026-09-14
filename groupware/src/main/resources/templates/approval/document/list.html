@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전자결재</title>
-    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}"
-          href="/css/approval/approval-document.css">
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+
+    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
 </head>
 <body>
+
+<!--<div th:replace="~{module/topinfo :: topinfo}"></div>-->
+<!--<div th:replace="~{module/menubar :: menubar}"></div>-->
+
 <div class="approval-page">
 
     <div class="page-head">
@@ -104,6 +112,15 @@
     <section class="section-card">
         <div class="section-head">
             <h2 class="section-title">내 상신문서</h2>
+            <!-- 페이지당 표시 건수 -->
+            <form th:action="@{/approvals}" method="get" class="page-size-form">
+                표시 건수:
+                <select name="pageSize" class="page-size-select" onchange="this.form.submit()">
+                    <option value="5" th:selected="${pageSize == 5}">5개</option>
+                    <option value="10" th:selected="${pageSize == 10}">10개</option>
+                    <option value="20" th:selected="${pageSize == 30}">30개</option>
+                </select>
+            </form>
             <span class="section-count">내가 작성하거나 상신한 문서</span>
         </div>
 
@@ -199,6 +216,52 @@
 <!--            </tr>-->
             </tbody>
         </table>
+        <!-- 내 상신문서 페이징 -->
+        <div class="pagination"
+             th:if="${page.totalPages > 1}">
+
+            <!-- 이전 페이지 -->
+            <a class="page-link"
+               th:classappend="${page.first} ? ' disabled'"
+               th:href="${page.first}
+                ? null
+                : @{/approvals(
+                    page=${page.number - 1},
+                    pageSize=${pageSize}
+                  )}">
+                &lt;
+            </a>
+
+            <!-- 페이지 번호 -->
+            <a class="page-link"
+               th:each="pageNumber :
+                ${#numbers.sequence(
+                    0,
+                    page.totalPages - 1
+                )}"
+               th:text="${pageNumber + 1}"
+               th:classappend="${pageNumber == page.number}
+                        ? ' active'"
+               th:href="@{/approvals(
+                    page=${pageNumber},
+                    pageSize=${pageSize}
+                )}">
+                1
+            </a>
+
+            <!-- 다음 페이지 -->
+            <a class="page-link"
+               th:classappend="${page.last} ? ' disabled'"
+               th:href="${page.last}
+                ? null
+                : @{/approvals(
+                    page=${page.number + 1},
+                    pageSize=${pageSize}
+                  )}">
+                &gt;
+            </a>
+
+        </div>
     </section>
 
 </div>

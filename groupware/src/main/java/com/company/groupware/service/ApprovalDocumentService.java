@@ -6,6 +6,9 @@ import com.company.groupware.dto.ApprovalStepResponse;
 import com.company.groupware.entity.*;
 import com.company.groupware.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -150,14 +153,30 @@ public class ApprovalDocumentService {
     /**
      * 내가 상신한 문서
      */
+//    @Transactional(readOnly = true)
+//    public List<ApprovalDocumentResponse> getMyDocuments(Long emplId) {
+//
+//        return approvalDocumentRepository
+//                .findByWriter_EmplIdOrderByCreatedAtDesc(emplId)
+//                .stream()
+//                .map(this::toResponse)
+//                .toList();
+//    }
     @Transactional(readOnly = true)
-    public List<ApprovalDocumentResponse> getMyDocuments(Long emplId) {
+    public Page<ApprovalDocumentResponse> getMyDocuments(
+            Long emplId,
+            int page,
+            int size) {
+
+        Pageable pageable =
+                PageRequest.of(page, size);
 
         return approvalDocumentRepository
-                .findByWriter_EmplIdOrderByCreatedAtDesc(emplId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+                .findByWriter_EmplIdOrderByCreatedAtDesc(
+                        emplId,
+                        pageable
+                )
+                .map(this::toResponse);
     }
 
 

@@ -157,3 +157,80 @@ button:hover {
     color: #888;
     text-align: center;
 }
+
+.section-head-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-size-form {
+    margin: 0;
+}
+
+.page-size-select {
+    height: 32px;
+    padding: 0 28px 0 10px;
+
+    border: 1px solid #d5d9df;
+    border-radius: 5px;
+
+    background: #fff;
+
+    color: #555d67;
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    padding: 16px 20px;
+
+    border-top: 1px solid #edf0f2;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 32px;
+    height: 32px;
+
+    padding: 0 8px;
+
+    border: 1px solid #dfe3e8;
+    border-radius: 5px;
+
+    background: #fff;
+
+    color: #555d67;
+    text-decoration: none;
+
+    font-size: 13px;
+}
+
+.page-link:hover {
+    background: #f2f4f7;
+}
+
+.page-link.active {
+    border-color: #30343b;
+    background: #30343b;
+    color: #fff;
+
+    font-weight: 700;
+}
+
+.page-link.disabled {
+    pointer-events: none;
+
+    background: #fafafa;
+    color: #c0c4ca;
+}

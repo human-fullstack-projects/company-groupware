@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!--<head>-->
+<!--    <link rel="stylesheet" th:href="@{/css/approval/approval-signature.css}">-->
+<!--    <script defer th:src="@{/js/approval/approval-signature.js}"></script>-->
+<!--</head>-->
+<body>
+<div th:fragment="signature" class="signature-module">
+
+    <th:block th:fragment="css">
+        <link rel="stylesheet" th:href="@{/css/approval/approval-signature.css}">
+    </th:block>
+
+    <th:block th:fragment="js">
+        <script defer th:src="@{/js/approval/approval-signature.js}"></script>
+    </th:block>
+
+    <div class="signature-header">
+        <div>
+            <h3>개인 사인</h3>
+            <p>
+                전자결재에 사용할 개인 사인을 등록해주세요.
+            </p>
+        </div>
+    </div>
+
+
+    <!-- 사인 없음 -->
+    <div id="signatureEmpty"
+         class="signature-empty">
+
+        등록된 사인이 없습니다.
+
+    </div>
+
+
+    <!-- 사인 있음 -->
+    <div id="signaturePreviewArea"
+         class="signature-preview-area"
+         style="display:none;">
+
+        <div class="signature-image-box">
+
+            <img id="signaturePreview"
+                 alt="개인 사인">
+
+        </div>
+
+    </div>
+
+
+    <div class="signature-actions">
+
+        <input type="file"
+               id="signatureFile"
+               accept="image/png,image/jpeg,image/webp"
+               hidden>
+
+
+        <button type="button"
+                id="signatureUploadButton">
+            사인 등록
+        </button>
+
+
+        <button type="button"
+                id="signatureDeleteButton"
+                class="signature-delete-button"
+                style="display:none;">
+            삭제
+        </button>
+
+    </div>
+
+</div>
+
+</body>
+</html>

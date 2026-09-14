@@ -7,12 +7,18 @@
     <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}">
     <title>문서 상신</title>
 
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
-    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}"
-          href="/css/approval/approval-document.css">
-    <script th:src="@{/js/approval/approval-document-write.js}" src="/js/approval/approval-document-write.js"></script>
+    <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
+    <script th:src="@{/js/approval/approval-document-write.js}"></script>
 </head>
 <body>
+
+<!--<div th:replace="~{module/topinfo :: topinfo}"></div>-->
+<!--<div th:replace="~{module/menubar :: menubar}"></div>-->
+
 <div class="approval-page">
 
     <div class="page-head">
@@ -38,6 +44,13 @@
                            maxlength="200"
                            placeholder="문서 제목을 입력해주세요.">
                 </div>
+
+                <select id="documentTemplate" class="document-template-select">
+                    <option value="">문서 양식 선택</option>
+                    <option value="vacation">휴가 신청서</option>
+                    <option value="worklog">업무일지</option>
+                    <option value="proposal">품의서</option>
+                </select>
 
                 <div class="form-group">
                     <label class="form-label" for="documentContent">내용</label>
