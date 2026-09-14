@@ -22,4 +22,7 @@ public class Grade {
 
     @Column(name = "grade_name", length = 50, nullable = false)
     private String gradeName; // 직급명
+
+    @Column(name = "grade_priority")
+    private Integer gradePriority; // 직급 중요도 (숫자가 작을수록 높은 서열, 관리자만 설정 가능)
 }

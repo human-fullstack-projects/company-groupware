@@ -17,6 +17,10 @@ public interface EmployeeRepository
 
     long countByEmplStatTrue();
 
+    long countByDepartment_DeptId(Long deptId);
+
+    long countByGrade_GradeId(Long gradeId);
+
     @Query("SELECT e FROM Employee e " +
             "LEFT JOIN FETCH e.department " +
             "LEFT JOIN FETCH e.grade " +

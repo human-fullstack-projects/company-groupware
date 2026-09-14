@@ -51,6 +51,99 @@
             border: 1px solid #bfe3cd;
         }
 
+        .flash-message.is-error {
+            background: #fbeaea;
+            color: #9a2b2b;
+            border: 1px solid #d9a3a3;
+        }
+
+        .dept-manage-section {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            background: #fcfcfd;
+        }
+
+        .dept-manage-section h2 {
+            margin: 0 0 12px;
+            font-size: 15px;
+            color: var(--color-navy-dark);
+        }
+
+        .dept-add-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .dept-add-form input,
+        .dept-add-form textarea {
+            padding: 8px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            width: 220px;
+        }
+
+        .dept-add-form input {
+            height: 36px;
+        }
+
+        .dept-add-form textarea {
+            resize: vertical;
+        }
+
+        .priority-select {
+            height: 24px;
+            padding: 0 4px;
+            font-size: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: var(--color-white);
+        }
+
+        .dept-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .dept-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px 6px 14px;
+            border-radius: 999px;
+            background: var(--color-white);
+            border: 1px solid #dde1e4;
+            font-size: 13px;
+        }
+
+        .dept-chip form {
+            margin: 0;
+        }
+
+        .dept-chip .delete-btn {
+            width: 20px;
+            height: 20px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            border: 1px solid #d9a3a3;
+            background: #fbeaea;
+            color: #9a2b2b;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .dept-chip .delete-btn:hover {
+            background: #f6dede;
+        }
+
         .move-form {
             display: inline-flex;
             align-items: center;
@@ -96,21 +189,38 @@
         <p class="page-sub">직원의 직급을 변경합니다.</p>
 
         <div th:if="${message}" class="flash-message is-ok" th:text="${message}"></div>
+        <div th:if="${error}" class="flash-message is-error" th:text="${error}"></div>
+
+        <section class="dept-manage-section">
+            <h2>직급 목록 관리</h2>
+            <p class="page-sub" style="margin-bottom:12px;">숫자가 작을수록 높은 서열입니다. 새로 추가한 직급은 가장 낮은 서열로 들어가며, 드롭다운에서 순위를 바꾸면 사이에 있던 직급들이 자동으로 밀려납니다.</p>
+
+            <form th:action="@{/admin/grades/add}" method="post" class="dept-add-form">
+                <textarea name="gradeNames" rows="3" placeholder="새 직급 이름 (한 줄에 하나씩)" required></textarea>
+                <button type="submit" class="action-btn">일괄 생성</button>
+            </form>
+
+            <div class="dept-chip-list">
+                <div class="dept-chip" th:each="grade : ${grades}">
+                    <form th:action="@{'/admin/grades/' + ${grade.gradeId} + '/priority'}" method="post">
+                        <select name="priority" class="priority-select" onchange="this.form.submit()">
+                            <option th:each="n : ${#numbers.sequence(1, #lists.size(grades))}"
+                                    th:value="${n}" th:text="${n}"
+                                    th:selected="${n == grade.gradePriority}"></option>
+                        </select>
+                    </form>
+                    <span th:text="${grade.gradeName}">직급명</span>
+                    <form th:action="@{'/admin/grades/' + ${grade.gradeId} + '/delete'}" method="post">
+                        <button type="submit" class="delete-btn" title="삭제">×</button>
+                    </form>
+                </div>
+            </div>
+        </section>
 
         <section class="search-filter-section">
             <form th:action="@{/admin/grades}" method="get" class="search-filter-form">
 
-                <span class="search-filter-label">부서</span>
-                <select name="departmentId" class="search-select">
-                    <option value="">전체</option>
-                    <option th:each="dept : ${departments}"
-                            th:value="${dept.deptId}"
-                            th:text="${dept.deptName}"
-                            th:selected="${searchRequest != null and searchRequest.departmentId == dept.deptId}">
-                    </option>
-                </select>
-
-                <span class="search-filter-label filter-label-grade">직급</span>
+                <span class="search-filter-label">직급</span>
                 <select name="gradeId" class="search-select">
                     <option value="">전체</option>
                     <option th:each="grade : ${grades}"
@@ -148,7 +258,10 @@
                     <td class="text-center" th:text="${employee.emplName}">홍길동</td>
                     <td class="text-center" th:text="${employee.loginId}">iamuserone</td>
                     <td class="text-center" th:text="${employee.departmentName}">부서명</td>
-                    <td class="text-center" th:text="${employee.gradeName}">직급명</td>
+                    <td class="text-center"
+                        th:text="${gradePriorityById.containsKey(employee.gradeId)}
+                                  ? ${employee.gradeName} + '(' + ${gradePriorityById.get(employee.gradeId)} + ')'
+                                  : ${employee.gradeName}">직급명(1)</td>
                     <td class="text-center">
                         <form class="move-form"
                               th:action="@{'/admin/employees/' + ${employee.emplId} + '/grade'}"
@@ -156,7 +269,7 @@
                             <select name="gradeId" class="move-select">
                                 <option th:each="grade : ${grades}"
                                         th:value="${grade.gradeId}"
-                                        th:text="${grade.gradeName}"
+                                        th:text="${grade.gradePriority != null} ? ${grade.gradeName} + '(' + ${grade.gradePriority} + ')' : ${grade.gradeName}"
                                         th:selected="${grade.gradeId == employee.gradeId}">
                                 </option>
                             </select>
