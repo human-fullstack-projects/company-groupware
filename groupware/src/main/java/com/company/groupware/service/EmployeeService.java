@@ -15,10 +15,12 @@ import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.repository.GradeRepository;
 import com.company.groupware.util.EmployeeSortHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -180,4 +182,78 @@ public class EmployeeService {
 //                .map(ChatRoomEmployeeSearchResponse::new)
 //                .toList();
 //    }
+
+    @Transactional(readOnly = true)
+    public long countAdmins() {
+        return employeeRepository.countByEmplStatTrue();
+    }
+
+    /**
+     * 관리자로 지정
+     */
+    @Transactional
+    public void promoteToAdmin(Long emplId) {
+        Employee employee = employeeRepository.findById(emplId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 직원입니다."
+                ));
+
+        employee.setEmplStat(true);
+    }
+
+    /**
+     * 관리자 해제 (마지막 남은 관리자는 해제 불가)
+     */
+    @Transactional
+    public void demoteFromAdmin(Long emplId) {
+        Employee employee = employeeRepository.findById(emplId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 직원입니다."
+                ));
+
+        if (Boolean.TRUE.equals(employee.getEmplStat())
+                && employeeRepository.countByEmplStatTrue() <= 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "마지막 남은 관리자는 해제할 수 없습니다."
+            );
+        }
+
+        employee.setEmplStat(false);
+    }
+
+    /**
+     * 소속 부서 변경
+     */
+    @Transactional
+    public void changeDepartment(Long emplId, Long deptId) {
+        Employee employee = employeeRepository.findById(emplId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 직원입니다."
+                ));
+
+        Department department = departmentRepository.findById(deptId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 부서입니다."
+                ));
+
+        employee.setDepartment(department);
+    }
+
+    /**
+     * 직급 변경
+     */
+    @Transactional
+    public void changeGrade(Long emplId, Long gradeId) {
+        Employee employee = employeeRepository.findById(emplId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 직원입니다."
+                ));
+
+        Grade grade = gradeRepository.findById(gradeId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 직급입니다."
+                ));
+
+        employee.setGrade(grade);
+    }
 }

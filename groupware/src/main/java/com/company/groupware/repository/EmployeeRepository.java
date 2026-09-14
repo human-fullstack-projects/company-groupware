@@ -15,6 +15,8 @@ public interface EmployeeRepository
 
     boolean existsByLoginId(String loginId);
 
+    long countByEmplStatTrue();
+
     @Query("SELECT e FROM Employee e " +
             "LEFT JOIN FETCH e.department " +
             "LEFT JOIN FETCH e.grade " +

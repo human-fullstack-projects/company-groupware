@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>직원계정 관리</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/employee-search.css}">
+
+    <style>
+        body {
+            margin-top: var(--topinfo-height);
+            margin-left: var(--menubar-width);
+        }
+
+        main.admin-employee-content {
+            padding: 24px 40px 60px;
+        }
+
+        .admin-employee-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1.page-title {
+            margin: 0 0 4px;
+            font-size: 22px;
+            color: var(--color-navy-dark);
+        }
+
+        p.page-sub {
+            margin: 0 0 24px;
+            font-size: 13px;
+            color: #868e96;
+        }
+
+        .flash-message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .flash-message.is-ok {
+            background: #e9f5ee;
+            color: #1e6b3c;
+            border: 1px solid #bfe3cd;
+        }
+
+        .flash-message.is-error {
+            background: #fbeaea;
+            color: #9a2b2b;
+            border: 1px solid #d9a3a3;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #fcfcfd;
+            padding: 16px 18px;
+        }
+
+        .stat-card__label {
+            font-size: 12px;
+            color: #868e96;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .stat-card__value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-navy-dark);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-card__value.is-admin {
+            color: #7a5c00;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .role-badge.is-admin {
+            background: #fbf1d9;
+            color: #7a5c00;
+            border: 1px solid #e9d59a;
+        }
+
+        .role-badge.is-user {
+            background: #eef0f2;
+            color: #495057;
+            border: 1px solid #dde1e4;
+        }
+
+        .action-btn {
+            height: 32px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .action-btn.promote {
+            background: var(--color-navy-dark);
+            color: var(--color-white);
+            border: 1px solid var(--color-navy-dark);
+        }
+
+        .action-btn.promote:hover {
+            background: var(--color-navy);
+        }
+
+        .action-btn.demote {
+            background: #fbeaea;
+            color: #9a2b2b;
+            border: 1px solid #d9a3a3;
+        }
+
+        .action-btn.demote:hover {
+            background: #f6dede;
+        }
+
+        .action-btn:disabled {
+            background: #f1f3f5;
+            color: #adb5bd;
+            border: 1px solid #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .lock-note {
+            font-size: 11px;
+            color: #adb5bd;
+            margin-top: 4px;
+        }
+
+        .modal-veil {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 26, 51, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-veil.is-open {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(360px, calc(100vw - 32px));
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(16, 26, 51, .25);
+        }
+
+        .modal-box h2 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: var(--color-navy-dark);
+        }
+
+        .modal-box p {
+            margin: 0 0 20px;
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .modal-box p b {
+            color: var(--color-black);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-actions button {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-actions .cancel {
+            background: var(--color-white);
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+
+        .modal-actions .confirm {
+            background: var(--color-navy-dark);
+            border: 1px solid var(--color-navy-dark);
+            color: var(--color-white);
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main class="admin-employee-content">
+    <div class="admin-employee-container">
+
+        <h1 class="page-title">직원계정 관리</h1>
+        <p class="page-sub">전 직원 계정을 조회하고, 관리자 권한을 지정하거나 해제합니다.</p>
+
+        <div th:if="${message}" class="flash-message is-ok" th:text="${message}"></div>
+        <div th:if="${error}" class="flash-message is-error" th:text="${error}"></div>
+
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="stat-card__label">전체 직원</div>
+                <div class="stat-card__value" th:text="${#lists.size(employees)}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__label">관리자 계정</div>
+                <div class="stat-card__value is-admin" th:text="${adminCount}">0</div>
+            </div>
+        </div>
+
+        <section class="search-filter-section">
+            <form th:action="@{/admin/employees}" method="get" class="search-filter-form">
+
+                <span class="search-filter-label">부서</span>
+                <select name="departmentId" class="search-select">
+                    <option value="">전체</option>
+                    <option th:each="dept : ${departments}"
+                            th:value="${dept.deptId}"
+                            th:text="${dept.deptName}"
+                            th:selected="${searchRequest != null and searchRequest.departmentId == dept.deptId}">
+                    </option>
+                </select>
+
+                <span class="search-filter-label filter-label-grade">직급</span>
+                <select name="gradeId" class="search-select">
+                    <option value="">전체</option>
+                    <option th:each="grade : ${grades}"
+                            th:value="${grade.gradeId}"
+                            th:text="${grade.gradeName}"
+                            th:selected="${searchRequest != null and searchRequest.gradeId == grade.gradeId}">
+                    </option>
+                </select>
+
+                <input type="text"
+                       name="emplName"
+                       class="search-input"
+                       placeholder="직원이름"
+                       th:value="${searchRequest != null ? searchRequest.emplName : ''}">
+
+                <button type="submit" class="search-btn">검색</button>
+            </form>
+        </section>
+
+        <section class="employee-table-section">
+            <table class="employee-table">
+                <thead>
+                <tr>
+                    <th style="width: 8%;">사번</th>
+                    <th style="width: 14%;">이름</th>
+                    <th style="width: 14%;">아이디</th>
+                    <th style="width: 14%;">부서</th>
+                    <th style="width: 10%;">직급</th>
+                    <th style="width: 12%;">권한</th>
+                    <th style="width: 20%;">작업</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="employee : ${employees}">
+                    <td class="text-center" th:text="${employee.emplId}">1</td>
+                    <td class="text-center" th:text="${employee.emplName}">홍길동</td>
+                    <td class="text-center" th:text="${employee.loginId}">iamuserone</td>
+                    <td class="text-center" th:text="${employee.departmentName}">부서명</td>
+                    <td class="text-center" th:text="${employee.gradeName}">직급명</td>
+                    <td class="text-center">
+                        <span class="role-badge"
+                              th:classappend="${employee.admin} ? 'is-admin' : 'is-user'"
+                              th:text="${employee.admin} ? '관리자' : '일반'">일반</span>
+                    </td>
+                    <td class="text-center">
+                        <form th:if="${!employee.admin}"
+                              class="role-action-form"
+                              th:action="@{'/admin/employees/' + ${employee.emplId} + '/promote'}"
+                              th:data-role-action="'promote'"
+                              th:data-empl-name="${employee.emplName}"
+                              th:data-login-id="${employee.loginId}"
+                              method="post" style="display:inline;">
+                            <button type="submit" class="action-btn promote">관리자 지정</button>
+                        </form>
+
+                        <th:block th:if="${employee.admin}">
+                            <form th:if="${adminCount &gt; 1}"
+                                  class="role-action-form"
+                                  th:action="@{'/admin/employees/' + ${employee.emplId} + '/demote'}"
+                                  th:data-role-action="'demote'"
+                                  th:data-empl-name="${employee.emplName}"
+                                  th:data-login-id="${employee.loginId}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="action-btn demote">관리자 해제</button>
+                            </form>
+                            <th:block th:if="${adminCount &lt;= 1}">
+                                <button type="button" class="action-btn demote" disabled
+                                        title="마지막 관리자는 해제할 수 없습니다">관리자 해제</button>
+                                <div class="lock-note">마지막 관리자는 해제 불가</div>
+                            </th:block>
+                        </th:block>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(employees)}">
+                    <td colspan="7" class="empty-result">조회된 직원 정보가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+</main>
+
+<div class="modal-veil" id="roleModalVeil">
+    <div class="modal-box">
+        <h2 id="roleModalTitle">관리자로 지정</h2>
+        <p id="roleModalBody"></p>
+        <div class="modal-actions">
+            <button type="button" class="cancel" id="roleModalCancel">취소</button>
+            <button type="button" class="confirm" id="roleModalConfirm">확인</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="none">
+    (function () {
+        var veil = document.getElementById('roleModalVeil');
+        var titleEl = document.getElementById('roleModalTitle');
+        var bodyEl = document.getElementById('roleModalBody');
+        var confirmBtn = document.getElementById('roleModalConfirm');
+        var cancelBtn = document.getElementById('roleModalCancel');
+        var pendingForm = null;
+
+        function openModal(form) {
+            var action = form.dataset.roleAction;
+            var name = form.dataset.emplName;
+            var loginId = form.dataset.loginId;
+
+            bodyEl.textContent = '';
+
+            var nameEl = document.createElement('b');
+            nameEl.textContent = name;
+            bodyEl.appendChild(nameEl);
+
+            if (action === 'promote') {
+                titleEl.textContent = '관리자로 지정';
+                bodyEl.appendChild(document.createTextNode('(' + loginId + ') 님을 관리자로 지정하시겠습니까?'));
+                bodyEl.appendChild(document.createElement('br'));
+                bodyEl.appendChild(document.createTextNode('관리자는 모든 게시판·기능에 예외 없이 접근할 수 있습니다.'));
+            } else {
+                titleEl.textContent = '관리자 해제';
+                bodyEl.appendChild(document.createTextNode('(' + loginId + ') 님의 관리자 권한을 해제하시겠습니까?'));
+            }
+
+            pendingForm = form;
+            veil.classList.add('is-open');
+        }
+
+        function closeModal() {
+            veil.classList.remove('is-open');
+            pendingForm = null;
+        }
+
+        document.querySelectorAll('form.role-action-form').forEach(function (form) {
+            form.addEventListener('submit', function (ev) {
+                if (form.dataset.confirmed === 'true') {
+                    return;
+                }
+                ev.preventDefault();
+                openModal(form);
+            });
+        });
+
+        confirmBtn.addEventListener('click', function () {
+            if (pendingForm) {
+                pendingForm.dataset.confirmed = 'true';
+                pendingForm.submit();
+            }
+            closeModal();
+        });
+
+        cancelBtn.addEventListener('click', closeModal);
+        veil.addEventListener('click', function (ev) {
+            if (ev.target === veil) closeModal();
+        });
+    })();
+</script>
+
+</body>
+</html>
