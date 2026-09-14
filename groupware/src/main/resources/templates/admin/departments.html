@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>부서 관리</title>
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/employee-search.css}">
+
+    <style>
+        body {
+            margin-top: var(--topinfo-height);
+            margin-left: var(--menubar-width);
+        }
+
+        main.admin-employee-content {
+            padding: 24px 40px 60px;
+        }
+
+        .admin-employee-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1.page-title {
+            margin: 0 0 4px;
+            font-size: 22px;
+            color: var(--color-navy-dark);
+        }
+
+        p.page-sub {
+            margin: 0 0 24px;
+            font-size: 13px;
+            color: #868e96;
+        }
+
+        .flash-message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .flash-message.is-ok {
+            background: #e9f5ee;
+            color: #1e6b3c;
+            border: 1px solid #bfe3cd;
+        }
+
+        .move-form {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .move-select {
+            height: 32px;
+            padding: 0 8px;
+            font-size: 13px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: var(--color-white);
+        }
+
+        .action-btn {
+            height: 32px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            background: var(--color-navy-dark);
+            color: var(--color-white);
+            border: 1px solid var(--color-navy-dark);
+        }
+
+        .action-btn:hover {
+            background: var(--color-navy);
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main class="admin-employee-content">
+    <div class="admin-employee-container">
+
+        <h1 class="page-title">부서 관리</h1>
+        <p class="page-sub">직원의 소속 부서를 다른 부서로 이동합니다.</p>
+
+        <div th:if="${message}" class="flash-message is-ok" th:text="${message}"></div>
+
+        <section class="search-filter-section">
+            <form th:action="@{/admin/departments}" method="get" class="search-filter-form">
+
+                <span class="search-filter-label">부서</span>
+                <select name="departmentId" class="search-select">
+                    <option value="">전체</option>
+                    <option th:each="dept : ${departments}"
+                            th:value="${dept.deptId}"
+                            th:text="${dept.deptName}"
+                            th:selected="${searchRequest != null and searchRequest.departmentId == dept.deptId}">
+                    </option>
+                </select>
+
+                <span class="search-filter-label filter-label-grade">직급</span>
+                <select name="gradeId" class="search-select">
+                    <option value="">전체</option>
+                    <option th:each="grade : ${grades}"
+                            th:value="${grade.gradeId}"
+                            th:text="${grade.gradeName}"
+                            th:selected="${searchRequest != null and searchRequest.gradeId == grade.gradeId}">
+                    </option>
+                </select>
+
+                <input type="text"
+                       name="emplName"
+                       class="search-input"
+                       placeholder="직원이름"
+                       th:value="${searchRequest != null ? searchRequest.emplName : ''}">
+
+                <button type="submit" class="search-btn">검색</button>
+            </form>
+        </section>
+
+        <section class="employee-table-section">
+            <table class="employee-table">
+                <thead>
+                <tr>
+                    <th style="width: 8%;">사번</th>
+                    <th style="width: 16%;">이름</th>
+                    <th style="width: 16%;">아이디</th>
+                    <th style="width: 16%;">현재 부서</th>
+                    <th style="width: 12%;">직급</th>
+                    <th style="width: 32%;">부서 이동</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="employee : ${employees}">
+                    <td class="text-center" th:text="${employee.emplId}">1</td>
+                    <td class="text-center" th:text="${employee.emplName}">홍길동</td>
+                    <td class="text-center" th:text="${employee.loginId}">iamuserone</td>
+                    <td class="text-center" th:text="${employee.departmentName}">부서명</td>
+                    <td class="text-center" th:text="${employee.gradeName}">직급명</td>
+                    <td class="text-center">
+                        <form class="move-form"
+                              th:action="@{'/admin/employees/' + ${employee.emplId} + '/department'}"
+                              method="post">
+                            <select name="deptId" class="move-select">
+                                <option th:each="dept : ${departments}"
+                                        th:value="${dept.deptId}"
+                                        th:text="${dept.deptName}"
+                                        th:selected="${dept.deptId == employee.departmentId}">
+                                </option>
+                            </select>
+                            <button type="submit" class="action-btn">이동</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(employees)}">
+                    <td colspan="6" class="empty-result">조회된 직원 정보가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+</main>
+
+</body>
+</html>
