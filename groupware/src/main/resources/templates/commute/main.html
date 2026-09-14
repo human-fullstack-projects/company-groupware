@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>출퇴근</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 60px;
+        }
+        .commute-btn {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            background-color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .commute-btn--checkin {
+            border-color: #2e7d32;
+            color: #2e7d32;
+        }
+        .commute-btn--checkin:hover {
+            background-color: #e8f5e9;
+        }
+        .commute-btn--checkout {
+            border-color: #d35400;
+            color: #d35400;
+        }
+        .commute-btn--checkout:hover {
+            background-color: #fdf0e6;
+        }
+        .commute-done {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 3px solid #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #666;
+            text-align: center;
+        }
+        .info-table {
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            border: 2px solid #333;
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+        .info-table td.label {
+            font-weight: bold;
+            text-align: center;
+            width: 100px;
+        }
+        .info-table td.value {
+            min-width: 220px;
+        }
+        .error-box {
+            margin-top: 16px;
+            padding: 10px 16px;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            border-radius: 4px;
+        }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+</head>
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<h2>출퇴근</h2>
+
+<!-- 에러 메시지 (중복 출근/퇴근 시도 등) -->
+<div class="error-box" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+<!-- 출근 전: 출근 버튼 -->
+<form th:if="${commuteState == 'NOT_CHECKED_IN'}" method="post" th:action="@{/commute/check-in}">
+    <input type="hidden" name="emplId" th:value="${emplId}">
+    <button type="submit" class="commute-btn commute-btn--checkin">출근</button>
+</form>
+
+<!-- 출근 완료, 퇴근 전: 퇴근 버튼 -->
+<form th:if="${commuteState == 'CHECKED_IN'}" method="post" th:action="@{/commute/check-out}">
+    <input type="hidden" name="emplId" th:value="${emplId}">
+    <button type="submit" class="commute-btn commute-btn--checkout">퇴근</button>
+</form>
+
+<!-- 퇴근 완료: 버튼 대신 안내만 표시 -->
+<div th:if="${commuteState == 'CHECKED_OUT'}" class="commute-done">
+    오늘 근무가<br>종료되었습니다
+</div>
+
+<table class="info-table">
+    <tr>
+        <td class="label">출근시간</td>
+        <td class="value" th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></td>
+    </tr>
+    <tr>
+        <td class="label">퇴근시간</td>
+        <td class="value" th:text="${today != null and today.finishTime != null} ? ${today.finishTime} : '퇴근 안함'"></td>
+    </tr>
+</table>
+
+</body>
+</html>

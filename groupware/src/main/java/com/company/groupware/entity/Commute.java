@@ -1,17 +1,29 @@
 package com.company.groupware.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 /**
- * 출퇴근
- * empl_id 가 PK 이면서 employee 테이블을 참조하는 FK 이므로
- * @MapsId 로 직원과 공유 기본키(shared PK) 1:1 관계로 매핑
+ * 출퇴근 기록
+ * - 기존 empl_id 단독 PK(직원당 1행) 구조에서, 일자별 이력을 쌓을 수 있도록
+ *   surrogate key(commute_id)로 변경하고 empl_id는 일반 FK로 전환함
+ * - 같은 직원이 같은 날 중복 기록되지 않도록 (empl_id, attendance_date) 유니크 제약
  */
 @Entity
-@Table(name = "commute")
+@Table(
+        name = "commute",
+        uniqueConstraints = @UniqueConstraint(
+                name = "UQ_commute_empl_date",
+                columnNames = {"empl_id", "attendance_date"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,22 +32,21 @@ import java.time.LocalDate;
 public class Commute {
 
     @Id
-    @Column(name = "empl_id")
-    private Long emplId; // 사번 (PK / FK)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "commute_id")
+    @Setter(AccessLevel.NONE)
+    private Long commuteId; // 출퇴근기록번호
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empl_id", foreignKey = @ForeignKey(name = "FK_employee_TO_commute"))
-    private Employee employee;
+    private Employee employee; // 직원
 
-    // 원본 DDL 상 VARCHAR(50) 로 정의되어 있어 String 으로 매핑함
-    // (시간 계산이 필요하면 DB 컬럼 타입을 TIME/DATETIME 으로 변경 후 LocalTime 등으로 매핑 권장)
     @Column(name = "start_time", length = 50)
     private String startTime; // 출근시간
 
     @Column(name = "finish_time", length = 50)
     private String finishTime; // 퇴근시간
 
-    @Column(name = "COL")
-    private LocalDate attendanceDate; // 출근일자 (원본 컬럼명: COL)
+    @Column(name = "attendance_date")
+    private LocalDate attendanceDate; // 출근일자
 }

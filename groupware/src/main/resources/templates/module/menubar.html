@@ -9,7 +9,7 @@
 <body>
 <aside class="menubar" th:fragment="menubar">
     <nav class="menubar__nav">
-        <a href="#" class="menubar__btn">유저 정보</a>
+        <a th:href="@{/commute}" class="menubar__btn">근태관리</a>
         <a th:href="@{/chat/list}" class="menubar__btn">메신저</a>
         <a th:href="@{/boards}" class="menubar__btn">게시판</a>
         <a th:href="@{/calendar}" class="menubar__btn">캘린더</a>
