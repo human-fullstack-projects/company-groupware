@@ -49,6 +49,10 @@
 
 <script th:inline="none">
     let stompClient = null;
+    let reconnectTimer = null;
+    const RECONNECT_INITIAL_DELAY = 1000;
+    const RECONNECT_MAX_DELAY = 30000;
+    let reconnectDelay = RECONNECT_INITIAL_DELAY;
 
     function emplId() {
         return document.querySelector('meta[name="_login_empl_id"]').content;
@@ -234,7 +238,8 @@
 
     async function loadHistory() {
         lastMessageDate = null; // 새로 그릴 때 날짜 추적 초기화
-        const res = await fetch(`/api/chat/rooms/${roomId()}/messages`);
+        // const res = await fetch(`/api/chat/rooms/${roomId()}/messages`);
+        const res = await fetch(`/api/chat/rooms/${roomId()}/messages?emplId=${emplId()}`);
         const history = await res.json();
         document.getElementById('messages').innerHTML = '';
         history.forEach(appendMessage);
@@ -258,6 +263,8 @@
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, function () {
+            reconnectDelay = RECONNECT_INITIAL_DELAY; // 연결 성공 시 재시도 간격 초기화
+
             document.getElementById('status').textContent = '연결됨';
             document.getElementById('status').className = 'chat-detail__status connected';
 
@@ -273,10 +280,23 @@
             loadHistory();
             loadMembers();
         }, function (error) {
-            appendError({ message: '연결 실패: ' + error });
-            document.getElementById('status').textContent = '연결 실패';
+            appendError({ message: '연결 끊김: ' + error });
+            document.getElementById('status').textContent = '재연결 중...';
             document.getElementById('status').className = 'chat-detail__status disconnected';
+            scheduleReconnect();
         });
+    }
+
+    // 지수 백오프로 재연결 예약 (1s -> 2s -> 4s ... 최대 30s), 중복 예약 방지
+    function scheduleReconnect() {
+        if (reconnectTimer !== null) {
+            return;
+        }
+        reconnectTimer = setTimeout(function () {
+            reconnectTimer = null;
+            connect();
+        }, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_DELAY);
     }
 
     async function uploadFiles(files) {

@@ -1,5 +1,6 @@
 package com.company.groupware.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -8,15 +9,17 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final StompPrincipalHandshakeHandler stompPrincipalHandshakeHandler;
 
     // STOMP 접속 엔드포인트 등록 (클라이언트가 SockJS로 연결하는 지점)
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*") // TODO: 운영 환경에서는 실제 프론트엔드 도메인으로 제한
-                .addInterceptors(new StompHandshakeInterceptor())
-                .setHandshakeHandler(new StompPrincipalHandshakeHandler())
+                .setHandshakeHandler(stompPrincipalHandshakeHandler)
                 .withSockJS();
     }
 

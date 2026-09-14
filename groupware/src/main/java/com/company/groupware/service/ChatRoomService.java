@@ -81,7 +81,7 @@ public class ChatRoomService {
             throw new InvalidChatRoomStateException("이미 참여 중인 방입니다. empl_id=" + emplId + ", room_id=" + roomId);
         } else {
             // 재입장: 이전 퇴장 이력을 초기화하고 다시 입장 처리
-            affiliation.setRoomInDate(LocalDate.now());
+            affiliation.setRoomInDate(LocalDateTime.now());
             affiliation.setRoomOutDate(null);
         }
 
@@ -102,7 +102,7 @@ public class ChatRoomService {
             throw new InvalidChatRoomStateException("이미 퇴장한 방입니다. empl_id=" + emplId + ", room_id=" + roomId);
         }
 
-        affiliation.setRoomOutDate(LocalDate.now());
+        affiliation.setRoomOutDate(LocalDateTime.now());
     }
 
     /**
@@ -131,7 +131,7 @@ public class ChatRoomService {
         ChatRoomAffiliation affiliation = new ChatRoomAffiliation();
         affiliation.setChatRoom(chatRoom);
         affiliation.setEmployee(employee);
-        affiliation.setRoomInDate(LocalDate.now());
+        affiliation.setRoomInDate(LocalDateTime.now());
         return affiliationRepository.save(affiliation);
     }
 

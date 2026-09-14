@@ -59,8 +59,8 @@ public class ChatRoomController {
 
     // 특정 방의 전체 대화 이력 (오래된 순)
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long roomId) {
-        return ResponseEntity.ok(chatMessageService.getHistory(roomId));
+    public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long roomId, @RequestParam Long emplId) {
+        return ResponseEntity.ok(chatMessageService.getHistory(roomId, emplId));
     }
 
     // 파일 첨부 메시지 업로드 (방 활성 참여자만 가능) - 저장 후 실시간 브로드캐스트까지 처리

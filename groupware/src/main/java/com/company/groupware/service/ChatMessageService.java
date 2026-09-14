@@ -5,10 +5,7 @@ import com.company.groupware.Exception.InvalidChatRoomStateException;
 import com.company.groupware.Exception.ResourceNotFoundException;
 import com.company.groupware.dto.ChatMessageRequest;
 import com.company.groupware.dto.ChatMessageResponse;
-import com.company.groupware.entity.ChatRoom;
-import com.company.groupware.entity.ChatRoomFile;
-import com.company.groupware.entity.ChatRoomMessage;
-import com.company.groupware.entity.Employee;
+import com.company.groupware.entity.*;
 import com.company.groupware.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -162,10 +159,14 @@ public class ChatMessageService {
     /**
      * 특정 방의 전체 대화 이력 (오래된 순)
      */
-    public List<ChatMessageResponse> getHistory(Long roomId) {
+    public List<ChatMessageResponse> getHistory(Long roomId, Long emplId) {
         getChatRoomOrThrow(roomId);
 
-        List<ChatRoomMessage> messages = chatRoomMessageRepository.findByChatRoom_RoomIdOrderByCreatedAtAsc(roomId);
+        ChatRoomAffiliation affiliation = affiliationRepository.findByEmployee_EmplIdAndChatRoom_RoomId(emplId, roomId).filter(a -> a.getRoomOutDate() == null).orElseThrow(() -> new InvalidChatRoomStateException("해당 방에 참여중이 아닙니다. empl_id = " + emplId + " room_id = " + roomId));
+
+        List<ChatRoomMessage> messages = chatRoomMessageRepository.findByChatRoom_RoomIdAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(roomId, affiliation.getRoomInDate());
+
+//        List<ChatRoomMessage> messages = chatRoomMessageRepository.findByChatRoom_RoomIdOrderByCreatedAtAsc(roomId);
 
         Map<Long, List<ChatRoomFile>> filesByMessageId = chatRoomFileRepository
                 .findByChatRoomMessage_ChatRoom_RoomId(roomId).stream()

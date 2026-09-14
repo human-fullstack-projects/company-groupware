@@ -3,7 +3,7 @@ package com.company.groupware.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 채팅방소속 (직원 - 채팅방 참여 이력)
@@ -26,15 +26,15 @@ public class ChatRoomAffiliation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empl_id", foreignKey = @ForeignKey(name = "FK_employee_TO_Chat_room_affliation"))
-    private Employee employee; // 사번
+    private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", foreignKey = @ForeignKey(name = "FK_chat_room_TO_Chat_room_affliation"))
     private ChatRoom chatRoom; // 채팅방번호
 
     @Column(name = "room_in_date")
-    private LocalDate roomInDate; // 참여날짜
+    private LocalDateTime roomInDate; // 참여 일시
 
     @Column(name = "room_out_date")
-    private LocalDate roomOutDate; // 퇴장날짜
+    private LocalDateTime roomOutDate; // 퇴장 일시
 }
