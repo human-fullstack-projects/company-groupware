@@ -29,6 +29,9 @@
     position: absolute;
     top: calc(22px + 20px);
     right: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .topinfo__login-btn {
@@ -44,4 +47,12 @@
 
 .topinfo__login-btn:hover {
     background-color: var(--color-navy-light);
+}
+
+.topinfo__user-btn {
+    font-size: 18px;
+}
+
+.topinfo__user-id {
+    font-size: 15px;
 }

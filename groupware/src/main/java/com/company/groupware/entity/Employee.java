@@ -3,6 +3,8 @@ package com.company.groupware.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 /**
  * 직원
  */
@@ -30,6 +32,12 @@ public class Employee {
 
     @Column(name = "empl_email", length = 50)
     private String emplEmail; // 이메일
+
+    @Column(name="empl_address", length = 255)
+    private String address; // 주소
+
+    @Column(name="created_at")
+    private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade_id", foreignKey = @ForeignKey(name = "FK_grade_TO_employee"))

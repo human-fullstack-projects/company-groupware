@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -64,23 +65,7 @@ public class EmployeeService {
         loginId = loginId.trim();
         emplName = emplName.trim();
         emplEmail = emplEmail.trim();
-
-// 전화번호의 하이픈과 공백 제거
-        String phoneDigits = emplPhone.trim()
-                .replace("-", "")
-                .replaceAll("\\s+", "");
-
-// 010으로 시작하는 숫자 11자리인지 검사
-        if (!phoneDigits.matches("010[0-9]{8}")) {
-            throw new IllegalArgumentException(
-                    "010으로 시작하는 휴대전화 번호 11자리를 입력해주세요."
-            );
-        }
-
-// DB에도 하이픈이 포함된 형식으로 저장
-        emplPhone = phoneDigits.substring(0, 3) + "-"
-                + phoneDigits.substring(3, 7) + "-"
-                + phoneDigits.substring(7);
+        emplPhone = normalizePhone(emplPhone);
 
         // 2. 입력 길이 확인
         if (loginId.length() > 50
@@ -99,11 +84,7 @@ public class EmployeeService {
         }
 
         // 3. 이메일 기본 형식 확인
-        if (!emplEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            throw new IllegalArgumentException(
-                    "올바른 이메일 형식으로 입력해주세요."
-            );
-        }
+        validateEmail(emplEmail);
 
         // 4. 아이디 중복 확인
         if (employeeRepository.existsByLoginId(loginId)) {
@@ -139,6 +120,7 @@ public class EmployeeService {
         employee.setDepartment(department);
         employee.setGrade(grade);
         employee.setEmplStat(false);
+        employee.setCreatedAt(LocalDateTime.now());
 
         // 7. 저장
         Employee savedEmployee = employeeRepository.save(employee);
@@ -255,5 +237,62 @@ public class EmployeeService {
                 ));
 
         employee.setGrade(grade);
+    }
+
+    /**
+     * 마이페이지 - 본인 연락처/주소/이메일 수정 (부서·직급·관리자권한은 절대 건드리지 않음)
+     */
+    @Transactional
+    public void updateContactInfo(String loginId, String emplPhone, String emplEmail, String address) {
+        Employee employee = employeeRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "존재하지 않는 계정입니다."
+                ));
+
+        if (!StringUtils.hasText(emplEmail) || !StringUtils.hasText(emplPhone)) {
+            throw new IllegalArgumentException("연락처와 이메일을 모두 입력해주세요.");
+        }
+
+        emplEmail = emplEmail.trim();
+        emplPhone = normalizePhone(emplPhone);
+        address = StringUtils.hasText(address) ? address.trim() : null;
+
+        if (emplEmail.length() > 50 || emplPhone.length() > 50) {
+            throw new IllegalArgumentException("이메일, 전화번호는 각각 50자 이내로 입력해주세요.");
+        }
+        if (address != null && address.length() > 255) {
+            throw new IllegalArgumentException("주소는 255자 이내로 입력해주세요.");
+        }
+
+        validateEmail(emplEmail);
+
+        employee.setEmplPhone(emplPhone);
+        employee.setEmplEmail(emplEmail);
+        employee.setAddress(address);
+    }
+
+    // 전화번호의 하이픈/공백을 정리하고 010-XXXX-XXXX 형식으로 맞춘다
+    private String normalizePhone(String rawPhone) {
+        String phoneDigits = rawPhone.trim()
+                .replace("-", "")
+                .replaceAll("\\s+", "");
+
+        if (!phoneDigits.matches("010[0-9]{8}")) {
+            throw new IllegalArgumentException(
+                    "010으로 시작하는 휴대전화 번호 11자리를 입력해주세요."
+            );
+        }
+
+        return phoneDigits.substring(0, 3) + "-"
+                + phoneDigits.substring(3, 7) + "-"
+                + phoneDigits.substring(7);
+    }
+
+    private void validateEmail(String email) {
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException(
+                    "올바른 이메일 형식으로 입력해주세요."
+            );
+        }
     }
 }

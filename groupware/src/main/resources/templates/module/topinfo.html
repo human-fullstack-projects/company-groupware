@@ -10,7 +10,14 @@
 <header class="topinfo" th:fragment="topinfo">
     <h1 class="topinfo__title">사내 메신저</h1>
     <div class="topinfo__auth">
-        <a th:href="@{/login}" class="topinfo__login-btn">로그인</a>
+        <a th:if="${loginEmployee == null}" th:href="@{/login}" class="topinfo__login-btn">로그인</a>
+
+        <th:block th:if="${loginEmployee != null}">
+            <a th:href="@{/mypage}" class="topinfo__login-btn topinfo__user-btn"><span th:text="${loginEmployee.emplName}">이름</span><span class="topinfo__user-id" th:text="'(' + ${loginEmployee.loginId} + ')'">(아이디)</span></a>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="topinfo__login-btn">로그아웃</button>
+            </form>
+        </th:block>
     </div>
 </header>
 </body>
