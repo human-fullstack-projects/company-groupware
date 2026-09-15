@@ -191,12 +191,24 @@
 
     <select class="dept-select" onchange="location.href='/boards?categoryId=' + this.value">
         <option value="">부서</option>
-        <option th:each="category : ${categories}"
-                th:if="${category.boardCategoryName != '공지' and category.boardCategoryName != '자유게시판'}"
-                th:value="${category.boardCategoryId}"
-                th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
-                th:text="${category.boardCategoryName}">
-        </option>
+
+        <optgroup label="게시판">
+            <option th:each="category : ${categories}"
+                    th:if="${category.boardCategoryName != '자유게시판' and !#strings.endsWith(category.boardCategoryName, '공지')}"
+                    th:value="${category.boardCategoryId}"
+                    th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
+                    th:text="${category.boardCategoryName}">
+            </option>
+        </optgroup>
+
+        <optgroup label="공지">
+            <option th:each="category : ${categories}"
+                    th:if="${category.boardCategoryName != '공지' and #strings.endsWith(category.boardCategoryName, '공지')}"
+                    th:value="${category.boardCategoryId}"
+                    th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
+                    th:text="${category.boardCategoryName}">
+            </option>
+        </optgroup>
     </select>
 
     <a th:each="category : ${categories}"

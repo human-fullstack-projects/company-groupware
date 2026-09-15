@@ -1,6 +1,8 @@
 package com.company.groupware.service;
 
+import com.company.groupware.entity.BoardCategory;
 import com.company.groupware.entity.Department;
+import com.company.groupware.repository.BoardCategoryRepository;
 import com.company.groupware.repository.DepartmentRepository;
 import com.company.groupware.repository.EmployeeRepository;
 import com.company.groupware.util.EmployeeSortHelper;
@@ -20,6 +22,7 @@ public class DepartmentService {
 
     private final DepartmentRepository departmentRepository;
     private final EmployeeRepository employeeRepository;
+    private final BoardCategoryRepository boardCategoryRepository;
 
     // DB에 등록된 전체 부서 목록을 지정된 순서(인사팀, 재무팀, 기획팀, 개발팀, 디자인팀)로 정렬하여 반환
     @Transactional(readOnly = true)
@@ -33,6 +36,8 @@ public class DepartmentService {
 
     /**
      * 부서 추가
+     *
+     * 부서에 대응하는 게시판 카테고리("부서명")와 부서공지 카테고리("부서명공지")도 함께 생성한다.
      */
     @Transactional
     public void addDepartment(String deptName) {
@@ -46,6 +51,19 @@ public class DepartmentService {
         }
 
         departmentRepository.save(Department.builder().deptName(deptName).build());
+
+        createBoardCategoryIfAbsent(deptName);
+        createBoardCategoryIfAbsent(deptName + "공지");
+    }
+
+    private void createBoardCategoryIfAbsent(String categoryName) {
+        if (boardCategoryRepository.existsByBoardCategoryName(categoryName)) {
+            return;
+        }
+
+        boardCategoryRepository.save(
+                BoardCategory.builder().boardCategoryName(categoryName).build()
+        );
     }
 
     /**
