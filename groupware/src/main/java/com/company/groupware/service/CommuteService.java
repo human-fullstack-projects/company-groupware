@@ -2,8 +2,10 @@ package com.company.groupware.service;
 
 import com.company.groupware.Exception.InvalidCommuteStateException;
 import com.company.groupware.Exception.ResourceNotFoundException;
+import com.company.groupware.config.CommuteProperties;
 import com.company.groupware.dto.CommuteResponse;
 import com.company.groupware.entity.Commute;
+import com.company.groupware.entity.CommuteStatus;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.CommuteRepository;
 import com.company.groupware.repository.EmployeeRepository;
@@ -26,6 +28,7 @@ public class CommuteService {
 
     private final CommuteRepository commuteRepository;
     private final EmployeeRepository employeeRepository;
+    private final CommuteProperties commuteProperties;
 
     /**
      * 출근 처리: 오늘 날짜로 이미 기록이 있으면 중복 출근으로 간주해 예외 발생
@@ -41,10 +44,13 @@ public class CommuteService {
                     throw new InvalidCommuteStateException("이미 오늘 출근 기록이 있습니다. empl_id=" + emplId);
                 });
 
+        LocalTime now = LocalTime.now();
+
         Commute commute = new Commute();
         commute.setEmployee(employee);
         commute.setAttendanceDate(today);
-        commute.setStartTime(LocalTime.now().format(TIME_FORMATTER));
+        commute.setStartTime(now.format(TIME_FORMATTER));
+        commute.setStatus(now.isAfter(commuteProperties.getLateTime()) ? CommuteStatus.LATE : CommuteStatus.NORMAL);
         commuteRepository.save(commute);
 
         return new CommuteResponse(commute);

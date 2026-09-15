@@ -6,10 +6,15 @@
     <style>
         body {
             font-family: sans-serif;
+        }
+        .commute-main {
+            margin-top: var(--topinfo-height);
+            margin-left: var(--menubar-width);
+            min-height: calc(100vh - var(--topinfo-height));
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 60px;
+            padding: 60px 24px;
         }
         .commute-btn {
             width: 220px;
@@ -82,38 +87,40 @@
 <div th:replace="~{module/topinfo :: topinfo}"></div>
 <div th:replace="~{module/menubar :: menubar}"></div>
 
-<h2>출퇴근</h2>
+<main class="commute-main">
+    <h2>출퇴근</h2>
 
-<!-- 에러 메시지 (중복 출근/퇴근 시도 등) -->
-<div class="error-box" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+    <!-- 에러 메시지 (중복 출근/퇴근 시도 등) -->
+    <div class="error-box" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
 
-<!-- 출근 전: 출근 버튼 -->
-<form th:if="${commuteState == 'NOT_CHECKED_IN'}" method="post" th:action="@{/commute/check-in}">
-    <input type="hidden" name="emplId" th:value="${emplId}">
-    <button type="submit" class="commute-btn commute-btn--checkin">출근</button>
-</form>
+    <!-- 출근 전: 출근 버튼 -->
+    <form th:if="${commuteState == 'NOT_CHECKED_IN'}" method="post" th:action="@{/commute/check-in}">
+        <input type="hidden" name="emplId" th:value="${emplId}">
+        <button type="submit" class="commute-btn commute-btn--checkin">출근</button>
+    </form>
 
-<!-- 출근 완료, 퇴근 전: 퇴근 버튼 -->
-<form th:if="${commuteState == 'CHECKED_IN'}" method="post" th:action="@{/commute/check-out}">
-    <input type="hidden" name="emplId" th:value="${emplId}">
-    <button type="submit" class="commute-btn commute-btn--checkout">퇴근</button>
-</form>
+    <!-- 출근 완료, 퇴근 전: 퇴근 버튼 -->
+    <form th:if="${commuteState == 'CHECKED_IN'}" method="post" th:action="@{/commute/check-out}">
+        <input type="hidden" name="emplId" th:value="${emplId}">
+        <button type="submit" class="commute-btn commute-btn--checkout">퇴근</button>
+    </form>
 
-<!-- 퇴근 완료: 버튼 대신 안내만 표시 -->
-<div th:if="${commuteState == 'CHECKED_OUT'}" class="commute-done">
-    오늘 근무가<br>종료되었습니다
-</div>
+    <!-- 퇴근 완료: 버튼 대신 안내만 표시 -->
+    <div th:if="${commuteState == 'CHECKED_OUT'}" class="commute-done">
+        오늘 근무가<br>종료되었습니다
+    </div>
 
-<table class="info-table">
-    <tr>
-        <td class="label">출근시간</td>
-        <td class="value" th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></td>
-    </tr>
-    <tr>
-        <td class="label">퇴근시간</td>
-        <td class="value" th:text="${today != null and today.finishTime != null} ? ${today.finishTime} : '퇴근 안함'"></td>
-    </tr>
-</table>
+    <table class="info-table">
+        <tr>
+            <td class="label">출근시간</td>
+            <td class="value" th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></td>
+        </tr>
+        <tr>
+            <td class="label">퇴근시간</td>
+            <td class="value" th:text="${today != null and today.finishTime != null} ? ${today.finishTime} : '퇴근 안함'"></td>
+        </tr>
+    </table>
+</main>
 
 </body>
 </html>
