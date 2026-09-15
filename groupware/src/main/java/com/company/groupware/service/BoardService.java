@@ -165,19 +165,15 @@ public class BoardService {
     }
 
     /**
-     * 게시글 쓰기(작성) 가능 여부
-     * - 카테고리 없음 / 관리자 → 항상 가능
-     * - 공지, 부서공지 → 관리자만 가능
-     * - 자유게시판 → 전 직원 가능
-     * - 부서 게시판 → 그 부서 소속 직원만 가능
+     * 게시글 작성 권한
+     * - 로그인 직원 또는 카테고리가 없으면 작성 불가
+     * - 관리자: 모든 유효한 카테고리에 작성 가능
+     * - 전체 공지 및 부서 공지: 관리자만 작성 가능
+     * - 자유게시판: 기존의 전 직원 작성 규칙 유지
+     * - 부서 게시판: 해당 부서 직원만 작성 가능
      */
     public boolean canWrite(BoardCategory category, Employee viewer) {
-
-        if (category == null) {
-            return true;
-        }
-
-        if (viewer == null) {
+        if (viewer == null || category == null) {
             return false;
         }
 
@@ -197,18 +193,33 @@ public class BoardService {
     }
 
     /**
-     * 게시글 수정/삭제 가능 여부
-     * - 관리자 → 항상 가능
-     * - 자유게시판 → 가능 (기존 동작 유지)
-     * - 그 외(공지, 부서 게시판, 부서공지) → 관리자만 가능
+     * 게시글 수정·삭제 권한
+     * - 로그인 직원 또는 게시글이 없으면 거부
+     * - 관리자: 모든 게시글 관리 가능 (카테고리 없는 과거 글 포함)
+     * - 전체 공지 및 부서 공지: 일반 직원은 작성자여도 수정·삭제 불가
+     * - 부서 일반 게시글: 현재 해당 부서 소속인 작성자 본인만 가능
+     * - 자유게시판: 작성자 본인만 가능
      */
-    public boolean canModify(BoardCategory category, Employee viewer) {
+    public boolean canModify(Board board, Employee viewer) {
+        if (board == null || viewer == null) {
+            return false;
+        }
 
         if (isAdmin(viewer)) {
             return true;
         }
 
-        return isFreeBoard(category);
+        // 공지 여부와 현재 부서의 작성 권한을 함께 확인
+        if (!canWrite(board.getBoardCategory(), viewer)) {
+            return false;
+        }
+
+        Employee author = board.getEmployee();
+        if (author == null || viewer.getEmplId() == null) {
+            return false;
+        }
+
+        return viewer.getEmplId().equals(author.getEmplId());
     }
 
     /**

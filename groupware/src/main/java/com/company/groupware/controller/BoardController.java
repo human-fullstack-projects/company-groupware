@@ -290,7 +290,7 @@ public class BoardController {
 
         model.addAttribute(
                 "canModify",
-                boardService.canModify(board.getBoardCategory(), employee)
+                boardService.canModify(board, employee)
         );
 
         model.addAttribute(
@@ -371,7 +371,7 @@ public class BoardController {
 
         Employee employee = getLoginEmployee(authentication);
 
-        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+        if (!boardService.canModify(board, employee)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "이 게시글을 수정할 권한이 없습니다."
@@ -379,7 +379,7 @@ public class BoardController {
         }
 
         List<BoardCategory> categories =
-                boardService.findAllCategories();
+                boardService.writableCategories(employee);
 
         model.addAttribute(
                 "board",
@@ -412,7 +412,7 @@ public class BoardController {
 
         Employee employee = getLoginEmployee(authentication);
 
-        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+        if (!boardService.canModify(board, employee)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "이 게시글을 수정할 권한이 없습니다."
@@ -456,7 +456,7 @@ public class BoardController {
 
         Employee employee = getLoginEmployee(authentication);
 
-        if (!boardService.canModify(board.getBoardCategory(), employee)) {
+        if (!boardService.canModify(board, employee)) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "이 게시글을 삭제할 권한이 없습니다."

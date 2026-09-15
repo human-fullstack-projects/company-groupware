@@ -15,19 +15,23 @@
     <link rel="stylesheet" th:href="@{/css/board/calendar.css}">
 
     <script defer th:src="@{/js/calendar.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
 </head>
 
-<body>
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<body class="workspace-home workspace-calendar">
+<a class="skip-link" href="#calendarPage">본문으로 건너뛰기</a>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('calendar')}"></div>
 
 <main id="calendarPage"
-      class="calendar-page"
+      class="calendar-page workspace-content"
       th:attr="data-api=@{/api/schedules}">
 
     <header class="calendar-heading">
         <div>
-            <h2>업무 캘린더</h2>
+            <span class="home-eyebrow">TEAM CALENDAR</span>
+            <h1>업무 캘린더</h1>
             <p>전체 업무 일정을 확인하고 부서 일정을 관리하세요.</p>
         </div>
 
@@ -136,3 +140,4 @@
 </dialog>
 </body>
 </html>
+
