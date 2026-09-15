@@ -127,6 +127,20 @@ public class ChatRoomService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 입장/퇴장 시스템 메시지 문구에 쓸 직원 이름 조회
+     */
+    public String getEmployeeName(Long emplId) {
+        return getEmployeeOrThrow(emplId).getEmplName();
+    }
+
+    /**
+     * 방 목록 실시간 알림(개인 큐 전송)에 쓸 방 정보 조회
+     */
+    public ChatRoomResponse getRoomInfo(Long roomId) {
+        return new ChatRoomResponse(getChatRoomOrThrow(roomId));
+    }
+
     private ChatRoomAffiliation addMember(ChatRoom chatRoom, Employee employee) {
         ChatRoomAffiliation affiliation = new ChatRoomAffiliation();
         affiliation.setChatRoom(chatRoom);

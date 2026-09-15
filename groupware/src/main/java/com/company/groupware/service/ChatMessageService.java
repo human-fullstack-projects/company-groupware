@@ -59,6 +59,26 @@ public class ChatMessageService {
     }
 
     /**
+     * 입장/퇴장 등 시스템 메시지를 저장합니다.
+     * 퇴장 메시지는 room_out_date 가 세팅되기 전(아직 활성 참여자일 때) 호출해야 validateActiveMember 를 통과합니다.
+     */
+    @Transactional
+    public ChatMessageResponse saveSystemMessage(Long roomId, Long emplId, String content) {
+        ChatRoom chatRoom = getChatRoomOrThrow(roomId);
+        Employee employee = getEmployeeOrThrow(emplId);
+        validateActiveMember(emplId, roomId);
+
+        ChatRoomMessage message = new ChatRoomMessage();
+        message.setChatRoom(chatRoom);
+        message.setEmployee(employee);
+        message.setMessageContent(content);
+        message.setCreatedAt(LocalDateTime.now());
+        chatRoomMessageRepository.save(message);
+
+        return new ChatMessageResponse(message);
+    }
+
+    /**
      * 파일 첨부 메시지를 저장합니다. 방에 활성 참여 중인 직원만 업로드할 수 있습니다.
      */
     @Transactional
