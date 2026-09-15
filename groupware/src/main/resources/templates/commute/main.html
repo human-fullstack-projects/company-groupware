@@ -77,6 +77,16 @@
             color: #c0392b;
             border-radius: 4px;
         }
+        .status-badge {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .status-badge--late {
+            color: #d35400;
+        }
+        .status-badge--normal {
+            color: #2e7d32;
+        }
     </style>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
@@ -113,7 +123,13 @@
     <table class="info-table">
         <tr>
             <td class="label">출근시간</td>
-            <td class="value" th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></td>
+            <td class="value">
+                <span th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></span>
+                <span th:if="${today != null and today.status != null}" th:switch="${today.status.name()}">
+                    <span th:case="'LATE'" class="status-badge status-badge--late">지각</span>
+                    <span th:case="'NORMAL'" class="status-badge status-badge--normal">정상출근</span>
+                </span>
+            </td>
         </tr>
         <tr>
             <td class="label">퇴근시간</td>
