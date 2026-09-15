@@ -9,98 +9,21 @@
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            margin-top: calc(var(--topinfo-height) + 40px);
-            margin-left: calc(var(--menubar-width) + 40px);
-        }
 
-        .title {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .info {
-            color: #777;
-            margin-bottom: 30px;
-        }
-
-        .content {
-            min-height: 300px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            white-space: pre-wrap;
-        }
-
-        .file-area {
-            margin-top: 25px;
-            padding: 20px;
-            border: 1px solid #ddd;
-        }
-
-        .file-area h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-
-        .file-list {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .file-list li {
-            margin-bottom: 10px;
-        }
-
-        .file-list a {
-            color: #333;
-            text-decoration: none;
-        }
-
-        .file-list a:hover {
-            text-decoration: underline;
-        }
-
-        .file-size {
-            margin-left: 8px;
-            color: #777;
-            font-size: 13px;
-        }
-
-        .no-file {
-            color: #777;
-        }
-
-        .buttons {
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 8px 15px;
-            cursor: pointer;
-        }
-
-        a {
-            margin-right: 10px;
-            text-decoration: none;
-        }
-
-        .delete-form {
-            display: inline;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-board">
+<a class="skip-link" href="#workspace-main">본문으로 건너뛰기</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('boards')}"></div>
+<main class="workspace-content board-view board-detail" id="workspace-main">
 
-<h1>게시글 상세</h1>
+<header class="workspace-page-heading"><span class="home-eyebrow">TEAM BOARD</span><h1>게시글 상세</h1><p>업무 내용을 확인하고 댓글로 의견을 나누세요.</p></header>
+<section class="board-panel" aria-label="게시판 상세">
 
 <div class="title"
      th:text="${board.boardTitle}">
@@ -218,6 +141,8 @@
 
 </div>
 
+</section>
+</main>
 </body>
 
 </html>

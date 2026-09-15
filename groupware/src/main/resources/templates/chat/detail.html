@@ -2,6 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="_login_empl_id" th:content="${loginEmplId}">
@@ -13,17 +14,21 @@
     <link rel="stylesheet" th:href="@{/css/chat-detail.css}">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-workspace.css}">
 </head>
-<body>
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<body class="workspace-home workspace-chat">
+<a class="skip-link" href="#workspace-main">본문으로 이동</a>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('chat')}"></div>
 
-<main class="chat-detail">
+<main class="chat-detail" id="workspace-main">
     <div class="chat-detail__header">
         <a th:href="@{/chat/list}" class="chat-detail__back">← 목록으로</a>
-        <h2 class="chat-detail__title" th:text="${chatRoom.roomId} + ' - ' + ${chatRoom.roomName}">채팅방</h2>
-        <span id="status" class="chat-detail__status disconnected">연결 중...</span>
-        <button type="button" id="inviteBtn" class="chat-detail__invite-btn" onclick="inviteMember()">초대</button>
+        <div class="chat-detail__heading"><span class="chat-eyebrow">TEAM CONVERSATION</span>
+        <h1 class="chat-detail__title" th:text="${chatRoom.roomName}">채팅방</h1></div>
+        <span id="status" role="status" class="chat-detail__status disconnected">연결 중...</span>
+        <button type="button" id="inviteBtn" class="chat-detail__invite-btn" onclick="inviteMember()">동료 초대</button>
         <button type="button" id="leaveBtn" class="chat-detail__leave-btn" onclick="leaveRoom()">나가기</button>
     </div>
 
@@ -34,13 +39,13 @@
         </aside>
 
         <div class="chat-detail__main">
-            <ul id="messages" class="chat-detail__messages"></ul>
+            <ul id="messages" aria-label="대화 내용" class="chat-detail__messages"></ul>
 
-            <div id="errorLog" class="chat-detail__error" style="display:none;"></div>
+            <div id="errorLog" role="alert" class="chat-detail__error" style="display:none;"></div>
 
             <form id="sendForm" class="chat-detail__send-row">
-                <input type="text" id="content" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
-                <input type="file" id="fileInput" class="chat-detail__file-input" multiple>
+                <input type="text" id="content" aria-label="메시지 입력" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
+                <input type="file" id="fileInput" aria-label="첨부할 파일 선택" class="chat-detail__file-input" multiple>
                 <button type="submit" class="chat-detail__send-btn">전송</button>
             </form>
         </div>
@@ -385,3 +390,4 @@
 </script>
 </body>
 </html>
+

@@ -1,0 +1,67 @@
+/* 홈·게시판·캘린더의 공통 외곽 UI. 타 페이지에는 적용하지 않음. */
+.workspace-content{margin-top:var(--topinfo-height);margin-left:var(--menubar-width);min-height:calc(100vh - var(--topinfo-height));padding:36px clamp(24px,4vw,60px) 40px;line-height:1.6;color:#17243d}
+.workspace-page-heading{margin-bottom:26px}.workspace-page-heading h1,.workspace-calendar .calendar-heading h1{margin:8px 0;font-size:29px;letter-spacing:-1.1px;line-height:1.4}.workspace-page-heading p{margin:0;font-size:13px;color:#6d7789}
+.board-panel{background:#fff;border:1px solid #e2e7ee;border-radius:16px;padding:28px;min-width:0}
+.board-view :is(input,select,textarea,button){font:inherit;font-size:13px;color:#17243d}
+.board-view :is(input:not([type=hidden]),select,textarea){border:1px solid #dce3eb;border-radius:8px;background:#fafbfc;padding:11px 13px;max-width:100%}
+.board-view :is(input,select,textarea):focus{border-color:#4b8b7b;background:#fff}
+.board-view :is(button,.write-button,.buttons>a,.buttons>a>button){border:1px solid #dce3eb;border-radius:8px;background:#fff;color:#17243d;padding:10px 17px;font-size:13px;cursor:pointer;text-decoration:none;line-height:1.5}
+.board-view button:hover,.board-view .buttons>a:hover{background:#f0f4f6}
+.board-view .write-button,.board-view .search-area button,.board-create .board-panel>form>button,.board-edit .buttons>button{background:#1b2a4e;border-color:#1b2a4e;color:#fff;display:inline-block;font-weight:700}
+.board-view .write-button:hover,.board-view .search-area button:hover,.board-create .board-panel>form>button:hover,.board-edit .buttons>button:hover{background:#2c4270}
+.board-view button:disabled{opacity:.5;cursor:not-allowed}
+.board-view .category-filter{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-bottom:22px}
+.board-view .filter-pill{border:1px solid #dce3eb;padding:9px 18px;border-radius:8px;text-decoration:none;color:#67758b;font-size:12px;font-weight:700;background:#fff}
+.board-view .filter-pill.active{background:#e6f2ec;color:#2f6653;border-color:#9fc8b8}
+.board-view .dept-select{width:auto;min-width:130px;background:#fff;font-size:12px}
+.board-view .search-area{padding:18px;background:#f6f8fa;border:1px solid #edf0f4;border-radius:10px;margin-bottom:22px}
+.board-view .search-area form{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.board-view .search-area input[type=text]{width:280px;flex:1;max-width:420px;min-width:130px;background:#fff}
+.board-view .search-area select{background:#fff}.board-table-scroll{overflow-x:auto}
+.board-view .board-table{width:100%;min-width:650px;border-collapse:collapse;margin-bottom:12px;font-size:12px}
+.board-view .board-table th{padding:15px 12px;background:#f8fafb;border-top:1px solid #e1e7ee;border-bottom:1px solid #e1e7ee;color:#728096;font-weight:600;white-space:nowrap}
+.board-view .board-table td{padding:19px 12px;border-bottom:1px solid #edf0f4;text-align:center;color:#657086}
+.board-view .board-table td.title{text-align:left;min-width:210px;font-weight:600;color:#23334e}
+.board-view .board-table a{color:inherit;text-decoration:none}.board-view .board-table a:hover{text-decoration:underline;text-underline-offset:4px}.board-view .board-table tr:hover td{background:#f8fbf9}
+.board-view .read-row td{color:#8894a4;background:#fafbfc}.board-view .empty-message{padding:65px 12px!important;font-size:13px;color:#8390a2!important}
+.board-view .pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin:24px 0}
+.board-view .pagination a,.board-view .pagination .current,.board-view .pagination .disabled{display:inline-block;text-align:center;min-width:33px;padding:6px 10px;border-radius:7px;font-size:12px;border:1px solid #e2e7ee;text-decoration:none;color:#657086}
+.board-view .pagination .current{background:#1b2a4e;color:#fff;border-color:#1b2a4e}.board-view .pagination .disabled{color:#a3adbb;background:#f7f8fa}
+.board-view .button-area{text-align:right;margin-top:20px}
+.board-view .form-group{margin-bottom:23px}.board-view .form-group>label{display:block;margin-bottom:9px;font-size:13px;font-weight:700}
+.board-view .form-group :is(input,select,textarea){width:100%}
+.board-view .form-group textarea{height:310px;min-height:180px;resize:vertical;line-height:1.8}
+.board-view input[type=file]{background:#f8fafb}.board-view input[type=file]::file-selector-button{border:1px solid #dce3eb;border-radius:6px;background:white;color:#42576c;padding:7px 12px;margin-right:14px;font:inherit}
+.board-view .form-group>div{font-size:11px;color:#7a8596;margin-top:8px}
+.board-create .board-panel>form>a{font-size:13px;color:#68788e;margin-left:15px}
+.board-view .buttons{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:24px}
+.board-view .buttons>a:has(button){padding:0;border:0;background:none}
+.board-view .delete-form{display:inline;margin:0}.board-view .delete-form button{color:#aa4150;border-color:#edcbd1;background:#fff5f6}
+.board-view .error{padding:13px;border:1px solid #efced3;border-radius:8px;background:#fff4f5;font-size:13px}
+.board-detail .board-panel>.title{font-size:24px;font-weight:700;line-height:1.6;overflow-wrap:anywhere;margin-bottom:15px}
+.board-detail .info{font-size:11px;color:#7a8596;border-bottom:1px solid #e7ecf1;padding-bottom:22px;line-height:2}
+.board-detail .content{padding:27px 0;min-height:240px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.9}
+.board-detail .file-area{padding:20px;background:#f7f9fb;border:1px solid #e8edf3;border-radius:10px;margin-top:15px}
+.board-detail .file-area h3{font-size:13px;margin:0 0 12px}.board-detail .file-list{list-style:none;padding:0;margin:0}.board-detail .file-list li+li{margin-top:9px}.board-detail .file-list a{font-size:12px;color:#366555}.board-detail .file-size,.board-detail .no-file{font-size:11px;color:#8490a0}
+.workspace-board .comment-section{margin-top:28px;border-color:#e2e7ee}.workspace-board .comment-title{font-size:16px;color:#17243d}.workspace-board .comment-form{background:#f8fafb;border-radius:10px}.workspace-board .comment-submit{background:#1b2a4e;color:#fff;border-color:#1b2a4e}.workspace-board .comment-profile{background:#e6f2ec;color:#366555}
+.workspace-calendar .calendar-page{margin-top:var(--topinfo-height);margin-left:var(--menubar-width);padding:36px clamp(24px,4vw,60px) 40px;min-height:calc(100vh - var(--topinfo-height));background:#f3f5f9}
+.workspace-calendar .calendar-heading{margin-bottom:26px}.workspace-calendar .calendar-heading p{margin:0;font-size:13px}
+.workspace-calendar .calendar-card{border-color:#e2e7ee;border-radius:16px;padding:28px}
+.workspace-calendar .calendar-toolbar{padding-bottom:18px;border-bottom:1px solid #edf0f4}.workspace-calendar .calendar-toolbar h3{font-size:20px;letter-spacing:-.5px}
+.workspace-calendar .calendar-guide{font-size:12px;background:#f5f8f7;border-left:3px solid #afd7c7;padding:12px 14px;margin-top:20px;border-radius:5px}
+.workspace-calendar .calendar-page button.primary,.workspace-calendar .schedule-dialog button.primary{background:#1b2a4e;border-color:#1b2a4e}
+.workspace-calendar .calendar-page button.primary:hover,.workspace-calendar .schedule-dialog button.primary:hover{background:#2c4270}
+.workspace-calendar .calendar-page .today .day-number{background:#2a6050}.workspace-calendar .calendar-day.today{background:#f0f8f4}
+.workspace-calendar .calendar-weekdays{background:#f7f9fb}.workspace-calendar .calendar-weekdays span{font-size:12px;color:#778398}.workspace-calendar .calendar-weekdays span:first-child{color:#bd5c69}.workspace-calendar .calendar-weekdays span:last-child{color:#5b79aa}
+.workspace-calendar .calendar-day{min-height:118px;border-color:#e7ecf2}.workspace-calendar .calendar-grid,.workspace-calendar .calendar-weekdays{border-color:#e7ecf2}
+.workspace-calendar .calendar-page .schedule-item.editable:not(.cancelled){border-left-color:#679e89;background:#e8f4ed;color:#285340}
+.workspace-calendar .schedule-dialog{border:1px solid #e2e7ee;box-shadow:0 24px 80px #101a3333;padding:28px}
+.workspace-calendar .schedule-dialog::backdrop{background:#101a3380;backdrop-filter:blur(3px)}
+.workspace-calendar .dialog-header{padding-bottom:17px;border-bottom:1px solid #e7ecf1}.workspace-calendar .dialog-header h2{font-size:20px}
+.workspace-calendar .schedule-fields input,.workspace-calendar .schedule-fields textarea{background:#fafbfc;border-color:#dce3eb}
+.workspace-calendar .schedule-fields textarea{height:140px;resize:none;overflow-y:auto}
+.workspace-calendar .schedule-fields :disabled{background:#f1f5f9;color:#475569}
+.workspace-calendar .schedule-dialog .danger{color:#b42318;background:#fff4f2;border-color:#f0b4ad}
+@media(max-width:1100px){.workspace-content,.workspace-calendar .calendar-page{padding:28px 22px}.board-panel,.workspace-calendar .calendar-card{padding:22px}}
+@media(max-width:760px){.workspace-content,.workspace-calendar .calendar-page{margin:0;padding:25px 18px;min-height:calc(100vh - 66px)}.workspace-page-heading h1,.workspace-calendar .calendar-heading h1{font-size:24px}.board-panel,.workspace-calendar .calendar-card{padding:17px}.board-view .search-area{padding:12px}.board-view .search-area form{justify-content:stretch}.board-view .search-area input[type=text]{max-width:none}.board-view .form-group textarea{height:250px}.workspace-calendar .calendar-toolbar{flex-wrap:wrap}.workspace-calendar .calendar-heading{gap:18px}.workspace-calendar .calendar-heading>button{width:100%}.workspace-calendar .calendar-guide{font-size:11px}.workspace-calendar .schedule-dialog{padding:20px}}
+
