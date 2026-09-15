@@ -125,21 +125,18 @@
     }
 
     // 현재 방에서 나가기
-    async function leaveRoom() {
+    // 응답을 기다리지 않고 바로 이동 - 서버가 브로드캐스트하는 퇴장 메시지를 본인 화면에서
+    // 확인한 뒤에야 이동되는 지연을 없앰. keepalive 로 페이지 이동에 요청이 취소되지 않게 함
+    function leaveRoom() {
         if (!confirm('채팅방에서 나가시겠습니까?')) {
             return;
         }
 
-        const res = await fetch(`/api/chat/rooms/${roomId()}/members/${emplId()}`, {
+        fetch(`/api/chat/rooms/${roomId()}/members/${emplId()}`, {
             method: 'DELETE',
-            headers: csrfHeader()
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            alert('나가기 실패: ' + (err.message || res.status));
-            return;
-        }
+            headers: csrfHeader(),
+            keepalive: true
+        }).catch(err => console.error('나가기 요청 실패', err));
 
         location.href = '/chat/list';
     }
@@ -174,6 +171,13 @@
         return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
     }
 
+    // messageType 컬럼이 없어 문구로 입장/퇴장 시스템 메시지를 판별 (날짜 구분선과 동일한 방식)
+    function isSystemMessage(msg) {
+        return (!msg.files || msg.files.length === 0)
+            && typeof msg.content === 'string'
+            && (msg.content.endsWith('님이 입장했습니다') || msg.content.endsWith('님이 퇴장했습니다'));
+    }
+
     function appendMessage(msg) {
         const list = document.getElementById('messages');
         const created = msg.createdAt ? new Date(msg.createdAt) : new Date();
@@ -187,6 +191,15 @@
             });
             list.appendChild(divider);
             lastMessageDate = dateKey;
+        }
+
+        if (isSystemMessage(msg)) {
+            const systemLi = document.createElement('li');
+            systemLi.className = 'chat-detail__date-divider';
+            systemLi.textContent = msg.content;
+            list.appendChild(systemLi);
+            list.scrollTop = list.scrollHeight;
+            return;
         }
 
         const li = document.createElement('li');
@@ -347,6 +360,28 @@
 
     // 이 화면에 들어오면 바로 연결 (뒤로가기/새로고침으로 나가면 브라우저가 소켓을 자동으로 정리함)
     window.addEventListener('load', connect);
+
+    // 페이지를 벗어날 때 소켓을 명시적으로 정리 (다른 메뉴로 이동 시 재연결 시도가 뜨는 것을 방지)
+    // bfcache에 저장되는 경우(persisted)는 문서가 재사용되므로 연결을 끊지 않음
+    window.addEventListener('pagehide', function (event) {
+        if (event.persisted) {
+            return;
+        }
+        if (reconnectTimer !== null) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect();
+        }
+    });
+
+    // bfcache에서 페이지가 복원된 경우 load 이벤트가 다시 발생하지 않으므로 여기서 재연결
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted && (!stompClient || !stompClient.connected)) {
+            connect();
+        }
+    });
 </script>
 </body>
 </html>

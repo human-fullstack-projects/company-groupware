@@ -28,6 +28,8 @@ public class ApprovalDocumentService {
 
     private final EmployeeRepository employeeRepository;
 
+    private final ApprovalDocumentAttachmentService approvalDocumentAttachmentService;
+
 
     /**
      * 문서 상신
@@ -412,15 +414,17 @@ public class ApprovalDocumentService {
             );
         }
 
+        // 첨부파일 먼저 제거
+        approvalDocumentAttachmentService.deleteByDocumentId(documentId);
 
-        /*
-         * 상신한 문서는 approval_document_member가 있으므로
-         * 자식부터 삭제
-         */
-        approvalDocumentMemberRepository
-                .deleteByDocument_DocumentId(documentId);
 
+        // 결재자 제거
+        approvalDocumentMemberRepository.deleteByDocument_DocumentId(documentId);
+
+
+        // 문서 제거
         approvalDocumentRepository.delete(document);
+
     }
 
 
