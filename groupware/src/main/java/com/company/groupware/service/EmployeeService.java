@@ -185,6 +185,7 @@ public class EmployeeService {
         admin.setPasswordHash(passwordEncoder.encode("root1234"));
         admin.setEmplName("관리자");
         admin.setEmplStat(true);
+        admin.setCreatedAt(LocalDateTime.now());
 
         employeeRepository.save(admin);
     }

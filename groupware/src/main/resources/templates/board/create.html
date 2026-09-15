@@ -106,11 +106,32 @@
                 카테고리 선택
             </option>
 
-            <option th:each="category : ${categories}"
-                    th:value="${category.boardCategoryId}"
-                    th:text="${category.boardCategoryName}">
-                카테고리
-            </option>
+            <optgroup label="전체">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName == '자유게시판' or category.boardCategoryName == '공지'}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
+
+            <optgroup label="부서 게시판">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName != '자유게시판' and !#strings.endsWith(category.boardCategoryName, '공지')}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
+
+            <optgroup label="부서 공지">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName != '공지' and #strings.endsWith(category.boardCategoryName, '공지')}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
 
         </select>
 
