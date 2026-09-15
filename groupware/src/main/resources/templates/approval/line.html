@@ -26,18 +26,21 @@
     <title>결재라인 관리</title>
 
 
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/business-workspace.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-business business-lines">
+<a class="skip-link" href="#business-main">본문으로 이동</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('lines')}"></div>
 
 
-<main class="approval-line-page">
+<main class="approval-line-page" id="business-main">
     <div class="container">
 
-        <h2 class="title">개인 결재라인 관리</h2>
+        <div class="business-heading"><span class="business-eyebrow">APPROVAL ROUTE</span><h1>결재라인 관리</h1><p>자주 사용하는 결재자와 결재 순서를 저장해두세요.</p></div>
 
         <div class="approval-box">
 
@@ -82,7 +85,7 @@
 
                     <div class="employee-select">
 
-                        <select id="employeeSelect">
+                        <select id="employeeSelect" aria-label="추가할 결재자 선택">
                             <option value="">
                                 사원을 선택하세요
                             </option>
@@ -137,3 +140,4 @@
 
 </body>
 </html>
+

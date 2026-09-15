@@ -1,0 +1,147 @@
+/* 근태·전자결재·결재라인 전용 스타일. 기존 CSS와 home.css 뒤에 연결합니다. */
+body.workspace-business { padding: 0; margin: 0; background: #f3f5f9; color: #17243d; font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; }
+.workspace-business .topinfo__auth { top: 50%; transform: translateY(-50%); }
+.workspace-business .topinfo__auth form { margin: 0; }
+.workspace-business .topinfo__user-btn { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 8px 12px; font-size: 12px; background: transparent; border-color: transparent; }
+.workspace-business .topinfo__user-id { margin-left: 5px; font-size: 11px; color: #a8b9cf; }
+.workspace-business .topinfo__title { min-width: 0; margin-right: 360px; }
+.workspace-business :is(.approval-page, .approval-line-page, .commute-main) {
+    width: auto; margin: var(--topinfo-height) 0 0 var(--menubar-width);
+    min-width: 0; min-height: calc(100vh - var(--topinfo-height));
+    padding: 32px clamp(22px, 3vw, 48px) 42px; line-height: 1.6;
+}
+.workspace-business .container { max-width: none; width: 100%; margin: 0; }
+.business-heading, .workspace-business .page-head { margin-bottom: 26px; }
+.business-eyebrow { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.8px; color: #668274; line-height: 1.7; }
+.business-heading h1, .workspace-business .page-title { margin: 7px 0; font-size: 29px; letter-spacing: -1px; line-height: 1.4; }
+.business-heading p, .workspace-business .page-desc { margin: 0; font-size: 13px; line-height: 1.8; color: #758095; }
+.workspace-business :is(.page-head, .section-head, .button-row, .button-area, .action-card) { flex-wrap: wrap; }
+.workspace-business :is(.approval-page, .approval-line-page) :is(input, select, textarea, button) { font-family: inherit; font-size: 13px; }
+.workspace-business :is(.btn, .approval-line-page button) { display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 38px; padding: 9px 15px; border: 1px solid #dce3eb; border-radius: 9px; background: #fff; color: #41516b; font-size: 12px; line-height: 1.5; text-decoration: none; cursor: pointer; }
+.workspace-business :is(.btn, .approval-line-page button):hover { background: #f2f6f4; border-color: #aecbbc; }
+.workspace-business :is(.btn-primary, .approval-line-page button.btn-main) { color: #fff; background: #1b2a4e; border-color: #1b2a4e; font-weight: 700; }
+.workspace-business :is(.btn-primary, .approval-line-page button.btn-main):hover { color: #fff; background: #2c4270; border-color: #2c4270; }
+.workspace-business :is(.btn-danger, .approval-line-page button.btn-danger) { color: #aa4355; border-color: #edced4; background: #fff6f7; }
+.workspace-business :is(.btn-danger, .approval-line-page button.btn-danger):hover { color: #913647; background: #fce9ed; border-color: #deb5bf; }
+.workspace-business button:disabled { opacity: .5; cursor: not-allowed; }
+.workspace-business :is(.form-control, .document-template-select, .approval-line-page input, .approval-line-page select, .page-size-select) { width: 100%; min-width: 0; max-width: 100%; padding: 11px 13px; border: 1px solid #dce3eb; border-radius: 8px; background: #fafbfc; color: #253751; line-height: 1.5; }
+.workspace-business :is(input, select, textarea):focus { border-color: #70a38d; }
+.workspace-business :is(input, select, textarea):disabled, .workspace-business .form-control[readonly] { background: #f1f4f7; color: #627087; }
+.workspace-business :is(.form-label, .form-group label) { font-size: 13px; font-weight: 700; color: #374861; }
+.workspace-business textarea.form-control { min-height: 280px; height: 370px; resize: vertical; line-height: 1.9; }
+.workspace-business .document-template-select { margin-bottom: 18px; width: auto; }
+.workspace-business input[type=file]::file-selector-button { padding: 7px 12px; margin-right: 10px; border: 1px solid #d4e2db; border-radius: 7px; background: #eef6f1; color: #416c56; font: inherit; cursor: pointer; }
+.workspace-business :is(.section-card, .form-card, .approval-box, .action-card, .detail-meta) { border: 1px solid #e2e7ee; border-radius: 15px; background: white; min-width: 0; box-shadow: 0 5px 20px #17243d03; }
+.workspace-business .section-card { overflow: hidden; margin-bottom: 22px; }
+.workspace-business .section-head { padding: 21px 24px; border-color: #edf0f4; }
+.workspace-business .section-title { font-size: 16px; color: #263750; }
+.workspace-business .section-count { font-size: 11px; color: #8390a3; }
+.workspace-business .page-size-form { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; color: #758095; }
+.workspace-business .page-size-select { width: auto; padding: 6px 10px; height: auto; }
+.approval-table-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #bfcfc6 transparent; }
+.workspace-business .approval-table { min-width: 640px; table-layout: fixed; }
+.workspace-business .approval-table th { padding: 13px 16px; font-size: 11px; color: #7b889d; background: #f8fafb; white-space: nowrap; }
+.workspace-business .approval-table td { padding: 19px 16px; font-size: 12px; color: #68768c; overflow-wrap: anywhere; }
+.workspace-business .approval-table tbody tr:hover { background: #f7fbf9; }
+.workspace-business .document-link { color: #2d405c; line-height: 1.8; }
+.workspace-business .status { min-width: 64px; padding: 5px 9px; font-size: 10px; font-weight: 700; line-height: 1.6; }
+.workspace-business .status.draft { background: #edf0f5; color: #7a8799; }
+.workspace-business .status.progress { background: #fcf2df; color: #997734; }
+.workspace-business .status.pending { background: #eaf0fc; color: #5474a6; }
+.workspace-business .status.approved { background: #e4f3eb; color: #3a7357; }
+.workspace-business .status.rejected { background: #fcebed; color: #a94d5c; }
+.workspace-business .pagination { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 18px 20px; border-top: 1px solid #edf0f4; }
+.workspace-business .page-link { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 4px 9px; border: 1px solid #e2e7ee; border-radius: 7px; font-size: 12px; color: #69798e; text-decoration: none; }
+.workspace-business .page-link.active { background: #1b2a4e; color: white; border-color: #1b2a4e; }
+.workspace-business .page-link.disabled { color: #b1bbc8; background: #f8fafb; pointer-events: none; }
+.workspace-business .form-card { padding: 26px; }
+.workspace-business .form-grid { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); gap: 24px; }
+.workspace-business .form-grid > * { min-width: 0; }
+.workspace-business .side-box { padding: 20px; background: #f7faf8; border-color: #e0e9e4; border-radius: 12px; }
+.workspace-business .side-title { font-size: 14px; margin-bottom: 16px; }
+.workspace-business :is(.notice-box, .preview-empty, .attachment-empty) { border-color: #d9e4de; border-radius: 9px; font-size: 12px; color: #7b8991; line-height: 1.8; }
+.workspace-business .notice-box a { color: #446e58; }
+.workspace-business .approver-step { flex-wrap: wrap; border-color: #e2e9e5; border-radius: 9px; padding: 12px; }
+.workspace-business .step-number { color: #3c7056; background: #e6f1ea; }
+.workspace-business :is(.step-name, .meta-value, .action-text) { overflow-wrap: anywhere; }
+.workspace-business .detail-meta { margin-bottom: 24px; }
+.workspace-business .meta-item { padding: 19px 20px; border-color: #edf0f4; }
+.workspace-business .meta-item .meta-item { padding: 0; border: 0; }
+.workspace-business .meta-label { font-size: 11px; margin-bottom: 7px; }
+.workspace-business .meta-value { font-size: 13px; color: #3c4d67; }
+.workspace-business .reject-reason-meta { background: #fff6f7; }
+.workspace-business .reject-reason-text { color: #ac4f5b; }
+.workspace-business .attachment-row { flex-wrap: wrap; border-color: #e2e7ee; border-radius: 9px; margin-bottom: 8px; }
+.workspace-business .attachment-actions { flex-wrap: wrap; }
+.workspace-business .selected-file-info { flex-wrap: wrap; }
+.workspace-business .selected-file-name { overflow-wrap: anywhere; white-space: normal; }
+.workspace-business .attachment-name span:last-child { overflow-wrap: anywhere; white-space: normal; }
+.workspace-business .action-card { padding: 20px 24px; }
+.workspace-business .action-text { font-size: 12px; color: #758297; line-height: 1.8; }
+.workspace-business .approval-box { grid-template-columns: 270px minmax(0, 1fr); overflow: hidden; min-height: 510px; }
+.workspace-business .line-list-area { padding: 23px 18px; border-color: #e7ecf1; background: #fbfcfd; min-width: 0; }
+.workspace-business .line-list-area > .btn-main { width: 100%; }
+.workspace-business .line-edit-area { min-width: 0; padding: 28px; }
+.workspace-business .line-item { justify-content: flex-start !important; text-align: left; overflow-wrap: anywhere; padding: 13px 12px !important; }
+.workspace-business .line-item.active { background: #eaf4ee; border-color: #b5d7c4; color: #3c6b53; font-weight: 700; }
+.workspace-business .approver-list { border: 1px solid #e2e9e5; border-radius: 10px; overflow: hidden; background: #fafcfb; }
+.workspace-business .approver-item { padding: 13px; gap: 8px; border-color: #e9eeeb; flex-wrap: wrap; }
+.workspace-business .approver-order { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; font-size: 11px; color: #47715b; background: #e5f1e9; }
+.workspace-business .approver-name { min-width: 60px; font-size: 13px; color: #3c4d66; overflow-wrap: anywhere; }
+.workspace-business .approver-item button { padding: 6px 9px; min-height: 32px; font-size: 11px; }
+.workspace-business .employee-select { min-width: 0; }
+.workspace-business .empty { padding: 26px 15px; font-size: 12px; color: #8a97a5; }
+.workspace-business .commute-main { display: block; }
+.attendance-card { max-width: 740px; padding: 35px; border: 1px solid #e2e7ee; border-radius: 18px; background: white; box-shadow: 0 5px 20px #17243d03; }
+.attendance-intro { margin-bottom: 28px; }
+.attendance-intro h2 { margin: 8px 0; font-size: 23px; letter-spacing: -.6px; }
+.attendance-intro p { color: #7a8799; font-size: 13px; margin: 0; }
+.attendance-card form { margin: 0; }
+.workspace-business .commute-btn, .workspace-business .commute-done { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 96px; gap: 15px; border: 1px solid #cadfd1; border-radius: 13px; background: #edf6f0; color: #3b6951; font: inherit; font-size: 22px; font-weight: 700; text-align: center; }
+.workspace-business .commute-btn { cursor: pointer; }
+.workspace-business .commute-btn::before { content: ''; width: 22px; height: 22px; border: 2px solid currentColor; border-radius: 50%; background: linear-gradient(currentColor, currentColor) 50% 40% / 2px 8px no-repeat, linear-gradient(currentColor, currentColor) 68% 60% / 6px 2px no-repeat; }
+.workspace-business .commute-btn--checkin:hover { background: #deeee4; border-color: #8bbb9f; }
+.workspace-business .commute-btn--checkout { color: #fff; background: #1b2a4e; border-color: #1b2a4e; }
+.workspace-business .commute-btn--checkout:hover { background: #2c4270; }
+.workspace-business .commute-done { font-size: 18px; background: #f3f5f8; color: #7b899a; border-color: #e1e7ed; line-height: 1.7; }
+.workspace-business .info-table { width: 100%; border-collapse: collapse; margin-top: 26px; }
+.workspace-business .info-table td { padding: 18px 12px; border-bottom: 1px solid #edf0f4; font-size: 14px; }
+.workspace-business .info-table .label { width: 100px; color: #8390a2; font-size: 12px; }
+.workspace-business .info-table .value { color: #334862; font-weight: 700; overflow-wrap: anywhere; }
+.attendance-note { margin: 22px 0 0; color: #8a96a6; font-size: 11px; line-height: 1.8; }
+.workspace-business .error-box { padding: 13px 16px; margin-bottom: 20px; border: 1px solid #edc7cf; border-radius: 9px; color: #a54655; background: #fff5f7; font-size: 13px; overflow-wrap: anywhere; }
+@media (max-width: 1150px) {
+    .workspace-business .form-grid { grid-template-columns: minmax(0, 1fr); }
+    .workspace-business .approval-box { grid-template-columns: 220px minmax(0, 1fr); }
+    .workspace-business .line-edit-area { padding: 22px; }
+}
+@media (max-width: 950px) {
+    .workspace-business .approval-box { grid-template-columns: minmax(0, 1fr); }
+    .workspace-business .line-list-area { border-right: 0; border-bottom: 1px solid #e7ecf1; }
+    .workspace-business .line-list { max-height: 220px; overflow-y: auto; }
+    .workspace-business .detail-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    .workspace-business :is(.approval-page, .approval-line-page, .commute-main) { margin: 0; padding: 24px 18px; min-height: 0; }
+    .workspace-business .topinfo__title { margin-right: 145px; }
+    .workspace-business .topinfo__user-btn { padding: 7px; max-width: 62px; font-size: 11px; }
+    .workspace-business .topinfo__user-id { display: none; }
+    .workspace-business .topinfo__auth { right: 12px; gap: 3px; }
+    .workspace-business .topinfo .topinfo__auth button.topinfo__login-btn[type=submit] { padding: 8px; gap: 5px; font-size: 11px; }
+    .business-heading h1, .workspace-business .page-title { font-size: 24px; }
+    .workspace-business .page-head { align-items: stretch; flex-direction: column; gap: 16px; }
+    .workspace-business .section-head { padding: 17px; gap: 10px; }
+    .workspace-business .form-card, .workspace-business .line-edit-area { padding: 18px; }
+    .workspace-business .action-card { padding: 18px; gap: 14px; }
+    .workspace-business .form-grid { gap: 18px; }
+    .workspace-business .meta-item { padding: 15px; }
+    .workspace-business .approver-item { padding: 10px; }
+    .workspace-business textarea.form-control { min-height: 240px; height: 300px; }
+    .attendance-card { padding: 24px 18px; }
+}
+@media (max-width: 380px) {
+    .workspace-business .topinfo__title { font-size: 14px; letter-spacing: 0; }
+    .workspace-business .topinfo__user-btn { max-width: 44px; }
+    .workspace-business .topinfo__title { margin-right: 124px; }
+    .workspace-business .detail-meta { grid-template-columns: minmax(0, 1fr); }
+}
