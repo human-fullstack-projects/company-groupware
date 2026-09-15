@@ -56,3 +56,57 @@
 .topinfo__user-id {
     font-size: 15px;
 }
+
+/* 공통 로그아웃 버튼: 로그인/직원 정보 링크에는 적용하지 않습니다. */
+.topinfo .topinfo__auth button.topinfo__login-btn[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 13px;
+    border: 1px solid rgba(203, 218, 239, .2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .04);
+    color: #d6e0ef;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: .1px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.topinfo .topinfo__auth button.topinfo__login-btn[type="submit"]::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M14 8l4 4-4 4M8 12h10'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4M14 8l4 4-4 4M8 12h10'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.topinfo .topinfo__auth button.topinfo__login-btn[type="submit"]:hover {
+    background: rgba(182, 232, 216, .1);
+    border-color: rgba(182, 232, 216, .4);
+    color: #b6e8d8;
+}
+
+.topinfo .topinfo__auth button.topinfo__login-btn[type="submit"]:active {
+    background: rgba(182, 232, 216, .17);
+}
+
+.topinfo .topinfo__auth button.topinfo__login-btn[type="submit"]:focus-visible {
+    outline: 2px solid #b6e8d8;
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topinfo .topinfo__auth button.topinfo__login-btn[type="submit"] {
+        transition: none;
+    }
+}
+

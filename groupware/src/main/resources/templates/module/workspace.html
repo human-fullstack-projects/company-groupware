@@ -30,13 +30,14 @@
             </svg>
             <span>홈</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'home'}"></span></a></div>
         <section class="ct-nav-group" aria-labelledby="nav-communication"><h2 id="nav-communication">소통</h2><a
-                class="ct-nav-link" th:href="@{/chat/list}">
+                class="ct-nav-link" th:classappend="${active == 'chat'} ? ' is-active' : ''"
+                th:attr="aria-current=${active == 'chat' ? 'page' : null}" th:href="@{/chat/list}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
                  stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2v-9.5A8.5 8.5 0 0 1 10.5 4H18a3 3 0 0 1 3 3z"/>
                 <path d="M7 10h9M7 14h6"/>
             </svg>
-            <span>메신저</span></a><a class="ct-nav-link" th:classappend="${active == 'boards'} ? ' is-active' : ''"
+            <span>메신저</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'chat'}"></span></a><a class="ct-nav-link" th:classappend="${active == 'boards'} ? ' is-active' : ''"
                                    th:attr="aria-current=${active == 'boards' ? 'page' : null}" th:href="@{/boards}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
                  stroke-linejoin="round" aria-hidden="true">
@@ -100,3 +101,4 @@
 </aside>
 </body>
 </html>
+
