@@ -17,6 +17,19 @@
         </form>
     </div>
 </header>
+<header class="topinfo" th:fragment="userHeader">
+    <h1 class="topinfo__title"><a th:href="@{/}" style="color: inherit; text-decoration: none;">COMPANY TALK</a></h1>
+    <div class="topinfo__auth">
+        <a th:if="${loginEmployee == null}" th:href="@{/login}" class="topinfo__login-btn">로그인</a>
+
+        <th:block th:if="${loginEmployee != null}">
+            <a th:href="@{/mypage}" class="topinfo__login-btn topinfo__user-btn"><span th:text="${loginEmployee.emplName}">이름</span><span class="topinfo__user-id" th:text="'(' + ${loginEmployee.loginId} + ')'">(아이디)</span></a>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="topinfo__login-btn">로그아웃</button>
+            </form>
+        </th:block>
+    </div>
+</header>
 <aside th:fragment="sidebar(active)" class="menubar ct-sidebar" aria-label="주 메뉴">
     <div class="ct-workspace"><span class="ct-workspace-logo" aria-hidden="true">C</span>
         <div><strong>우리의 업무 공간</strong><span>COMPANY WORKSPACE</span></div>
@@ -46,7 +59,8 @@
             </svg>
             <span>게시판</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'boards'}"></span></a>
         </section>
-        <section class="ct-nav-group" aria-labelledby="nav-work"><h2 id="nav-work">업무</h2><a class="ct-nav-link"
+        <section class="ct-nav-group" aria-labelledby="nav-work"><h2 id="nav-work">업무</h2><a class="ct-nav-link" th:classappend="${active == 'commute'} ? ' is-active' : ''" th:attr="aria-current=${active == 'commute' ? 'page' : null}" th:href="@{/commute}">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>근태 관리</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'commute'}"></span></a><a class="ct-nav-link"
                                                                                              th:classappend="${active == 'calendar'} ? ' is-active' : ''"
                                                                                              th:attr="aria-current=${active == 'calendar' ? 'page' : null}"
                                                                                              th:href="@{/calendar}">
@@ -56,19 +70,19 @@
                 <path d="M7 3v4M17 3v4M3 10h18M7 14h2M13 14h2M7 17h2"/>
             </svg>
             <span>캘린더</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'calendar'}"></span></a><a
-                class="ct-nav-link" th:href="@{/approvals}">
+                class="ct-nav-link" th:classappend="${active == 'approvals'} ? ' is-active' : ''" th:attr="aria-current=${active == 'approvals' ? 'page' : null}" th:href="@{/approvals}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
                  stroke-linejoin="round" aria-hidden="true">
                 <path d="M14 3H5v18h14V8zM14 3v5h5M8 14l3 3 5-6"/>
             </svg>
-            <span>전자결재</span></a><a class="ct-nav-link" th:href="@{/approval-lines}">
+            <span>전자결재</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'approvals'}"></span></a><a class="ct-nav-link" th:classappend="${active == 'lines'} ? ' is-active' : ''" th:attr="aria-current=${active == 'lines' ? 'page' : null}" th:href="@{/approval-lines}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
                  stroke-linejoin="round" aria-hidden="true">
                 <rect x="3" y="3" width="6" height="6" rx="1"/>
                 <rect x="15" y="15" width="6" height="6" rx="1"/>
                 <path d="M9 6h9v5m-3-3 3 3 3-3M15 18H6v-5"/>
             </svg>
-            <span>결재라인 관리</span></a></section>
+            <span>결재라인 관리</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'lines'}"></span></a></section>
         <section class="ct-nav-group" aria-labelledby="nav-organization"><h2 id="nav-organization">조직</h2><a
                 class="ct-nav-link" th:href="@{/employees}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
