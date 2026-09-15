@@ -2,8 +2,19 @@
     box-sizing: border-box;
 }
 
+/*body {*/
+/*    margin: 0;*/
+/*    background: #f6f7f9;*/
+/*    color: #222;*/
+/*    font-family: Arial, "Noto Sans KR", sans-serif;*/
+/*}*/
 body {
     margin: 0;
+
+    /* 상단 메뉴 + 좌측 메뉴 자리 확보 */
+    padding-top: var(--topinfo-height);
+    padding-left: var(--menubar-width);
+
     background: #f6f7f9;
     color: #222;
     font-family: Arial, "Noto Sans KR", sans-serif;
@@ -576,4 +587,15 @@ textarea.form-control {
     color: #d84a4a;
 
     font-size: 12px;
+}
+
+@media (max-width: 850px) {
+
+    .section-card {
+        overflow-x: auto;
+    }
+
+    .approval-table {
+        min-width: 700px;
+    }
 }

@@ -13,6 +13,8 @@
           name="_csrf_header"
           th:content="${_csrf.headerName}">
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
@@ -31,106 +33,108 @@
 <div th:replace="~{module/topinfo :: topinfo}"></div>
 <div th:replace="~{module/menubar :: menubar}"></div>
 
-<div class="container">
 
-    <h2 class="title">개인 결재라인 관리</h2>
+<main class="approval-line-page">
+    <div class="container">
 
-    <div class="approval-box">
+        <h2 class="title">개인 결재라인 관리</h2>
 
-        <!-- 왼쪽 -->
-        <div class="line-list-area">
+        <div class="approval-box">
 
-            <button type="button"
-                    class="btn-main"
-                    onclick="newLine()">
-                + 새 결재라인
-            </button>
+            <!-- 왼쪽 -->
+            <div class="line-list-area">
 
-            <div id="lineList"
-                 class="line-list">
-            </div>
+                <button type="button"
+                        class="btn-main"
+                        onclick="newLine()">
+                    + 새 결재라인
+                </button>
 
-        </div>
-
-
-        <!-- 오른쪽 -->
-        <div class="line-edit-area">
-
-            <div class="form-group">
-
-                <label for="lineName">
-                    결재라인 이름
-                </label>
-
-                <input type="text"
-                       id="lineName"
-                       maxlength="100"
-                       placeholder="결재라인 이름">
+                <div id="lineList"
+                     class="line-list">
+                </div>
 
             </div>
 
 
-            <div class="form-group">
+            <!-- 오른쪽 -->
+            <div class="line-edit-area">
 
-                <label>
-                    결재자 추가
-                </label>
+                <div class="form-group">
 
-                <div class="employee-select">
+                    <label for="lineName">
+                        결재라인 이름
+                    </label>
 
-                    <select id="employeeSelect">
-                        <option value="">
-                            사원을 선택하세요
-                        </option>
-                    </select>
+                    <input type="text"
+                           id="lineName"
+                           maxlength="100"
+                           placeholder="결재라인 이름">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        결재자 추가
+                    </label>
+
+                    <div class="employee-select">
+
+                        <select id="employeeSelect">
+                            <option value="">
+                                사원을 선택하세요
+                            </option>
+                        </select>
+
+                        <button type="button"
+                                onclick="addApprover()">
+                            추가
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        결재 순서
+                    </label>
+
+                    <div id="approverList"
+                         class="approver-list">
+                    </div>
+
+                </div>
+
+
+                <div class="button-area">
 
                     <button type="button"
-                            onclick="addApprover()">
-                        추가
+                            id="deleteButton"
+                            class="btn-danger"
+                            onclick="deleteLine()">
+                        삭제
+                    </button>
+
+                    <button type="button"
+                            class="btn-main"
+                            onclick="saveLine()">
+                        저장
                     </button>
 
                 </div>
 
             </div>
 
-
-            <div class="form-group">
-
-                <label>
-                    결재 순서
-                </label>
-
-                <div id="approverList"
-                     class="approver-list">
-                </div>
-
-            </div>
-
-
-            <div class="button-area">
-
-                <button type="button"
-                        id="deleteButton"
-                        class="btn-danger"
-                        onclick="deleteLine()">
-                    삭제
-                </button>
-
-                <button type="button"
-                        class="btn-main"
-                        onclick="saveLine()">
-                    저장
-                </button>
-
-            </div>
-
         </div>
+        <div th:replace="~{approval/signature :: signature}"></div>
 
     </div>
-    <div th:replace="~{approval/signature :: signature}"></div>
-
-</div>
-
+</main>
 
 <!--<script>-->
 
