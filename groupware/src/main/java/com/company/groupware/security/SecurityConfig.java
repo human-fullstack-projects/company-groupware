@@ -25,8 +25,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 로그인하지 않아도 접근 가능한 주소
                         .requestMatchers(
-                                "/",
-                                "/home",
                                 "/login",
                                 "/register",
                                 "/css/**",
@@ -44,13 +42,13 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", false)
+                        .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error")
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        // 로그아웃 성공 시 메인 화면으로 이동
-                        .logoutSuccessUrl("/")
+                        // 로그아웃 후 로그인 화면으로 이동
+                        .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 );
 
