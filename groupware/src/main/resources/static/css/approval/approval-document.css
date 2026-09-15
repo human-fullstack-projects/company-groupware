@@ -420,3 +420,160 @@ textarea.form-control {
 
     object-fit: contain;
 }
+
+.file-help {
+    margin-top: 6px;
+
+    color: #858c96;
+    font-size: 12px;
+}
+
+.document-file-input {
+    padding: 7px 10px;
+}
+
+.detail-attachment {
+    margin-top: 22px;
+}
+
+.attachment-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    min-height: 54px;
+    padding: 8px 10px 8px 14px;
+
+    border: 1px solid #e1e4e8;
+    border-radius: 7px;
+
+    background: #fafbfc;
+}
+
+.attachment-name {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    min-width: 0;
+
+    color: #444b55;
+    font-size: 13px;
+}
+
+.attachment-name span:last-child {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-icon {
+    flex-shrink: 0;
+}
+
+.attachment-download {
+    flex-shrink: 0;
+
+    min-height: 34px;
+    padding: 0 12px;
+
+    font-size: 12px;
+}
+
+.attachment-empty {
+    padding: 15px;
+
+    border: 1px dashed #d4d9df;
+    border-radius: 7px;
+
+    color: #969ca5;
+    font-size: 13px;
+}
+
+.attachment-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.attachment-edit-area {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.selected-file-list {
+    margin-top: 8px;
+}
+
+.selected-file-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    margin-top: 8px;
+}
+
+
+.selected-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    min-height: 42px;
+
+    padding: 6px 8px 6px 12px;
+
+    border: 1px solid #e1e4e8;
+    border-radius: 7px;
+
+    background: #fafbfc;
+}
+
+
+.selected-file-info {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    min-width: 0;
+}
+
+
+.selected-file-name {
+    overflow: hidden;
+
+    color: #444b55;
+    font-size: 13px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.selected-file-size {
+    flex-shrink: 0;
+
+    color: #969ca5;
+    font-size: 11px;
+}
+
+
+.selected-file-remove {
+    flex-shrink: 0;
+
+    min-height: 30px;
+    padding: 0 10px;
+
+    color: #d84a4a;
+
+    font-size: 12px;
+}

@@ -5,9 +5,7 @@ import com.company.groupware.dto.ApprovalDocumentRequest;
 import com.company.groupware.dto.ApprovalDocumentResponse;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.EmployeeRepository;
-import com.company.groupware.service.ApprovalDocumentService;
-import com.company.groupware.service.ApprovalLineService;
-import com.company.groupware.service.ApprovalSignatureService;
+import com.company.groupware.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
-import com.company.groupware.service.ApprovalSignatureService;
+
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
@@ -31,6 +29,7 @@ public class ApprovalDocumentController {
     private final EmployeeRepository employeeRepository;
     private final ApprovalDocumentService approvalDocumentService;
     private final ApprovalSignatureService approvalSignatureService;
+    private final ApprovalDocumentAttachmentService approvalDocumentAttachmentService;
 
 //    public ApprovalDocumentController(ApprovalLineService approvalLineService, EmployeeRepository employeeRepository, ApprovalDocumentService approvalDocumentService) {
 //        this.approvalLineService = approvalLineService;
@@ -214,11 +213,15 @@ public class ApprovalDocumentController {
                                         );
 
 
-        model.addAttribute("document", document);
-        model.addAttribute("isWriter", isWriter);
-        model.addAttribute("canEdit", canEdit);
-        model.addAttribute("canApprove", canApprove);
 
+
+        model.addAttribute("document",document);
+
+        model.addAttribute("attachments",approvalDocumentAttachmentService.getAttachments(documentId));
+
+        model.addAttribute("isWriter",isWriter);
+        model.addAttribute("canEdit",canEdit);
+        model.addAttribute("canApprove",canApprove);
         return "approval/document/detail";
     }
 

@@ -1,6 +1,13 @@
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    setupAttachmentSelector({
+        inputId: "documentFile",
+        listId: "selectedFileList",
+        existingCount: 0,
+        maxTotalFiles: 5
+    });
+
     const approvalLineSelect = document.getElementById("approvalLine");
     const preview = document.getElementById("approvalLinePreview");
 
@@ -10,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const documentTemplate = document.getElementById("documentTemplate");
     const documentContent = document.getElementById("documentContent");
+
 
 
     if (!approvalLineSelect || !preview) {
@@ -52,68 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
     documentTemplate?.addEventListener("change", () => {
         setText(documentTemplate, documentContent);
     });
-});
-
-function renderApprovers(container, approvers) {
-    container.innerHTML = "";
-
-    if (!approvers.length) {
-        renderEmpty( container,
-            "등록된 결재자가 없습니다."
-        );
-
-        return;
-    }
-
-    const sortedApprovers = [...approvers].sort((a, b) => a.approvalOrder - b.approvalOrder);
-
-    sortedApprovers.forEach(
-        (approver, index) => {
-            const order = approver.approvalOrder || index + 1;
-
-            const step = document.createElement("div");
-            step.className = "approver-step";
-
-            const number = document.createElement("span");
-            number.className = "step-number";
-            number.textContent = order;
-
-            const info = document.createElement("div");
-            info.className = "step-info";
-
-            const name = document.createElement("div");
-            name.className = "step-name";
-            name.textContent = approver.emplName;
-
-            const sub = document.createElement("div");
-
-            sub.className = "step-sub";
-
-
-            const employeeInfo = [
-                approver.department,
-                approver.position
-            ].filter(Boolean).join(" · ");
-
-            sub.textContent =
-                employeeInfo
-                    ? `${order}차 결재자 · ${employeeInfo}`
-                    : `${order}차 결재자`;
-
-            info.appendChild(name);
-            info.appendChild(sub);
-
-            step.appendChild(number);
-            step.appendChild(info);
-
-            container.appendChild(step);
-        }
-    );
-
 
     /*
- * 임시저장
- */
+    * 임시저장
+    */
     draftButton?.addEventListener("click", async () => {
 
             const data =
@@ -121,10 +71,29 @@ function renderApprovers(container, approvers) {
 
             try {
 
-                await sendDocument(
-                    "/approvals/api/draft",
-                    data
-                );
+                // await sendDocument(
+                //     "/approvals/api/draft",
+                //     data
+                // );
+                const savedDocument =
+                    await sendDocument(
+                        "/approvals/api/draft",
+                        data
+                    );
+
+                try {
+                    await uploadAttachments(
+                        savedDocument.documentId
+                    );
+                } catch (fileError) {
+                    console.error(fileError);
+                    alert(
+                        "문서는 임시저장되었지만 첨부파일 업로드에 실패했습니다."
+                    );
+                    location.href = `/approvals/${savedDocument.documentId}`;
+                    return;
+                }
+
 
                 alert("임시저장되었습니다.");
 
@@ -201,10 +170,29 @@ function renderApprovers(container, approvers) {
 
             try {
 
-                await sendDocument(
-                    "/approvals/api/submit",
-                    data
-                );
+                // await sendDocument(
+                //     "/approvals/api/submit",
+                //     data
+                // );
+                const savedDocument =
+                    await sendDocument(
+                        "/approvals/api/submit",
+                        data
+                    );
+
+                try {
+                    await uploadAttachments(
+                        savedDocument.documentId
+                    );
+                } catch (fileError) {
+                    console.error(fileError);
+                    alert(
+                        "문서는 상신되었지만 첨부파일 업로드에 실패했습니다."
+                    );
+                    console.log(fileError.message);
+                    location.href = `/approvals/${savedDocument.documentId}`;
+                    return;
+                }
 
                 alert("문서가 상신되었습니다.");
 
@@ -218,89 +206,143 @@ function renderApprovers(container, approvers) {
             }
         }
     );
+});
 
 
-    /*
+function renderApprovers(container, approvers) {
+    container.innerHTML = "";
+
+    if (!approvers.length) {
+        renderEmpty( container,
+            "등록된 결재자가 없습니다."
+        );
+
+        return;
+    }
+
+    const sortedApprovers = [...approvers].sort((a, b) => a.approvalOrder - b.approvalOrder);
+
+    sortedApprovers.forEach(
+        (approver, index) => {
+            const order = approver.approvalOrder || index + 1;
+
+            const step = document.createElement("div");
+            step.className = "approver-step";
+
+            const number = document.createElement("span");
+            number.className = "step-number";
+            number.textContent = order;
+
+            const info = document.createElement("div");
+            info.className = "step-info";
+
+            const name = document.createElement("div");
+            name.className = "step-name";
+            name.textContent = approver.emplName;
+
+            const sub = document.createElement("div");
+
+            sub.className = "step-sub";
+
+
+            const employeeInfo = [
+                approver.department,
+                approver.position
+            ].filter(Boolean).join(" · ");
+
+            sub.textContent =
+                employeeInfo
+                    ? `${order}차 결재자 · ${employeeInfo}`
+                    : `${order}차 결재자`;
+
+            info.appendChild(name);
+            info.appendChild(sub);
+
+            step.appendChild(number);
+            step.appendChild(info);
+
+            container.appendChild(step);
+        }
+    );
+}
+
+/*
      * 화면 -> Request DTO
      */
-    function getDocumentData() {
+function getDocumentData() {
 
-        const lineValue =
+    const lineValue =
+        document
+            .getElementById("approvalLine")
+            .value;
+
+
+    return {
+
+        title:
             document
-                .getElementById("approvalLine")
-                .value;
+                .getElementById("documentTitle")
+                .value
+                .trim(),
 
+        content:
+            document
+                .getElementById("documentContent")
+                .value
+                .trim(),
 
-        return {
-
-            title:
-                document
-                    .getElementById("documentTitle")
-                    .value
-                    .trim(),
-
-            content:
-                document
-                    .getElementById("documentContent")
-                    .value
-                    .trim(),
-
-            approvalLineId:
-                lineValue
-                    ? Number(lineValue)
-                    : null
-        };
-    }
-
-    //========================================
-
-    /*
-     * POST 공통 처리
-     */
-    async function sendDocument(url,data) {
-        const csrfToken =
-            document.querySelector(
-                'meta[name="_csrf"]'
-            );
-
-        const csrfHeader =
-            document.querySelector(
-                'meta[name="_csrf_header"]'
-            );
-
-
-        const headers = {
-            "Content-Type":
-                "application/json"
-        };
-
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader.content] =
-                csrfToken.content;
-        }
-
-
-        const response =
-            await fetch(
-                url,
-                {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(data)
-                }
-            );
-
-
-        if (!response.ok) {
-            const message = await response.text();
-            throw new Error(message);
-        }
-
-        return await response.json();
-    }
-
-
+        approvalLineId:
+            lineValue
+                ? Number(lineValue)
+                : null
+    };
 }
+
+
+/*
+ * POST 공통 처리
+ */
+async function sendDocument(url,data) {
+    const csrfToken =
+        document.querySelector(
+            'meta[name="_csrf"]'
+        );
+
+    const csrfHeader =
+        document.querySelector(
+            'meta[name="_csrf_header"]'
+        );
+
+
+    const headers = {
+        "Content-Type": "application/json"
+    };
+
+    if (csrfToken && csrfHeader) {
+        headers[csrfHeader.content] =
+            csrfToken.content;
+    }
+
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(data)
+            }
+        );
+
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message);
+    }
+
+    return await response.json();
+}
+
 
 
 function renderEmpty(container,message) {
@@ -371,4 +413,107 @@ function setText(documentTemplate, documentContent){
         const selectedTemplate = templates[documentTemplate.value];
         if (!selectedTemplate) {return;}
         documentContent.value = selectedTemplate;
+}
+
+async function uploadAttachments(documentId) {
+
+    const fileInput =
+        document.getElementById(
+            "documentFile"
+        );
+
+    if (!fileInput
+        || !fileInput.files.length) {
+
+        return;
+    }
+
+
+    const files =
+        Array.from(fileInput.files);
+
+
+    /*
+     * 최대 개수 검사
+     */
+    if (files.length > 5) {
+
+        throw new Error(
+            "첨부파일은 최대 5개까지 가능합니다."
+        );
+    }
+
+
+    /*
+     * 개별 파일 용량 검사
+     */
+    for (const file of files) {
+
+        if (file.size >
+            10 * 1024 * 1024) {
+
+            throw new Error(
+                `${file.name} 파일이 10MB를 초과했습니다.`
+            );
+        }
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    /*
+     * Controller의
+     * @RequestParam("files")
+     * 와 이름을 반드시 맞춤
+     */
+    files.forEach(file => {
+        formData.append("files", file);
+    });
+
+
+    const csrfToken =
+        document.querySelector(
+            'meta[name="_csrf"]'
+        );
+
+    const csrfHeader =
+        document.querySelector(
+            'meta[name="_csrf_header"]'
+        );
+
+
+    const headers = {};
+
+
+    if (csrfToken && csrfHeader) {
+
+        headers[
+            csrfHeader.content
+            ] = csrfToken.content;
+    }
+
+
+    const response =
+        await fetch(
+            `/approvals/api/${documentId}/attachments`,
+            {
+                method: "POST",
+                headers: headers,
+                body: formData
+            }
+        );
+
+
+    if (!response.ok) {
+
+        const message =
+            await response.text();
+
+        throw new Error(
+            message ||
+            "첨부파일 업로드에 실패했습니다."
+        );
+    }
 }
