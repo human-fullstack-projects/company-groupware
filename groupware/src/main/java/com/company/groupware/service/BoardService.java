@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -81,16 +80,11 @@ public class BoardService {
     }
 
     /**
-     * 부서공지 카테고리 이름 → 해당 부서명 매핑
-     * (예: "개발공지" 카테고리는 "개발팀" 소속 직원만 대상)
+     * 부서공지 카테고리 이름 접미사. "개발공지" 카테고리는 이름에서 이 접미사를 뗀
+     * "개발" + "팀" = "개발팀" 소속 직원만 대상이 된다 (부서명 자체가 "OO팀" 형태이므로
+     * 접미사만 떼면 바로 부서명이 됨).
      */
-    private static final Map<String, String> DEPT_NOTICE_TO_DEPARTMENT = Map.of(
-            "개발공지", "개발팀",
-            "인사공지", "인사팀",
-            "재무공지", "재무팀",
-            "기획공지", "기획팀",
-            "디자인공지", "디자인팀"
-    );
+    private static final String DEPT_NOTICE_SUFFIX = "공지";
 
     private boolean isAdmin(Employee viewer) {
         return viewer != null && Boolean.TRUE.equals(viewer.getEmplStat());
@@ -104,9 +98,20 @@ public class BoardService {
         return category != null && "자유게시판".equals(category.getBoardCategoryName());
     }
 
+    /**
+     * 부서공지 카테고리인지 여부. 전사 공지("공지")는 제외하고,
+     * 이름이 "OO공지" 형태(접미사로 끝남)면 부서공지로 판단한다.
+     */
     private boolean isDeptNotice(BoardCategory category) {
-        return category != null
-                && DEPT_NOTICE_TO_DEPARTMENT.containsKey(category.getBoardCategoryName());
+        if (category == null || isGlobalNotice(category)) {
+            return false;
+        }
+
+        String name = category.getBoardCategoryName();
+
+        return name != null
+                && name.length() > DEPT_NOTICE_SUFFIX.length()
+                && name.endsWith(DEPT_NOTICE_SUFFIX);
     }
 
     /**
@@ -124,7 +129,11 @@ public class BoardService {
 
         String name = category.getBoardCategoryName();
 
-        return DEPT_NOTICE_TO_DEPARTMENT.getOrDefault(name, name);
+        if (isDeptNotice(category)) {
+            return name.substring(0, name.length() - DEPT_NOTICE_SUFFIX.length());
+        }
+
+        return name;
     }
 
     private boolean matchesDepartment(String requiredDeptName, Employee viewer) {
