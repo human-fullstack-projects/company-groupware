@@ -1,5 +1,3 @@
-
-
 const saveButton = document.getElementById("saveButton");
 const deleteButton = document.getElementById("deleteButton");
 const approveButton = document.getElementById("approveButton");
@@ -8,10 +6,27 @@ const rejectButton = document.getElementById("rejectButton");
 const approvalPage = document.getElementById("approvalPage");//문서 아이디 저장해둔 위치
 const documentId = Number(approvalPage.dataset.documentId);
 
-/*
- * 수정
- */
-saveButton?.addEventListener("click",async () => {
+const attachmentInput =
+    document.getElementById(
+        "documentFile"
+    );
+
+
+if (attachmentInput) {
+    setupAttachmentSelector({
+        inputId: "documentFile",
+        listId: "selectedFileList",
+        existingCount: Number(attachmentInput.dataset.existingCount || 0),
+        maxTotalFiles: 5
+    });
+}
+
+
+const attachementDeleteButton = document.querySelectorAll(".attachment-delete");
+
+
+// 수정
+saveButton?.addEventListener("click", async () => {
         const title = document.getElementById("documentTitle").value.trim();
         const content = document.getElementById("documentContent").value.trim();
 
@@ -37,16 +52,34 @@ saveButton?.addEventListener("click",async () => {
             }
         );
 
+        try {
+            await uploadAttachments(
+                documentId
+            );
+        } catch (fileError) {
+
+            console.error(fileError);
+
+            alert(
+                "문서 내용은 수정되었지만\n" +
+                "첨부파일 추가에 실패했습니다."
+                // fileError.message
+            );
+
+            location.reload();
+            return;
+        }
+
+
         alert("수정되었습니다.");
 
         location.reload();
+
     }
 );
 
 
-/*
- * 삭제
- */
+// 삭제
 deleteButton?.addEventListener(
     "click",
     async () => {
@@ -55,7 +88,7 @@ deleteButton?.addEventListener(
             return;
         }
 
-        await request(`/approvals/api/${documentId}`,{method: "DELETE"});
+        await request(`/approvals/api/${documentId}`, {method: "DELETE"});
 
         alert("삭제되었습니다.");
 
@@ -64,9 +97,7 @@ deleteButton?.addEventListener(
 );
 
 
-/*
- * 승인
- */
+// 승인
 approveButton?.addEventListener(
     "click",
     async () => {
@@ -89,12 +120,12 @@ approveButton?.addEventListener(
 );
 
 
-/*
- * 반려
- */
-rejectButton?.addEventListener("click",async () => {
+// 반려
+rejectButton?.addEventListener("click", async () => {
         const comment = prompt("반려 사유를 입력해주세요.");
-        if (comment === null) { return;}
+        if (comment === null) {
+            return;
+        }
 
         await request(
             `/approvals/api/${documentId}/reject`,
@@ -110,13 +141,53 @@ rejectButton?.addEventListener("click",async () => {
 );
 
 
-async function request(url,options = {}){
+// 첨부파일 삭제
+attachementDeleteButton.forEach(button => {
+    button.addEventListener("click", async () => {
+            const attachmentId =
+                Number(
+                    button.dataset.attachmentId
+                );
+
+            if (!confirm(
+                "이 첨부파일을 삭제하시겠습니까?"
+            )) {
+                return;
+            }
+
+
+            try {
+                await request(
+                    `/approvals/api/${documentId}/attachments/${attachmentId}`,
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+
+                alert(
+                    "첨부파일이 삭제되었습니다."
+                );
+
+                location.reload();
+
+            } catch (error) {
+
+                console.error(error);
+            }
+        }
+    );
+});
+
+
+// 요청 처리용 함수
+async function request(url, options = {}) {
     const csrfToken = document.querySelector('meta[name="_csrf"]');
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
 
 
     options.headers = {
-        "Content-Type":"application/json",
+        "Content-Type": "application/json",
         ...(options.headers || {})
     };
 
@@ -125,7 +196,7 @@ async function request(url,options = {}){
         options.headers[csrfHeader.content] = csrfToken.content;
     }
 
-    const response = await fetch(url,options);
+    const response = await fetch(url, options);
 
     if (!response.ok) {
         const message = await response.text();
@@ -134,7 +205,109 @@ async function request(url,options = {}){
         throw new Error(message);
     }
 
-    if (response.status === 204) {return null;}
+    if (response.status === 204) {
+        return null;
+    }
 
     return await response.json();
+}
+
+async function uploadAttachments(
+    documentId) {
+
+    const fileInput =
+        document.getElementById(
+            "documentFile"
+        );
+
+
+    if (!fileInput
+        || !fileInput.files.length) {
+
+        return;
+    }
+
+
+    const files =
+        Array.from(
+            fileInput.files
+        );
+
+
+    if (files.length > 5) {
+
+        throw new Error(
+            "첨부파일은 최대 5개까지 가능합니다."
+        );
+    }
+
+
+    for (const file of files) {
+
+        if (file.size >
+            10 * 1024 * 1024) {
+
+            throw new Error(
+                `${file.name} 파일이 10MB를 초과했습니다.`
+            );
+        }
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    files.forEach(file => {
+
+        formData.append(
+            "files",
+            file
+        );
+    });
+
+
+    const csrfToken =
+        document.querySelector(
+            'meta[name="_csrf"]'
+        );
+
+    const csrfHeader =
+        document.querySelector(
+            'meta[name="_csrf_header"]'
+        );
+
+
+    const headers = {};
+
+
+    if (csrfToken && csrfHeader) {
+
+        headers[
+            csrfHeader.content
+            ] = csrfToken.content;
+    }
+
+
+    const response =
+        await fetch(
+            `/approvals/api/${documentId}/attachments`,
+            {
+                method: "POST",
+                headers,
+                body: formData
+            }
+        );
+
+
+    if (!response.ok) {
+
+        const message =
+            await response.text();
+
+        throw new Error(
+            message ||
+            "첨부파일 업로드에 실패했습니다."
+        );
+    }
 }

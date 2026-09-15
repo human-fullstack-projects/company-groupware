@@ -171,6 +171,25 @@ public class EmployeeService {
     }
 
     /**
+     * 관리자 계정이 하나도 없으면 기본 관리자 계정(root/root1234)을 생성한다.
+     * DB를 초기화한 직후에도 최소 한 명은 로그인해서 관리할 수 있도록 하기 위함.
+     */
+    @Transactional
+    public void ensureDefaultAdmin() {
+        if (countAdmins() > 0 || employeeRepository.existsByLoginId("root")) {
+            return;
+        }
+
+        Employee admin = new Employee();
+        admin.setLoginId("root");
+        admin.setPasswordHash(passwordEncoder.encode("root1234"));
+        admin.setEmplName("관리자");
+        admin.setEmplStat(true);
+
+        employeeRepository.save(admin);
+    }
+
+    /**
      * 관리자로 지정
      */
     @Transactional

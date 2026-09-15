@@ -13,9 +13,7 @@
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
     <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
-    <!--    <script th:inline="javascript">-->
-    <!--        const documentId = [[${document.documentId}]];-->
-    <!--    </script>-->
+    <script defer th:src="@{/js/approval/approval-attachment-selector.js}"> </script>
     <script defer th:src="@{/js/approval/approval-document-detail.js}"></script>
 </head>
 
@@ -131,7 +129,99 @@
                           id="documentContent"
                           th:text="${document.content}"
                           th:readonly="${!canEdit}">
-                    </textarea>
+                </textarea>
+
+                <div class="detail-attachment">
+
+                    <div class="form-label">
+                        첨부파일
+                    </div>
+
+                    <!-- 첨부파일 있음 -->
+                    <div th:if="${!#lists.isEmpty(attachments)}">
+                        <div class="attachment-row" th:each="attachment : ${attachments}">
+                            <div class="attachment-name">
+                                <span class="attachment-icon">
+                                    📎
+                                </span>
+                                <span th:text="${attachment.originalName}">
+                                    첨부파일.pdf
+                                </span>
+                            </div>
+                            <div class="attachment-actions">
+
+                                <a class="btn attachment-download"
+                                   th:href="@{/approvals/{documentId}/attachments/{attachmentId}/download(
+                                                documentId=${document.documentId},
+                                                attachmentId=${attachment.attachmentId}
+                                           )}">
+                                    다운로드
+                                </a>
+
+                                <!-- 수정 가능한 경우만 삭제 -->
+                                <button type="button"
+                                        class="btn btn-danger attachment-delete"
+                                        th:if="${canEdit}"
+                                        th:attr="data-attachment-id=${attachment.attachmentId}">
+                                    삭제
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="attachment-edit-area"
+                             th:if="${canEdit}">
+
+<!--                            <label class="form-label"-->
+<!--                                   for="documentFile">-->
+<!--                                새 첨부파일 추가-->
+<!--                            </label>-->
+
+<!--                            <input class="form-control document-file-input"-->
+<!--                                   id="documentFile"-->
+<!--                                   type="file"-->
+<!--                                   multiple>-->
+<!--                            <div class="file-help">-->
+<!--                                기존 첨부파일을 포함하여 최대 5개,-->
+<!--                                파일 하나당 최대 10MB까지 가능합니다.-->
+<!--                            </div>-->
+                            <label class="form-label"
+                                   for="documentFile">
+                                새 첨부파일 추가
+                            </label>
+
+
+                            <input class="form-control document-file-input"
+                                   id="documentFile"
+                                   type="file"
+                                   multiple
+                                   th:attr="data-existing-count=${#lists.size(attachments)}">
+
+
+                            <div id="selectedFileList"
+                                 class="selected-file-list">
+                            </div>
+
+
+                            <div class="file-help">
+                                기존 첨부파일을 포함하여 최대 5개,
+                                파일 하나당 최대 10MB까지 가능합니다.
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <!-- 첨부파일 없음 -->
+                    <div class="attachment-empty"
+                         th:if="${#lists.isEmpty(attachments)}">
+                        첨부파일이 없습니다.
+                    </div>
+
+
+                </div>
+
             </main>
 
             <aside>
