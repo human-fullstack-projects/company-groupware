@@ -31,6 +31,9 @@ import java.util.UUID;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.company.groupware.entity.Comment;
+import com.company.groupware.repository.BoardCommentRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardCategoryRepository boardCategoryRepository;
     private final BoardFileRepository boardFileRepository;
+    private final BoardCommentRepository commentRepository;
 
     /**
      * 게시글 전체 조회
@@ -742,15 +746,64 @@ public class BoardService {
     /**
      * 게시글 삭제
      */
+    @Transactional
     public void delete(
             Long boardId) {
 
         Board board =
                 findById(boardId);
 
-        boardRepository.delete(
-                board
-        );
+        /*
+         * 댓글 삭제
+         *
+         * 댓글이 com_id2로 자기 자신을 참조하고 있으므로
+         * 최하위 대댓글부터 부모 댓글 방향으로 삭제
+         */
+        commentRepository
+                .findByBoardBoardIdAndParentCommentIsNull(boardId)
+                .forEach(this::deleteCommentTree);
+
+        // 댓글 DELETE를 먼저 DB에 반영
+        commentRepository.flush();
+
+
+        /*
+         * 게시글 첨부파일 삭제
+         *
+         * Board_file 역시 board_id FK를 가지고 있어서
+         * 게시글보다 먼저 삭제해야 함
+         */
+        List<BoardFile> boardFiles =
+                boardFileRepository.findByBoard(board);
+
+        for (BoardFile boardFile : boardFiles) {
+            deleteBoardFile(boardFile);
+        }
+
+        boardFileRepository.flush();
+
+
+        /*
+         * 댓글/첨부파일 제거 후
+         * 마지막으로 게시글 삭제
+         */
+        boardRepository.delete(board);
+    }
+
+
+    /**
+     * 댓글 + 대댓글 재귀 삭제
+     */
+    private void deleteCommentTree(
+            Comment comment) {
+
+        // 내 밑에 달린 답글부터 먼저 삭제
+        commentRepository
+                .findByParentComment_ComId(comment.getComId())
+                .forEach(this::deleteCommentTree);
+
+        // 자식이 전부 없어지고 나면 나를 삭제
+        commentRepository.delete(comment);
     }
 
     /**
