@@ -3,8 +3,15 @@ const deleteButton = document.getElementById("deleteButton");
 const approveButton = document.getElementById("approveButton");
 const rejectButton = document.getElementById("rejectButton");
 
+const rejectModal = document.getElementById("rejectModal");
+const rejectForm = document.getElementById("rejectForm");
+const rejectComment = document.getElementById("rejectComment");
+const rejectCancelButton = document.getElementById("rejectCancelButton");
+const rejectError = document.getElementById("rejectError");
+
 const approvalPage = document.getElementById("approvalPage");//문서 아이디 저장해둔 위치
 const documentId = Number(approvalPage.dataset.documentId);
+
 
 const attachmentInput =
     document.getElementById(
@@ -121,24 +128,135 @@ approveButton?.addEventListener(
 
 
 // 반려
-rejectButton?.addEventListener("click", async () => {
-        const comment = prompt("반려 사유를 입력해주세요.");
-        if (comment === null) {
+// 반려 모달 열기
+rejectButton?.addEventListener("click", () => {
+
+    rejectComment.value = "";
+    rejectError.textContent = "";
+
+    rejectModal.classList.add("is-open");
+
+    rejectComment.focus();
+});
+
+
+// 반려 모달 닫기
+function closeRejectModal() {
+
+    rejectModal?.classList.remove("is-open");
+
+    if (rejectComment) {
+        rejectComment.value = "";
+    }
+
+    if (rejectError) {
+        rejectError.textContent = "";
+    }
+}
+
+
+// 취소 버튼
+rejectCancelButton?.addEventListener(
+    "click",
+    closeRejectModal
+);
+
+
+// 모달 바깥 영역 클릭 시 닫기
+rejectModal?.addEventListener(
+    "click",
+    (event) => {
+
+        if (event.target === rejectModal) {
+            closeRejectModal();
+        }
+    }
+);
+
+
+// ESC 키로 닫기
+document.addEventListener(
+    "keydown",
+    (event) => {
+
+        if (
+            event.key === "Escape"
+            && rejectModal?.classList.contains("is-open")
+        ) {
+            closeRejectModal();
+        }
+    }
+);
+
+
+// 반려 실행
+rejectForm?.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+        const comment =
+            rejectComment.value.trim();
+
+
+        // 반려 사유 미입력
+        if (!comment) {
+
+            rejectError.textContent =
+                "반려 사유를 입력해주세요.";
+
+            rejectComment.focus();
+
             return;
         }
 
-        await request(
-            `/approvals/api/${documentId}/reject`,
-            {
-                method: "POST",
-                body: JSON.stringify({comment: comment})
-            }
-        );
 
-        alert("반려되었습니다.");
-        location.href = "/approvals";
+        rejectError.textContent = "";
+
+
+        try {
+
+            await request(
+                `/approvals/api/${documentId}/reject`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        comment: comment
+                    })
+                }
+            );
+
+
+            alert("반려되었습니다.");
+
+            location.href = "/approvals";
+
+        } catch (error) {
+
+            console.error(error);
+        }
     }
 );
+
+// rejectButton?.addEventListener("click", async () => {
+//         const comment = prompt("반려 사유를 입력해주세요.");
+//         if (comment === null) {
+//             return;
+//         }
+//
+//         await request(
+//             `/approvals/api/${documentId}/reject`,
+//             {
+//                 method: "POST",
+//                 body: JSON.stringify({comment: comment})
+//             }
+//         );
+//
+//         alert("반려되었습니다.");
+//         location.href = "/approvals";
+//     }
+// );
 
 
 // 첨부파일 삭제

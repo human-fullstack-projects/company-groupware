@@ -317,7 +317,7 @@ public class ApprovalDocumentController {
     @ResponseBody
     public ApprovalDocumentResponse rejectDocument(
             @PathVariable Long documentId,
-            @RequestBody ApprovalActionRequest request,
+            @Valid @RequestBody ApprovalActionRequest request,
             Authentication authentication) {
 
         Long emplId =

@@ -61,6 +61,9 @@ public class CommuteBatchService {
             System.out.println("결근자 없음 : " + today + "결근 처리 " + absentees.size() + "건");
 
         }
+
+        commuteRepository.saveAll(absentees);
+        System.out.println("[결근 배치] " + today + " 결근 처리 " + absentees.size() + "건" + "(empl_id=" + absentees.stream().map(c -> c.getEmployee().getEmplId()).toList());
     }
 
     private boolean isWeekend(LocalDate date) {

@@ -1,21 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
-<!--<head>-->
-<!--    <link rel="stylesheet" th:href="@{/css/approval/approval-signature.css}">-->
-<!--    <script defer th:src="@{/js/approval/approval-signature.js}"></script>-->
-<!--</head>-->
 <body>
+
 <div th:fragment="signature" class="signature-module">
-
-    <th:block th:fragment="css">
-        <link rel="stylesheet" th:href="@{/css/approval/approval-signature.css}">
-    </th:block>
-
-    <th:block th:fragment="js">
-        <script defer th:src="@{/js/approval/approval-signature.js}"></script>
-    </th:block>
 
     <div class="signature-header">
         <div>
@@ -26,15 +14,11 @@
         </div>
     </div>
 
-
     <!-- 사인 없음 -->
     <div id="signatureEmpty"
          class="signature-empty">
-
         등록된 사인이 없습니다.
-
     </div>
-
 
     <!-- 사인 있음 -->
     <div id="signaturePreviewArea"
@@ -42,28 +26,31 @@
          style="display:none;">
 
         <div class="signature-image-box">
-
             <img id="signaturePreview"
                  alt="개인 사인">
-
         </div>
 
     </div>
 
-
     <div class="signature-actions">
 
+        <!-- 저장 버튼을 눌렀을 때 mypage 폼과 같이 전송 -->
         <input type="file"
                id="signatureFile"
+               name="signatureFile"
                accept="image/png,image/jpeg,image/webp"
                hidden>
 
+        <!-- 삭제 예약 여부 -->
+        <input type="hidden"
+               id="signatureDelete"
+               name="signatureDelete"
+               value="false">
 
         <button type="button"
                 id="signatureUploadButton">
             사인 등록
         </button>
-
 
         <button type="button"
                 id="signatureDeleteButton"
