@@ -13,6 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/home.css}">
     <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
+    <link rel="stylesheet" th:href="@{/css/board-common.css}">
+
+    <script defer th:src="@{/js/board/board-attachment-selector.js}"></script>
 </head>
 
 <body class="workspace-home workspace-board">
@@ -22,57 +25,127 @@
 <div th:replace="~{module/workspace :: sidebar('boards')}"></div>
 <main class="workspace-content board-view board-edit" id="workspace-main">
 
-<header class="workspace-page-heading"><span class="home-eyebrow">EDIT YOUR POST</span><h1>게시글 수정</h1><p>게시글 내용을 확인하고 수정하세요.</p></header>
-<section class="board-panel" aria-label="게시판 수정">
+    <header class="workspace-page-heading"><span class="home-eyebrow">EDIT YOUR POST</span>
+        <h1>게시글 수정</h1>
+        <p>게시글 내용을 확인하고 수정하세요.</p></header>
+    <section class="board-panel" aria-label="게시판 수정">
 
-<form th:action="@{/boards/{boardId}/edit(boardId=${board.boardId})}"
-      method="post">
+        <form th:action="@{/boards/{boardId}/edit(boardId=${board.boardId})}"
+              method="post"
+              enctype="multipart/form-data">
 
-    <!-- 제목 -->
-    <div class="form-group">
+            <!-- 제목 -->
+            <div class="form-group">
 
-        <label for="boardTitle">
-            제목
-        </label>
+                <label for="boardTitle">
+                    제목
+                </label>
 
-        <input type="text"
-               id="boardTitle"
-               name="boardTitle"
-               th:value="${board.boardTitle}"
-               required>
+                <input type="text"
+                       id="boardTitle"
+                       name="boardTitle"
+                       th:value="${board.boardTitle}"
+                       required>
 
-    </div>
+            </div>
 
-    <!-- 내용 -->
-    <div class="form-group">
+            <!-- 내용 -->
+            <div class="form-group">
 
-        <label for="boardContent">
-            내용
-        </label>
+                <label for="boardContent">
+                    내용
+                </label>
 
-        <textarea id="boardContent"
-                  name="boardContent"
-                  required
-                  th:text="${board.boardContent}"></textarea>
+                <textarea id="boardContent"
+                          name="boardContent"
+                          required
+                          th:text="${board.boardContent}"></textarea>
+                <!-- 첨부파일 -->
+                <div class="form-group">
 
-    </div>
+                    <label for="files">
+                        첨부파일
+                    </label>
 
-    <!-- 버튼 -->
-    <div class="buttons">
+                    <!-- 기존 첨부파일 -->
+                    <div id="existingFileList"
+                         class="board-existing-file-list"
+                         th:if="${!#lists.isEmpty(boardFiles)}">
 
-        <button type="submit">
-            수정
-        </button>
+                        <div class="board-file-row board-existing-file-row"
+                             th:each="file : ${boardFiles}">
 
-        <a th:href="@{/boards/{boardId}(boardId=${board.boardId})}">
-            취소
-        </a>
+                            <div class="board-file-info">
 
-    </div>
+                <span class="board-file-icon">
+                    📎
+                </span>
 
-</form>
+                                <span class="board-file-name"
+                                      th:text="${file.boardFileOriginName}">
+                    첨부파일
+                </span>
 
-</section>
+                                <span class="board-file-size"
+                                      th:text="${file.boardFileSize + ' bytes'}">
+                    0 bytes
+                </span>
+
+                            </div>
+
+                            <button type="button"
+                                    class="board-file-remove board-existing-file-delete"
+                                    th:attr="data-file-id=${file.boardFileId}">
+                                삭제
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- 기존 첨부파일 없음 -->
+                    <div class="board-file-empty"
+                         th:if="${#lists.isEmpty(boardFiles)}">
+
+                        기존 첨부파일이 없습니다.
+
+                    </div>
+
+                    <!-- 신규 첨부파일 -->
+                    <input type="file"
+                           id="files"
+                           name="files"
+                           multiple>
+
+                    <div id="selectedFileList"
+                         class="board-selected-file-list">
+                    </div>
+
+                    <div class="board-file-help">
+                        기존 첨부파일을 포함하여 최대 5개,
+                        파일 하나당 최대 10MB까지 가능합니다.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- 버튼 -->
+            <div class="buttons">
+
+                <button type="submit">
+                    수정
+                </button>
+
+                <a th:href="@{/boards/{boardId}(boardId=${board.boardId})}">
+                    취소
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
 </main>
 </body>
 
