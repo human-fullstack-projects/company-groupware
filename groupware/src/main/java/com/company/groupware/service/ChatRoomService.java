@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -30,10 +29,10 @@ public class ChatRoomService {
     private final EmployeeRepository employeeRepository;
 
     @Transactional
-    public ChatRoomResponse createRoom(ChatRoomCreateRequest request) {
-        Employee creator = employeeRepository.findById(request.getCreatorEmplId())
+    public ChatRoomResponse createRoom(ChatRoomCreateRequest request, Long creatorEmplId) {
+        Employee creator = employeeRepository.findById(creatorEmplId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "직원을 찾을 수 없습니다. empl_id=" + request.getCreatorEmplId()));
+                        "직원을 찾을 수 없습니다. empl_id=" + creatorEmplId));
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
