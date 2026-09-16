@@ -110,6 +110,7 @@
             padding: 16px 20px;
             display: flex;
             justify-content: flex-end;
+            gap: 8px;
         }
 
         .edit-btn {
@@ -128,7 +129,23 @@
             background: var(--color-navy);
         }
 
-        /* 수정 모달 */
+        .password-btn {
+            height: 36px;
+            padding: 0 18px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            background: var(--color-white);
+            color: var(--color-navy-dark);
+            border: 1px solid var(--color-navy-dark);
+        }
+
+        .password-btn:hover {
+            background: #f1f3f5;
+        }
+
+        /* 수정 / 비밀번호 변경 모달 */
         .modal-veil {
             position: fixed;
             inset: 0;
@@ -157,6 +174,13 @@
             color: var(--color-navy-dark);
         }
 
+        .modal-description {
+            margin: -6px 0 18px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #868e96;
+        }
+
         .form-field {
             margin-bottom: 14px;
         }
@@ -182,6 +206,12 @@
         .form-field input:focus {
             border-color: #0d6efd;
             outline: none;
+        }
+
+        .password-guide {
+            margin-top: 6px;
+            font-size: 11.5px;
+            color: #868e96;
         }
 
         .modal-actions {
@@ -212,10 +242,10 @@
             color: var(--color-white);
         }
 
-        /*------------------------*/
         .info-row--signature {
             align-items: center;
         }
+
         .signature-readonly {
             display: flex;
             align-items: center;
@@ -239,86 +269,203 @@
     <div class="mypage-container">
 
         <h1 class="page-title">마이페이지</h1>
-        <p class="page-sub">내 정보를 확인하고, 연락처·주소·이메일을 직접 수정할 수 있습니다.</p>
 
-        <div th:if="${message}" class="flash-message is-ok" th:text="${message}"></div>
-        <div th:if="${error}" class="flash-message is-error" th:text="${error}"></div>
+        <p class="page-sub">
+            내 정보를 확인하고, 연락처·주소·이메일 및 비밀번호를 직접 수정할 수 있습니다.
+        </p>
+
+        <!-- 기존 개인정보 수정 성공/실패 메시지 -->
+        <div th:if="${message}"
+             class="flash-message is-ok"
+             th:text="${message}">
+        </div>
+
+        <div th:if="${error}"
+             class="flash-message is-error"
+             th:text="${error}">
+        </div>
+
+        <!-- 비밀번호 변경 성공 메시지 -->
+        <div th:if="${passwordMessage}"
+             class="flash-message is-ok"
+             th:text="${passwordMessage}">
+        </div>
+
+        <!-- 비밀번호 변경 실패 메시지 -->
+        <div th:if="${passwordError}"
+             class="flash-message is-error"
+             th:text="${passwordError}">
+        </div>
 
         <div class="info-card">
-            <div class="info-card__section-title">기본 정보 (수정 불가)</div>
+
+            <div class="info-card__section-title">
+                기본 정보 (수정 불가)
+            </div>
 
             <div class="info-row">
                 <span class="info-row__label">가입일</span>
+
                 <span class="info-row__value"
-                      th:text="${employee.createdAt != null} ? ${#temporals.format(employee.createdAt, 'yyyy-MM-dd')} : '정보 없음'">2026-09-14</span>
-            </div>
-            <div class="info-row">
-                <span class="info-row__label">직급</span>
-                <span class="info-row__value"
-                      th:text="${employee.grade != null ? employee.grade.gradeName : '-'}">사원</span>
-            </div>
-            <div class="info-row">
-                <span class="info-row__label">부서</span>
-                <span class="info-row__value"
-                      th:text="${employee.department != null ? employee.department.deptName : '-'}">개발팀</span>
-            </div>
-            <div class="info-row">
-                <span class="info-row__label">이름</span>
-                <span class="info-row__value" th:text="${employee.emplName}">홍길동</span>
+                      th:text="${employee.createdAt != null}
+                      ? ${#temporals.format(employee.createdAt, 'yyyy-MM-dd')}
+                      : '정보 없음'">
+                    2026-09-14
+                </span>
             </div>
 
-            <div class="info-card__section-title">개인 정보 (본인 수정 가능)</div>
+            <div class="info-row">
+                <span class="info-row__label">직급</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.grade != null
+                      ? employee.grade.gradeName
+                      : '-'}">
+                    사원
+                </span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-row__label">부서</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.department != null
+                      ? employee.department.deptName
+                      : '-'}">
+                    개발팀
+                </span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-row__label">이름</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.emplName}">
+                    홍길동
+                </span>
+            </div>
+
+
+            <div class="info-card__section-title">
+                개인 정보 (본인 수정 가능)
+            </div>
 
             <div class="info-row">
                 <span class="info-row__label">연락처</span>
-                <span class="info-row__value" th:text="${employee.emplPhone != null ? employee.emplPhone : '-'}">010-0000-0000</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.emplPhone != null
+                      ? employee.emplPhone
+                      : '-'}">
+                    010-0000-0000
+                </span>
             </div>
+
             <div class="info-row">
                 <span class="info-row__label">주소</span>
-                <span class="info-row__value" th:text="${employee.address != null ? employee.address : '-'}">-</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.address != null
+                      ? employee.address
+                      : '-'}">
+                    -
+                </span>
             </div>
+
             <div class="info-row">
                 <span class="info-row__label">이메일</span>
-                <span class="info-row__value" th:text="${employee.emplEmail != null ? employee.emplEmail : '-'}">user@company.com</span>
+
+                <span class="info-row__value"
+                      th:text="${employee.emplEmail != null
+                      ? employee.emplEmail
+                      : '-'}">
+                    user@company.com
+                </span>
             </div>
 
             <div class="info-row">
                 <span class="info-row__label">개인 사인</span>
 
                 <div class="signature-readonly">
+
                     <img th:if="${hasSignature}"
                          th:src="@{/approval-signatures/image}"
                          alt="개인 사인">
 
-                    <span th:unless="${hasSignature}">-</span>
+                    <span th:unless="${hasSignature}">
+                        -
+                    </span>
+
                 </div>
             </div>
 
+
             <div class="info-card__footer">
-                <button type="button" class="edit-btn" id="openEditBtn">정보 수정</button>
+
+                <!-- 새로 추가한 비밀번호 변경 버튼 -->
+                <button type="button"
+                        class="password-btn"
+                        id="openPasswordBtn">
+                    비밀번호 변경
+                </button>
+
+                <!-- 기존 정보 수정 버튼 -->
+                <button type="button"
+                        class="edit-btn"
+                        id="openEditBtn">
+                    정보 수정
+                </button>
+
             </div>
+
         </div>
 
     </div>
 </main>
 
+
+<!-- ======================================== -->
+<!-- 기존 개인정보 수정 모달 -->
+<!-- ======================================== -->
+
 <div class="modal-veil" id="editModalVeil">
+
     <div class="modal-box">
+
         <h2>내 정보 수정</h2>
-        <form id="mypageEditForm" th:action="@{/mypage}" method="post" enctype="multipart/form-data">
+
+        <form id="mypageEditForm"
+              th:action="@{/mypage}"
+              method="post"
+              enctype="multipart/form-data">
+
             <div class="form-field">
                 <label for="emplPhone">연락처</label>
-                <input type="text" id="emplPhone" name="emplPhone" placeholder="010-0000-0000"
+
+                <input type="text"
+                       id="emplPhone"
+                       name="emplPhone"
+                       placeholder="010-0000-0000"
                        th:value="${employee.emplPhone}">
             </div>
+
             <div class="form-field">
                 <label for="address">주소</label>
-                <input type="text" id="address" name="address" placeholder="주소를 입력하세요"
+
+                <input type="text"
+                       id="address"
+                       name="address"
+                       placeholder="주소를 입력하세요"
                        th:value="${employee.address}">
             </div>
+
             <div class="form-field">
                 <label for="emplEmail">이메일</label>
-                <input type="text" id="emplEmail" name="emplEmail" placeholder="user@company.com"
+
+                <input type="text"
+                       id="emplEmail"
+                       name="emplEmail"
+                       placeholder="user@company.com"
                        th:value="${employee.emplEmail}">
             </div>
 
@@ -327,29 +474,246 @@
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="cancel" id="closeEditBtn">취소</button>
-                <button type="submit" class="confirm">저장</button>
+
+                <button type="button"
+                        class="cancel"
+                        id="closeEditBtn">
+                    취소
+                </button>
+
+                <button type="submit"
+                        class="confirm">
+                    저장
+                </button>
+
             </div>
+
         </form>
+
     </div>
+
 </div>
 
-<script th:inline="none">
-    (function () {
-        var veil = document.getElementById('editModalVeil');
-        var openBtn = document.getElementById('openEditBtn');
-        var closeBtn = document.getElementById('closeEditBtn');
 
-        openBtn.addEventListener('click', function () {
-            veil.classList.add('is-open');
+<!-- ======================================== -->
+<!-- 새로 추가한 비밀번호 변경 모달 -->
+<!-- ======================================== -->
+
+<div class="modal-veil" id="passwordModalVeil">
+
+    <div class="modal-box">
+
+        <h2>비밀번호 변경</h2>
+
+        <p class="modal-description">
+            현재 비밀번호를 확인한 후 새로운 비밀번호로 변경합니다.
+        </p>
+
+        <form id="passwordChangeForm"
+              th:action="@{/mypage/password}"
+              method="post">
+
+            <!-- 현재 비밀번호 -->
+            <div class="form-field">
+
+                <label for="currentPassword">
+                    현재 비밀번호
+                </label>
+
+                <input type="password"
+                       id="currentPassword"
+                       name="currentPassword"
+                       placeholder="현재 비밀번호를 입력하세요"
+                       autocomplete="current-password"
+                       required>
+
+            </div>
+
+
+            <!-- 새 비밀번호 -->
+            <div class="form-field">
+
+                <label for="newPassword">
+                    새 비밀번호
+                </label>
+
+                <input type="password"
+                       id="newPassword"
+                       name="newPassword"
+                       placeholder="새 비밀번호를 입력하세요"
+                       autocomplete="new-password"
+                       minlength="8"
+                       required>
+
+                <div class="password-guide">
+                    비밀번호는 8자 이상 입력해주세요.
+                </div>
+
+            </div>
+
+
+            <!-- 새 비밀번호 확인 -->
+            <div class="form-field">
+
+                <label for="newPasswordConfirm">
+                    새 비밀번호 확인
+                </label>
+
+                <input type="password"
+                       id="newPasswordConfirm"
+                       name="newPasswordConfirm"
+                       placeholder="새 비밀번호를 다시 입력하세요"
+                       autocomplete="new-password"
+                       minlength="8"
+                       required>
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button type="button"
+                        class="cancel"
+                        id="closePasswordBtn">
+                    취소
+                </button>
+
+                <button type="submit"
+                        class="confirm">
+                    비밀번호 변경
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script th:inline="none">
+
+    (function () {
+
+        /*
+         * ============================
+         * 개인정보 수정 모달
+         * ============================
+         */
+
+        var editVeil =
+            document.getElementById('editModalVeil');
+
+        var openEditBtn =
+            document.getElementById('openEditBtn');
+
+        var closeEditBtn =
+            document.getElementById('closeEditBtn');
+
+
+        openEditBtn.addEventListener('click', function () {
+
+            editVeil.classList.add('is-open');
+
         });
-        closeBtn.addEventListener('click', function () {
-            veil.classList.remove('is-open');
+
+
+        closeEditBtn.addEventListener('click', function () {
+
+            editVeil.classList.remove('is-open');
+
         });
-        veil.addEventListener('click', function (ev) {
-            if (ev.target === veil) veil.classList.remove('is-open');
+
+
+        editVeil.addEventListener('click', function (ev) {
+
+            if (ev.target === editVeil) {
+
+                editVeil.classList.remove('is-open');
+
+            }
+
         });
+
+
+        /*
+         * ============================
+         * 비밀번호 변경 모달
+         * ============================
+         */
+
+        var passwordVeil =
+            document.getElementById('passwordModalVeil');
+
+        var openPasswordBtn =
+            document.getElementById('openPasswordBtn');
+
+        var closePasswordBtn =
+            document.getElementById('closePasswordBtn');
+
+        var passwordForm =
+            document.getElementById('passwordChangeForm');
+
+
+        // 비밀번호 변경 버튼 클릭
+        openPasswordBtn.addEventListener('click', function () {
+
+            passwordVeil.classList.add('is-open');
+
+        });
+
+
+        // 취소 버튼 클릭
+        closePasswordBtn.addEventListener('click', function () {
+
+            passwordVeil.classList.remove('is-open');
+
+            passwordForm.reset();
+
+        });
+
+
+        // 모달 바깥 영역 클릭
+        passwordVeil.addEventListener('click', function (ev) {
+
+            if (ev.target === passwordVeil) {
+
+                passwordVeil.classList.remove('is-open');
+
+                passwordForm.reset();
+
+            }
+
+        });
+
+
+        /*
+         * 새 비밀번호와
+         * 새 비밀번호 확인이 같은지
+         * 브라우저에서도 한 번 확인
+         */
+        passwordForm.addEventListener('submit', function (ev) {
+
+            var newPassword =
+                document.getElementById('newPassword').value;
+
+            var newPasswordConfirm =
+                document.getElementById('newPasswordConfirm').value;
+
+
+            if (newPassword !== newPasswordConfirm) {
+
+                ev.preventDefault();
+
+                alert('새 비밀번호가 서로 일치하지 않습니다.');
+
+            }
+
+        });
+
     })();
+
 </script>
 
 </body>
