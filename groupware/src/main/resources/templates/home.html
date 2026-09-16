@@ -4,7 +4,33 @@
     <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
     <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../static/css/menubar.css">
-    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css"></head>
+    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
+    <style>
+        .admin-denied-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            transform: translate(-50%, 14px);
+            background: var(--color-navy-dark);
+            color: var(--color-white);
+            padding: 13px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(16, 26, 51, .28);
+            opacity: 0;
+            transition: opacity .25s ease, transform .25s ease;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .admin-denied-toast.is-visible {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    </style>
+</head>
 <body class="workspace-home">
 <a class="skip-link" href="#home-main">본문으로 건너뛰기</a>
 <header class="topinfo">
@@ -34,4 +60,25 @@
         </div></section>
     <section class="home-bottom" aria-label="업무 안내"><div class="home-tip"><span class="home-eyebrow">MAKE TODAY COUNT</span><h2>오늘의 업무를 준비해 볼까요?</h2><p>캘린더에서 일정을 확인한 뒤, 필요한 내용을 팀에 공유해 보세요.</p></div><div class="home-directory"><h2>함께 일하는 동료</h2><p>부서와 직급으로 직원을 찾아보세요.</p><a th:href="@{/employees}">직원 조회 <span aria-hidden="true">→</span></a></div></section>
     <footer class="home-footer">COMPANY TALK <span>함께 일하는 우리를 위한 공간</span></footer>
-</main></body></html>
+</main>
+
+<div class="admin-denied-toast" id="adminDeniedToast">관리자만 접속이 가능합니다</div>
+
+<script th:inline="none">
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('error') !== 'admin_forbidden') {
+            return;
+        }
+
+        // 새로고침해도 토스트가 다시 뜨지 않도록 쿼리파라미터 제거
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+
+        var toast = document.getElementById('adminDeniedToast');
+        toast.classList.add('is-visible');
+        setTimeout(function () {
+            toast.classList.remove('is-visible');
+        }, 3000);
+    })();
+</script>
+</body></html>

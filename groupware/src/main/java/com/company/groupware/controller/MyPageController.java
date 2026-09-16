@@ -25,8 +25,13 @@ public class MyPageController {
     private final ApprovalSignatureService signatureService;
 
 
+    /**
+     * 마이페이지 화면
+     */
     @GetMapping("/mypage")
-    public String mypage(Authentication authentication, Model model) {
+    public String mypage(
+            Authentication authentication,
+            Model model) {
 
         Employee employee = employeeRepository
                 .findByLoginId(authentication.getName())
@@ -43,6 +48,9 @@ public class MyPageController {
     }
 
 
+    /**
+     * 마이페이지 개인정보 수정
+     */
     @PostMapping("/mypage")
     public String updateMyPage(
             Authentication authentication,
@@ -56,7 +64,7 @@ public class MyPageController {
                 .findByLoginId(authentication.getName())
                 .orElseThrow();
 
-        // 기존 개인정보 수정
+        // 개인정보 수정
         employeeService.updateContactInfo(
                 authentication.getName(),
                 emplPhone,
@@ -64,11 +72,17 @@ public class MyPageController {
                 address
         );
 
-        // 기존 signature 서비스 그대로 재사용
+        // 서명 삭제
         if (signatureDelete) {
-            signatureService.deleteSignature(employee.getEmplId());
+            signatureService.deleteSignature(
+                    employee.getEmplId()
+            );
         }
-        else if (signatureFile != null && !signatureFile.isEmpty()) {
+
+        // 새로운 서명 등록
+        else if (signatureFile != null
+                && !signatureFile.isEmpty()) {
+
             signatureService.saveSignature(
                     employee.getEmplId(),
                     signatureFile
@@ -78,6 +92,47 @@ public class MyPageController {
         return "redirect:/mypage";
     }
 
+
+    /**
+     * 마이페이지 - 비밀번호 변경
+     */
+    @PostMapping("/mypage/password")
+    public String changePassword(
+            Authentication authentication,
+            @RequestParam String currentPassword,
+            @RequestParam String newPassword,
+            @RequestParam String newPasswordConfirm,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+
+            // 현재 로그인한 사용자의 비밀번호 변경
+            employeeService.changePassword(
+                    authentication.getName(),
+                    currentPassword,
+                    newPassword,
+                    newPasswordConfirm
+            );
+
+            // 성공 메시지
+            redirectAttributes.addFlashAttribute(
+                    "passwordMessage",
+                    "비밀번호가 성공적으로 변경되었습니다."
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            // 실패 메시지
+            redirectAttributes.addFlashAttribute(
+                    "passwordError",
+                    e.getMessage()
+            );
+        }
+
+        return "redirect:/mypage";
+    }
+
+
 //    @GetMapping("/mypage")
 //    public String mypage(Authentication authentication, Model model) {
 //        Employee employee = employeeRepository.findByLoginId(authentication.getName())
@@ -86,6 +141,7 @@ public class MyPageController {
 //        model.addAttribute("employee", employee);
 //        return "empl/mypage";
 //    }
+//
 //    @PostMapping("/mypage")
 //    public String update(
 //            Authentication authentication,
@@ -95,10 +151,24 @@ public class MyPageController {
 //            RedirectAttributes redirectAttributes) {
 //
 //        try {
-//            employeeService.updateContactInfo(authentication.getName(), emplPhone, emplEmail, address);
-//            redirectAttributes.addFlashAttribute("message", "내 정보를 수정했습니다.");
+//            employeeService.updateContactInfo(
+//                    authentication.getName(),
+//                    emplPhone,
+//                    emplEmail,
+//                    address
+//            );
+//
+//            redirectAttributes.addFlashAttribute(
+//                    "message",
+//                    "내 정보를 수정했습니다."
+//            );
+//
 //        } catch (IllegalArgumentException e) {
-//            redirectAttributes.addFlashAttribute("error", e.getMessage());
+//
+//            redirectAttributes.addFlashAttribute(
+//                    "error",
+//                    e.getMessage()
+//            );
 //        }
 //
 //        return "redirect:/mypage";

@@ -1,0 +1,136 @@
+/* ==========================================================================
+   조직도 페이지 전용 스타일시트 (organization-chart.css)
+   ========================================================================== */
+
+/* 1. 조직도 전체 래퍼 및 레이아웃 컨테이너 */
+.org-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    background-color: #ffffff;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+/* 2. 공통 조직도 박스 디자인 (둥근 모서리, 파란색 톤, 그림자 및 부드러운 전환 효과) */
+.org-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: #4b89dc;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.org-box:hover {
+    background-color: #3b73c7;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* 3. 계층별 개별 박스 스타일 커스텀 */
+/* 대표이사 박스 (최상단) */
+.ceo-box {
+    background-color: #3371e5;
+    min-width: 140px;
+    font-size: 16px;
+    padding: 14px 32px;
+}
+
+/* 고문, 총괄임원 등 상단 임원진 박스 */
+.sub-box {
+    background-color: #6a9ee8;
+    min-width: 120px;
+}
+
+/* 부문명 박스 (하단 대분류) */
+.dept-box {
+    background-color: #7ab3f5;
+    min-width: 130px;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 10px;
+}
+
+/* 4. 연결선 스타일 (세로선 및 가로 연결 구조) */
+.org-line-vertical {
+    width: 2px;
+    height: 35px;
+    background-color: #adb5bd;
+    margin: 0 auto;
+}
+
+/* 5. 계층별 배치 레이아웃 */
+/* 2단계 레벨 (고문, 총괄임원 수평 배치) */
+.org-level-1 {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.org-level-2 {
+    display: flex;
+    justify-content: center;
+    gap: 160px; /* 고문과 총괄임원 사이의 간격 */
+    width: 100%;
+    position: relative;
+}
+
+/* 3단계 레벨 (하단 부서 열 수평 분산 배치) */
+.org-level-3 {
+    display: flex;
+    justify-content: center;
+    gap: 30px; /* 각 부문 컬럼 간격 */
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+/* 각 부문별 세로 컬럼 컨테이너 */
+.org-dept-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 140px;
+}
+
+/* 7. 반응형 디자인 대응 */
+@media (max-width: 1024px) {
+    .org-level-2 {
+        gap: 60px;
+    }
+    .org-level-3 {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+}
+
+/* [추가] 부서별 직급 조직도 전용 스타일 */
+.grade-title-box {
+    background-color: #2b5dbe;
+    min-width: 160px;
+    font-size: 15px;
+    padding: 12px 28px;
+}
+
+.employee-box {
+    background-color: #629bf5;
+    min-width: 120px;
+    font-size: 14px;
+    padding: 10px 18px;
+    border-radius: 8px;
+}
+
+.org-level-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
