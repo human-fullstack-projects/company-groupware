@@ -1,6 +1,5 @@
 package com.company.groupware.service;
 
-
 import com.company.groupware.dto.EmployeeSearchRequest;
 import com.company.groupware.dto.EmployeeSearchResponse;
 
@@ -136,34 +135,35 @@ public class EmployeeService {
         if (request != null) {
             departmentId = request.getDepartmentId();
             gradeId = request.getGradeId();
+
             if (StringUtils.hasText(request.getEmplName())) {
                 emplName = request.getEmplName().trim();
             }
         }
 
-        List<Employee> employees = employeeRepository.searchEmployees(departmentId, gradeId, emplName);
+        List<Employee> employees =
+                employeeRepository.searchEmployees(departmentId, gradeId, emplName);
 
         return employees.stream()
                 // .sorted(EmployeeSortHelper.EMPLOYEE_COMPARATOR)
                 .map(EmployeeSearchResponse::from)
                 .toList();
-
     }
 
-//    @Transactional(readOnly = true)
-//    public List<EmployeeSearchResponse> searchEmployees(Long departmentId, Long gradeId, String emplName) {
-//        return searchEmployees(new EmployeeSearchRequest(departmentId, gradeId, emplName));
-//    }
-//    // 이름으로 직원 검색 (초대 대상 검색용)
-//    public List<ChatRoomEmployeeSearchResponse> searchByName(String emplName) {
-//        if (!StringUtils.hasText(emplName)) {
-//            return List.of();
-//        }
-//        return employeeRepository.findByEmplNameContaining(emplName.trim())
-//                .stream()
-//                .map(ChatRoomEmployeeSearchResponse::new)
-//                .toList();
-//    }
+    //    @Transactional(readOnly = true)
+    //    public List<EmployeeSearchResponse> searchEmployees(Long departmentId, Long gradeId, String emplName) {
+    //        return searchEmployees(new EmployeeSearchRequest(departmentId, gradeId, emplName));
+    //    }
+    //    // 이름으로 직원 검색 (초대 대상 검색용)
+    //    public List<ChatRoomEmployeeSearchResponse> searchByName(String emplName) {
+    //        if (!StringUtils.hasText(emplName)) {
+    //            return List.of();
+    //        }
+    //        return employeeRepository.findByEmplNameContaining(emplName.trim())
+    //                .stream()
+    //                .map(ChatRoomEmployeeSearchResponse::new)
+    //                .toList();
+    //    }
 
     @Transactional(readOnly = true)
     public long countAdmins() {
@@ -260,28 +260,45 @@ public class EmployeeService {
     }
 
     /**
-     * 마이페이지 - 본인 연락처/주소/이메일 수정 (부서·직급·관리자권한은 절대 건드리지 않음)
+     * 마이페이지 - 본인 연락처/주소/이메일 수정
+     * 부서·직급·관리자권한은 절대 건드리지 않음
      */
     @Transactional
-    public void updateContactInfo(String loginId, String emplPhone, String emplEmail, String address) {
+    public void updateContactInfo(
+            String loginId,
+            String emplPhone,
+            String emplEmail,
+            String address) {
+
         Employee employee = employeeRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "존재하지 않는 계정입니다."
                 ));
 
-        if (!StringUtils.hasText(emplEmail) || !StringUtils.hasText(emplPhone)) {
-            throw new IllegalArgumentException("연락처와 이메일을 모두 입력해주세요.");
+        if (!StringUtils.hasText(emplEmail)
+                || !StringUtils.hasText(emplPhone)) {
+            throw new IllegalArgumentException(
+                    "연락처와 이메일을 모두 입력해주세요."
+            );
         }
 
         emplEmail = emplEmail.trim();
         emplPhone = normalizePhone(emplPhone);
-        address = StringUtils.hasText(address) ? address.trim() : null;
+        address = StringUtils.hasText(address)
+                ? address.trim()
+                : null;
 
-        if (emplEmail.length() > 50 || emplPhone.length() > 50) {
-            throw new IllegalArgumentException("이메일, 전화번호는 각각 50자 이내로 입력해주세요.");
+        if (emplEmail.length() > 50
+                || emplPhone.length() > 50) {
+            throw new IllegalArgumentException(
+                    "이메일, 전화번호는 각각 50자 이내로 입력해주세요."
+            );
         }
+
         if (address != null && address.length() > 255) {
-            throw new IllegalArgumentException("주소는 255자 이내로 입력해주세요.");
+            throw new IllegalArgumentException(
+                    "주소는 255자 이내로 입력해주세요."
+            );
         }
 
         validateEmail(emplEmail);
@@ -291,8 +308,86 @@ public class EmployeeService {
         employee.setAddress(address);
     }
 
-    // 전화번호의 하이픈/공백을 정리하고 010-XXXX-XXXX 형식으로 맞춘다
+    /**
+     * 마이페이지 - 본인 비밀번호 변경
+     */
+    @Transactional
+    public void changePassword(
+            String loginId,
+            String currentPassword,
+            String newPassword,
+            String newPasswordConfirm) {
+
+        // 1. 현재 로그인한 직원 찾기
+        Employee employee = employeeRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "존재하지 않는 계정입니다."
+                ));
+
+        // 2. 입력값이 비어 있는지 확인
+        if (!StringUtils.hasText(currentPassword)
+                || !StringUtils.hasText(newPassword)
+                || !StringUtils.hasText(newPasswordConfirm)) {
+
+            throw new IllegalArgumentException(
+                    "비밀번호를 모두 입력해주세요."
+            );
+        }
+
+        // 3. 현재 비밀번호가 맞는지 확인
+        if (!passwordEncoder.matches(
+                currentPassword,
+                employee.getPasswordHash())) {
+
+            throw new IllegalArgumentException(
+                    "현재 비밀번호가 일치하지 않습니다."
+            );
+        }
+
+        // 4. 새 비밀번호와 새 비밀번호 확인이 같은지 확인
+        if (!newPassword.equals(newPasswordConfirm)) {
+            throw new IllegalArgumentException(
+                    "새 비밀번호가 서로 일치하지 않습니다."
+            );
+        }
+
+        // 5. 새 비밀번호 최소 길이 확인
+        if (newPassword.length() < 8) {
+            throw new IllegalArgumentException(
+                    "새 비밀번호는 8자 이상 입력해주세요."
+            );
+        }
+
+        // 6. 기존 비밀번호와 같은 비밀번호인지 확인
+        if (passwordEncoder.matches(
+                newPassword,
+                employee.getPasswordHash())) {
+
+            throw new IllegalArgumentException(
+                    "현재 비밀번호와 다른 비밀번호를 입력해주세요."
+            );
+        }
+
+        // 7. BCrypt에서 처리 가능한 비밀번호 길이 확인
+        if (newPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException(
+                    "비밀번호가 너무 깁니다. 영문·숫자는 72자 이내이며, 한글은 더 짧게 입력해주세요."
+            );
+        }
+
+        // 8. 새 비밀번호를 암호화해서 저장
+        employee.setPasswordHash(
+                passwordEncoder.encode(newPassword)
+        );
+    }
+
+    /**
+     * 전화번호의 하이픈/공백을 정리하고
+     * 010-XXXX-XXXX 형식으로 맞춘다.
+     */
     private String normalizePhone(String rawPhone) {
+
         String phoneDigits = rawPhone.trim()
                 .replace("-", "")
                 .replaceAll("\\s+", "");
@@ -303,13 +398,21 @@ public class EmployeeService {
             );
         }
 
-        return phoneDigits.substring(0, 3) + "-"
-                + phoneDigits.substring(3, 7) + "-"
+        return phoneDigits.substring(0, 3)
+                + "-"
+                + phoneDigits.substring(3, 7)
+                + "-"
                 + phoneDigits.substring(7);
     }
 
+    /**
+     * 이메일 기본 형식 확인
+     */
     private void validateEmail(String email) {
-        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+
+        if (!email.matches(
+                "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+
             throw new IllegalArgumentException(
                     "올바른 이메일 형식으로 입력해주세요."
             );

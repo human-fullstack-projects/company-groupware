@@ -13,6 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" th:href="@{/css/home.css}">
     <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
+    <link rel="stylesheet" th:href="@{/css/board-common.css}">
+
+    <script defer th:src="@{/js/board/board-attachment-selector.js}"></script>
 </head>
 
 <body class="workspace-home workspace-board">
@@ -120,8 +123,13 @@
                name="files"
                multiple>
 
-        <div>
-            여러 개의 파일을 선택할 수 있습니다.
+        <div id="selectedFileList"
+             class="board-selected-file-list">
+        </div>
+
+        <div class="board-file-help">
+            파일은 최대 5개까지 첨부할 수 있으며,
+            파일 하나당 최대 10MB까지 가능합니다.
         </div>
 
     </div>
