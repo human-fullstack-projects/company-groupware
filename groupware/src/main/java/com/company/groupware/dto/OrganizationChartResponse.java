@@ -61,5 +61,12 @@ public class OrganizationChartResponse {
         private Long emplId;
         private String emplName;
         private String gradeName;
+
+        // [추가] 상세 모달창에 보여줄 직원 정보 필드들
+        private String deptName;// 부서명
+        private String phone;   // 연락처
+        private String email;   // 이메일
+        private String address; // [추가] 주소 필드
+
     }
 }

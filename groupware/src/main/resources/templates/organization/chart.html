@@ -73,7 +73,11 @@
                         <!-- 해당 직급의 행(Row) 리스트 (한 행에 최대 5개) -->
                         <div class="grade-row-wrapper" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;">
                             <div class="org-level-row" th:each="row : ${tier.rowEmployeeLists}" style="display: flex; justify-content: center; gap: 15px; width: 100%; flex-wrap: wrap;">
-                                <div class="org-box employee-box" th:each="emp : ${row}" th:text="${emp.emplName}">직원이름</div>
+                                <div class="org-box employee-box" th:each="emp : ${row}"
+                                     th:text="${emp.emplName}"
+                                     th:data-empl-id="${emp.emplId}"
+                                     style="cursor: pointer;"
+                                     onclick="openEmployeeModal(this)">직원이름</div>
                             </div>
                         </div>
 
@@ -92,10 +96,70 @@
 
         </th:block>
 
+            <!-- 직원 상세 정보 모달 팝업 -->
+            <div id="employeeModal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3 class="modal-header">직원 상세 정보</h3>
+
+                    <div class="modal-body-info">
+                        <p><strong>이름:</strong> <span id="modalEmpName"></span></p>
+                        <p><strong>부서:</strong> <span id="modalDeptName"></span></p>
+                        <p><strong>직급:</strong> <span id="modalGradeName"></span></p>
+                        <p><strong>연락처:</strong> <span id="modalPhone"></span></p>
+                        <p><strong>이메일:</strong> <span id="modalEmail"></span></p>
+                        <p><strong>주소:</strong> <span id="modalAddress"></span></p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" id="closeModalBtn" class="modal-close-btn">닫기</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
 </div>
+
+<script>
+    // 직원 박스 클릭 시 실행되는 함수
+    function openEmployeeModal(element) {
+        const emplId = element.getAttribute("data-empl-id");
+
+        // REST API 호출
+        fetch(`/organization/api/employee/${emplId}`)
+            .then(response => response.json())
+            .then(data => {
+                // 모달 내부 텍스트 채우기
+                document.getElementById("modalEmpName").innerText = data.emplName || '-';
+                document.getElementById("modalDeptName").innerText = data.deptName || '-';
+                document.getElementById("modalGradeName").innerText = data.gradeName || '-';
+                document.getElementById("modalPhone").innerText = data.phone || '-';
+                document.getElementById("modalEmail").innerText = data.email || '-';
+                document.getElementById("modalAddress").innerText = data.address || '-';
+
+                // 모달 창 띄우기 (display: flex)
+                document.getElementById("employeeModal").style.display = "flex";
+            })
+            .catch(error => {
+                console.error("직원 정보를 불러오는 중 오류가 발생했습니다:", error);
+                alert("직원 정보를 불러오지 못했습니다.");
+            });
+    }
+
+    // 닫기 버튼 클릭 시 모달 닫기
+    document.getElementById("closeModalBtn").addEventListener("click", function() {
+        document.getElementById("employeeModal").style.display = "none";
+    });
+
+    // 모달 배경 바깥쪽 클릭 시 모달 닫기
+    window.addEventListener("click", function(event) {
+        const modal = document.getElementById("employeeModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+</script>
 
 </body>
 </html>

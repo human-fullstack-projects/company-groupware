@@ -121,4 +121,22 @@ public class OrganizationChartService {
         Employee employee;
         public Employee0Wrapper(Employee employee) { this.employee = employee; }
     }
+
+    // [추가] 직원 상세 정보 조회 메서드
+    @Transactional(readOnly = true)
+    public OrganizationChartResponse.EmployeeItem getEmployeeDetail(Long emplId) {
+        Employee employee = employeeRepository.findById(emplId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 직원입니다."));
+
+        return OrganizationChartResponse.EmployeeItem.builder()
+                .emplId(employee.getEmplId())
+                .emplName(employee.getEmplName())
+                .gradeName(employee.getGrade() != null ? employee.getGrade().getGradeName() : "직급없음")
+                .deptName(employee.getDepartment() != null ? employee.getDepartment().getDeptName() : "부서없음")
+                .phone(employee.getEmplPhone()) // 엔티티의 연락처 필드명에 맞게
+                .email(employee.getEmplEmail()) // 엔티티의 이메일 필드명에 맞게
+                .address(employee.getAddress()) // [추가] 주소 매핑
+                .build();
+    }
+
 }

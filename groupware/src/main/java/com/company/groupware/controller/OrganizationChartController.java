@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * 조직도 관련 웹 요청을 처리하는 컨트롤러
@@ -43,4 +44,12 @@ public class OrganizationChartController {
         model.addAttribute("chartData", chartData);
         return "organization/chart"; // 동일한 템플릿 재사용 (흰 바탕 영역만 조건부로 바뀜)
     }
+
+    // [추가] 직원 상세 정보 조회 REST API
+    @GetMapping("/api/employee/{emplId}")
+    @ResponseBody
+    public OrganizationChartResponse.EmployeeItem getEmployeeDetailApi(@PathVariable("emplId") Long emplId) {
+        return organizationChartService.getEmployeeDetail(emplId);
+    }
+
 }
