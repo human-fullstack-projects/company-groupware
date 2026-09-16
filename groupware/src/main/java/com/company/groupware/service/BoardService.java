@@ -28,10 +28,15 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
+    private static final int MAX_BOARD_FILE_COUNT = 5;
+    private static final long MAX_BOARD_FILE_SIZE = 10L * 1024 * 1024;
 
     private final BoardRepository boardRepository;
     private final BoardCategoryRepository boardCategoryRepository;
@@ -313,20 +318,15 @@ public class BoardService {
         Board savedBoard =
                 save(board);
 
-        if (files == null ||
-                files.isEmpty()) {
+        List<MultipartFile> uploadFiles =
+                nonEmptyFiles(files);
 
-            return savedBoard;
-        }
+        validateUploadFiles(
+                0,
+                uploadFiles
+        );
 
-        for (MultipartFile file : files) {
-
-            if (file == null ||
-                    file.isEmpty()) {
-
-                continue;
-            }
-
+        for (MultipartFile file : uploadFiles) {
             saveBoardFile(
                     savedBoard,
                     file
@@ -335,6 +335,75 @@ public class BoardService {
 
         return savedBoard;
     }
+
+    private List<MultipartFile> nonEmptyFiles(
+            List<MultipartFile> files) {
+
+        if (files == null) {
+            return List.of();
+        }
+
+        return files.stream()
+                .filter(file ->
+                        file != null
+                                && !file.isEmpty()
+                )
+                .toList();
+    }
+
+    private void validateUploadFiles(
+            int existingCount,
+            List<MultipartFile> uploadFiles) {
+
+        if (existingCount + uploadFiles.size()
+                > MAX_BOARD_FILE_COUNT) {
+
+            throw new IllegalArgumentException(
+                    "첨부파일은 최대 5개까지 등록할 수 있습니다."
+            );
+        }
+
+        for (MultipartFile file : uploadFiles) {
+
+            if (file.getSize() > MAX_BOARD_FILE_SIZE) {
+
+                throw new IllegalArgumentException(
+                        "파일 하나당 최대 10MB까지 첨부할 수 있습니다."
+                );
+            }
+        }
+    }
+
+//    @Transactional
+//    public Board save(
+//            Board board,
+//            List<MultipartFile> files) {
+//
+//        Board savedBoard =
+//                save(board);
+//
+//        if (files == null ||
+//                files.isEmpty()) {
+//
+//            return savedBoard;
+//        }
+//
+//        for (MultipartFile file : files) {
+//
+//            if (file == null ||
+//                    file.isEmpty()) {
+//
+//                continue;
+//            }
+//
+//            saveBoardFile(
+//                    savedBoard,
+//                    file
+//            );
+//        }
+//
+//        return savedBoard;
+//    }
 
     /**
      * 첨부파일 저장
@@ -459,7 +528,7 @@ public class BoardService {
      * 첨부파일 조회
      */
     public BoardFile findBoardFile(
-            Integer boardFileId) {
+            Long boardFileId) {
 
         return boardFileRepository
                 .findById(boardFileId)
@@ -472,8 +541,7 @@ public class BoardService {
     /**
      * 첨부파일 Resource 조회
      */
-    public Resource loadFileAsResource(
-            Integer boardFileId) {
+    public Resource loadFileAsResource(Long boardFileId) {
 
         BoardFile boardFile =
                 findBoardFile(boardFileId);
@@ -554,37 +622,121 @@ public class BoardService {
             Long boardId,
             String boardTitle,
             String boardContent,
-            Long categoryId) {
+            Long categoryId,
+            List<MultipartFile> files,
+            List<Long> deleteFileIds) {
 
         Board board =
                 findById(boardId);
 
-        board.setBoardTitle(
-                boardTitle
-        );
-
-        board.setBoardContent(
-                boardContent
-        );
-
-        board.setUpdatedAt(
-                LocalDateTime.now()
-        );
+        board.setBoardTitle(boardTitle);
+        board.setBoardContent(boardContent);
+        board.setUpdatedAt(LocalDateTime.now());
 
         if (categoryId != null) {
 
             BoardCategory category =
-                    findCategoryById(
-                            categoryId
-                    );
+                    findCategoryById(categoryId);
 
-            board.setBoardCategory(
-                    category
+            board.setBoardCategory(category);
+        }
+
+        // 현재 등록되어 있는 첨부파일
+        List<BoardFile> existingFiles =
+                boardFileRepository.findByBoard(board);
+
+        Set<Long> deleteIds =
+                deleteFileIds == null
+                        ? Set.of()
+                        : new HashSet<>(deleteFileIds);
+
+        /*
+         * 다른 게시글의 첨부파일 ID를
+         * 임의로 넘기는 경우 차단
+         */
+        for (Long deleteId : deleteIds) {
+
+            boolean belongsToBoard =
+                    existingFiles.stream()
+                            .anyMatch(file ->
+                                    file.getBoardFileId()
+                                            .equals(deleteId)
+                            );
+
+            if (!belongsToBoard) {
+
+                throw new IllegalArgumentException(
+                        "삭제할 첨부파일 정보가 올바르지 않습니다."
+                );
+            }
+        }
+
+        List<MultipartFile> uploadFiles =
+                nonEmptyFiles(files);
+
+        /*
+         * 삭제 예정인 기존 파일은 개수에서 제외
+         */
+        int remainingFileCount =
+                existingFiles.size()
+                        - deleteIds.size();
+
+        validateUploadFiles(
+                remainingFileCount,
+                uploadFiles
+        );
+
+        /*
+         * 기존 파일 삭제
+         */
+        for (BoardFile boardFile : existingFiles) {
+
+            if (deleteIds.contains(
+                    boardFile.getBoardFileId()
+            )) {
+
+                deleteBoardFile(boardFile);
+            }
+        }
+
+        /*
+         * 신규 파일 저장
+         */
+        for (MultipartFile file : uploadFiles) {
+
+            saveBoardFile(
+                    board,
+                    file
+            );
+        }
+    }
+
+    private void deleteBoardFile(
+            BoardFile boardFile) {
+
+        try {
+
+            if (boardFile.getBoardFileLink() != null) {
+
+                Path filePath =
+                        Paths.get(
+                                        boardFile.getBoardFileLink()
+                                )
+                                .toAbsolutePath()
+                                .normalize();
+
+                Files.deleteIfExists(filePath);
+            }
+
+        } catch (IOException e) {
+
+            throw new IllegalStateException(
+                    "첨부파일 삭제 중 오류가 발생했습니다.",
+                    e
             );
         }
 
-        // categoryId가 안 넘어오면(예: edit.html에 카테고리 변경 UI가 없는 경우)
-        // 기존 카테고리를 그대로 유지한다 — 지우는 것으로 해석하지 않는다.
+        boardFileRepository.delete(boardFile);
     }
 
     /**

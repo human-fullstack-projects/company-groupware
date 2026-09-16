@@ -9,6 +9,11 @@ import com.company.groupware.dto.ChatRoomResponse;
 import com.company.groupware.entity.ChatRoomFile;
 import com.company.groupware.service.ChatMessageService;
 import com.company.groupware.service.ChatRoomService;
+import com.company.groupware.service.ChatAccessService;
+import org.springframework.web.server.ResponseStatusException;
+import java.security.Principal;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -24,16 +29,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatRoomController {
 
+    private final ChatAccessService chatAccessService;
     private final ChatRoomService chatRoomService;
     private final ChatMessageService chatMessageService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // 채팅방 생성 (개설자 + 초대 멤버 한 번에 참여 처리) - 참여자 전원에게 방 목록 실시간 알림
     @PostMapping
-    public ResponseEntity<ChatRoomResponse> createRoom(@RequestBody ChatRoomCreateRequest request) {
-        ChatRoomResponse response = chatRoomService.createRoom(request);
+    public ResponseEntity<ChatRoomResponse> createRoom(@RequestBody ChatRoomCreateRequest request, Principal principal) {
+        Long actorId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        // 요청의 creatorEmplId는 무시하고, 로그인한 본인을 개설자로 사용합니다.
+        ChatRoomResponse response = chatRoomService.createRoom(request, actorId);
 
-        notifyRoomListUpdate(request.getCreatorEmplId(), response);
+        notifyRoomListUpdate(actorId, response);
         if (request.getMemberEmplIds() != null) {
             request.getMemberEmplIds().forEach(emplId -> notifyRoomListUpdate(emplId, response));
         }
@@ -42,15 +50,17 @@ public class ChatRoomController {
     }
 
     // 로그인한(요청한) 직원이 현재 참여 중인 방 목록
-    // TODO: Spring Security 연동 후 emplId 파라미터 대신 인증 principal 사용
     @GetMapping
-    public ResponseEntity<List<ChatRoomResponse>> getMyRooms(@RequestParam Long emplId) {
+    public ResponseEntity<List<ChatRoomResponse>> getMyRooms(Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
         return ResponseEntity.ok(chatRoomService.getMyRooms(emplId));
     }
 
     // 특정 방의 현재 활성 참여자 목록
     @GetMapping("/{roomId}/members")
-    public ResponseEntity<List<ChatRoomMemberResponse>> getMembers(@PathVariable Long roomId) {
+    public ResponseEntity<List<ChatRoomMemberResponse>> getMembers(@PathVariable Long roomId, Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(emplId, roomId);
         return ResponseEntity.ok(chatRoomService.getActiveMembers(roomId));
     }
 
@@ -59,7 +69,9 @@ public class ChatRoomController {
     @PostMapping("/{roomId}/members")
     public ResponseEntity<ChatRoomMemberResponse> joinRoom(
             @PathVariable Long roomId,
-            @RequestBody ChatRoomJoinRequest request) {
+            @RequestBody ChatRoomJoinRequest request, Principal principal) {
+        Long actorId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(actorId, roomId);
         ChatRoomMemberResponse response = chatRoomService.joinRoom(roomId, request.getEmplId());
 
         ChatMessageResponse systemMessage = chatMessageService.saveSystemMessage(
@@ -78,17 +90,20 @@ public class ChatRoomController {
 
     // 특정 방의 전체 대화 이력 (오래된 순)
     @GetMapping("/{roomId}/messages")
-    public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long roomId, @RequestParam Long emplId) {
+    public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long roomId, Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(emplId, roomId);
         return ResponseEntity.ok(chatMessageService.getHistory(roomId, emplId));
     }
 
     // 파일 첨부 메시지 업로드 (방 활성 참여자만 가능) - 저장 후 실시간 브로드캐스트까지 처리
-    // TODO: Spring Security 연동 후 emplId 파라미터 대신 인증 principal 사용
     @PostMapping("/{roomId}/files")
     public ResponseEntity<ChatMessageResponse> uploadFile(
             @PathVariable Long roomId,
-            @RequestParam Long emplId,
+            Principal principal,
             @RequestParam("files") List<MultipartFile> files) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(emplId, roomId);
         // uploadFile로 파일들을 업로드, messagingTemplate로 출력
         ChatMessageResponse response = chatMessageService.uploadFile(roomId, emplId, files);
         messagingTemplate.convertAndSend("/topic/room/" + roomId, response);
@@ -96,11 +111,11 @@ public class ChatRoomController {
     }
 
     // 첨부파일 다운로드 (방 활성 참여자만 가능)
-    // TODO: Spring Security 연동 후 emplId 파라미터 대신 인증 principal 사용
     @GetMapping("/files/{fileId}")
     public ResponseEntity<Resource> downloadFile(
             @PathVariable Long fileId,
-            @RequestParam Long emplId) {
+            Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
         ChatRoomFile chatRoomFile = chatMessageService.findChatRoomFile(fileId, emplId);
         Resource resource = chatMessageService.loadFileAsResource(chatRoomFile);
 
@@ -121,7 +136,12 @@ public class ChatRoomController {
     @DeleteMapping("/{roomId}/members/{emplId}")
     public ResponseEntity<Void> leaveRoom(
             @PathVariable Long roomId,
-            @PathVariable Long emplId) {
+            @PathVariable Long emplId, Principal principal) {
+        Long actorId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        if (!Objects.equals(actorId, emplId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인만 채팅방에서 나갈 수 있습니다.");
+        }
+        chatAccessService.requireActiveMember(actorId, roomId);
         String emplName = chatRoomService.getEmployeeName(emplId);
         ChatMessageResponse systemMessage = chatMessageService.saveSystemMessage(
                 roomId, emplId, emplName + "님이 퇴장했습니다");
@@ -134,5 +154,11 @@ public class ChatRoomController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleAccessError(ResponseStatusException error) {
+        return ResponseEntity.status(error.getStatusCode())
+                .body(Map.of("message", error.getReason() == null
+                        ? "채팅 요청을 처리할 수 없습니다." : error.getReason()));
     }
 }
