@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>조직도</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/employee-search.css}">
+    <link rel="stylesheet" th:href="@{/css/organization-chart.css}">
+</head>
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<div class="employee-content">
+    <div class="employee-container">
+
+        <div class="search-filter-section" style="text-align: center;">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--color-black);"
+                th:text="${chartData.currentDeptName != null ? chartData.currentDeptName : '조직도'}">조직도</h2>
+        </div>
+
+        <div class="org-chart-wrapper">
+
+            <!-- [CASE 1] 부서를 선택하지 않은 경우: 전체 회사 조직도 표시 -->
+            <th:block th:if="${chartData.gradeTierGroups == null}">
+                <div class="org-level-1">
+                    <div class="org-box ceo-box" th:text="${chartData.title}">대표이사</div>
+                </div>
+
+                <div class="org-line-vertical"></div>
+
+                <div class="org-level-2" th:if="${chartData.topLevelNodes != null and not #lists.isEmpty(chartData.topLevelNodes)}">
+                    <div class="org-box sub-box" th:each="node : ${chartData.topLevelNodes}" th:text="${node.name}">고문</div>
+                </div>
+
+                <div class="org-line-vertical"></div>
+
+                <div class="org-level-3" th:if="${chartData.departments != null and not #lists.isEmpty(chartData.departments)}">
+                    <div class="org-dept-column" th:each="dept : ${chartData.departments}">
+                        <!-- 부서를 클릭하면 해당 부서의 상세 조직도 경로로 이동 -->
+                        <a th:href="@{/organization/chart/{id}(id=${dept.deptId})}" style="text-decoration: none;">
+                            <div class="org-box dept-box" th:text="${dept.deptName}">부서명</div>
+                        </a>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- [CASE 2] 특정 부서를 클릭한 경우: 해당 부서의 직급별 직원 조직도 표시 (오름차순 정렬) (최대 5개씩 행 나열) -->
+            <th:block th:if="${chartData.gradeTierGroups != null}">
+                <!-- 전체 조직도로 돌아가기 버튼 -->
+<!--                <div style="margin-bottom: 20px;">-->
+<!--                    <a th:href="@{/organization/chart}" class="search-btn" style="text-decoration: none; padding: 6px 14px; display: inline-block;">전체 조직도로 돌아가기</a>-->
+<!--                </div>-->
+
+                <!-- 직급별 계층 순회 -->
+                <div class="dept-org-container" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 20px;">
+
+                    <!-- 각 직급과 소속 직원들을 하나의 묶음(Tier Group)으로 처리 -->
+                    <th:block th:each="tier, tierStat : ${chartData.gradeTierGroups}">
+
+                        <div class="dept-tier-group" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+
+                        <!-- 직급 타이틀 박스 -->
+                        <div class="org-box grade-title-box" th:text="${tier.gradeName}">직급 이름</div>
+
+                        <!-- 세로 연결선 -->
+<!--                        <div class="org-line-vertical" th:if="${!tierStat.last}"></div>-->
+                            <!-- [변경] 직급과 이름 사이의 세로 막대를 제거하고 간격을 가깝게 배치 -->
+
+                        <!-- 해당 직급의 행(Row) 리스트 (한 행에 최대 5개) -->
+                        <div class="grade-row-wrapper" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;">
+                            <div class="org-level-row" th:each="row : ${tier.rowEmployeeLists}" style="display: flex; justify-content: center; gap: 15px; width: 100%; flex-wrap: wrap;">
+                                <div class="org-box employee-box" th:each="emp : ${row}" th:text="${emp.emplName}">직원이름</div>
+                            </div>
+                        </div>
+
+                            <!-- 직급 묶음들과 묶음 사이의 연결선 (필요시 유지 또는 조정) -->
+                            <div class="org-line-vertical" th:if="${!tierStat.last}" style="height: 20px; margin: 5px 0;"></div>
+
+                    </th:block>
+                </div>
+
+
+            <!-- [수정] '전체 조직도로 돌아가기' 버튼을 마지막 직급 하단으로 위치 이동 -->
+            <div style="margin-top: 30px;">
+                <a th:href="@{/organization/chart}" class="search-btn" style="text-decoration: none; padding: 10px 20px; display: inline-block; line-height: normal;">전체 조직도로 돌아가기</a>
+            </div>
+
+
+        </th:block>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

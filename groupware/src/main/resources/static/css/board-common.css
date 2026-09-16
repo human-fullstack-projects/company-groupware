@@ -1,0 +1,95 @@
+/* 게시판 첨부파일 */
+
+.board-view .board-existing-file-list,
+.board-view .board-selected-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 8px 0 10px;
+}
+
+.board-view .board-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    min-height: 44px;
+    padding: 7px 9px 7px 12px;
+
+    border: 1px solid #e1e7ee;
+    border-radius: 8px;
+
+    background: #fafbfc;
+
+    font-size: 13px;
+    color: #17243d;
+}
+
+.board-view .board-file-info {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    min-width: 0;
+    margin: 0;
+}
+
+.board-view .board-file-icon {
+    flex-shrink: 0;
+}
+
+.board-view .board-file-name {
+    overflow: hidden;
+
+    color: #34445d;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.board-view .board-file-size {
+    flex-shrink: 0;
+
+    color: #8a96a6;
+    font-size: 11px;
+}
+
+.board-view .board-file-remove {
+    flex-shrink: 0;
+
+    padding: 6px 11px;
+
+    color: #aa4150;
+
+    border-color: #edcbd1;
+    background: #fff;
+}
+
+.board-view .board-file-row.is-deleted {
+    opacity: .55;
+
+    background: #fff5f6;
+}
+
+.board-view .board-file-row.is-deleted
+.board-file-name {
+    text-decoration: line-through;
+}
+
+.board-view .board-file-empty {
+    padding: 12px;
+
+    border: 1px dashed #dce3eb;
+    border-radius: 8px;
+
+    background: #fafbfc;
+
+    color: #8a96a6;
+}
+
+.board-view .board-file-help {
+    color: #7a8596;
+}

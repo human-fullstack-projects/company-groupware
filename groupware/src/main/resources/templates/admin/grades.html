@@ -174,6 +174,94 @@
         .action-btn:hover {
             background: var(--color-navy);
         }
+
+        .modal-veil {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 26, 51, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-veil.is-open {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(360px, calc(100vw - 32px));
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(16, 26, 51, .25);
+        }
+
+        .modal-box h2 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            color: var(--color-navy-dark);
+        }
+
+        .modal-box p {
+            margin: 0 0 8px;
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .modal-box p b {
+            color: var(--color-black);
+        }
+
+        .modal-warn {
+            display: block;
+            margin: 10px 0 20px;
+            font-size: 12.5px;
+            color: #9a2b2b;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .modal-actions button {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-actions .cancel {
+            background: var(--color-white);
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+
+        .modal-actions .confirm {
+            background: var(--color-navy-dark);
+            border: 1px solid var(--color-navy-dark);
+            color: var(--color-white);
+        }
+
+        .modal-actions .confirm:hover {
+            background: var(--color-navy);
+        }
+
+        .modal-actions .confirm.danger {
+            background: #fbeaea;
+            border: 1px solid #d9a3a3;
+            color: #9a2b2b;
+        }
+
+        .modal-actions .confirm.danger:hover {
+            background: #f6dede;
+        }
     </style>
 </head>
 
@@ -210,7 +298,10 @@
                         </select>
                     </form>
                     <span th:text="${grade.gradeName}">직급명</span>
-                    <form th:action="@{'/admin/grades/' + ${grade.gradeId} + '/delete'}" method="post">
+                    <form class="delete-action-form"
+                          th:action="@{'/admin/grades/' + ${grade.gradeId} + '/delete'}"
+                          th:attr="data-grade-name=${grade.gradeName}"
+                          method="post">
                         <button type="submit" class="delete-btn" title="삭제">×</button>
                     </form>
                 </div>
@@ -263,13 +354,15 @@
                                   ? ${employee.gradeName} + '(' + ${gradePriorityById.get(employee.gradeId)} + ')'
                                   : ${employee.gradeName}">직급명(1)</td>
                     <td class="text-center">
-                        <form class="move-form"
+                        <form class="move-form move-action-form"
                               th:action="@{'/admin/employees/' + ${employee.emplId} + '/grade'}"
+                              th:attr="data-empl-name=${employee.emplName},data-login-id=${employee.loginId},data-current-grade=${employee.gradeName}"
                               method="post">
                             <select name="gradeId" class="move-select">
                                 <option th:each="grade : ${grades}"
                                         th:value="${grade.gradeId}"
                                         th:text="${grade.gradePriority != null} ? ${grade.gradeName} + '(' + ${grade.gradePriority} + ')' : ${grade.gradeName}"
+                                        th:attr="data-grade-name=${grade.gradeName}"
                                         th:selected="${grade.gradeId == employee.gradeId}">
                                 </option>
                             </select>
@@ -287,6 +380,107 @@
 
     </div>
 </main>
+
+<div class="modal-veil" id="moveModalVeil">
+    <div class="modal-box">
+        <h2>직급 변경</h2>
+        <p id="moveModalBody"></p>
+        <div class="modal-actions">
+            <button type="button" class="cancel" id="moveModalCancel">취소</button>
+            <button type="button" class="confirm" id="moveModalConfirm">확인</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-veil" id="deleteModalVeil">
+    <div class="modal-box">
+        <h2>직급 삭제</h2>
+        <p id="deleteModalBody"></p>
+        <span class="modal-warn">삭제 후에는 되돌릴 수 없습니다. 소속 직원이 있으면 삭제되지 않습니다.</span>
+        <div class="modal-actions">
+            <button type="button" class="cancel" id="deleteModalCancel">취소</button>
+            <button type="button" class="confirm danger" id="deleteModalConfirm">삭제</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="none">
+    (function () {
+        function setupConfirm(formSelector, veilId, bodyId, confirmId, cancelId, buildBody) {
+            var veil = document.getElementById(veilId);
+            var bodyEl = document.getElementById(bodyId);
+            var confirmBtn = document.getElementById(confirmId);
+            var cancelBtn = document.getElementById(cancelId);
+            var pendingForm = null;
+
+            function closeModal() {
+                veil.classList.remove('is-open');
+                pendingForm = null;
+            }
+
+            document.querySelectorAll(formSelector).forEach(function (form) {
+                form.addEventListener('submit', function (ev) {
+                    if (form.dataset.confirmed === 'true') {
+                        return;
+                    }
+                    ev.preventDefault();
+                    buildBody(bodyEl, form);
+                    pendingForm = form;
+                    veil.classList.add('is-open');
+                });
+            });
+
+            confirmBtn.addEventListener('click', function () {
+                if (pendingForm) {
+                    pendingForm.dataset.confirmed = 'true';
+                    pendingForm.submit();
+                }
+                closeModal();
+            });
+
+            cancelBtn.addEventListener('click', closeModal);
+            veil.addEventListener('click', function (ev) {
+                if (ev.target === veil) closeModal();
+            });
+        }
+
+        // 직급 변경 확인 (예: 사원 → 이사로 변경하시겠습니까?)
+        setupConfirm('form.move-action-form', 'moveModalVeil', 'moveModalBody', 'moveModalConfirm', 'moveModalCancel',
+            function (bodyEl, form) {
+                var select = form.querySelector('select[name="gradeId"]');
+                var toGrade = select.options[select.selectedIndex].dataset.gradeName;
+
+                bodyEl.textContent = '';
+
+                var nameEl = document.createElement('b');
+                nameEl.textContent = form.dataset.emplName;
+                bodyEl.appendChild(nameEl);
+                bodyEl.appendChild(document.createTextNode('(' + form.dataset.loginId + ') 님의 직급을'));
+                bodyEl.appendChild(document.createElement('br'));
+
+                var fromEl = document.createElement('b');
+                fromEl.textContent = form.dataset.currentGrade;
+                bodyEl.appendChild(fromEl);
+                bodyEl.appendChild(document.createTextNode(' → '));
+
+                var toEl = document.createElement('b');
+                toEl.textContent = toGrade;
+                bodyEl.appendChild(toEl);
+                bodyEl.appendChild(document.createTextNode('(으)로 변경하시겠습니까?'));
+            });
+
+        // 직급 삭제 확인
+        setupConfirm('form.delete-action-form', 'deleteModalVeil', 'deleteModalBody', 'deleteModalConfirm', 'deleteModalCancel',
+            function (bodyEl, form) {
+                bodyEl.textContent = '';
+
+                var nameEl = document.createElement('b');
+                nameEl.textContent = form.dataset.gradeName;
+                bodyEl.appendChild(nameEl);
+                bodyEl.appendChild(document.createTextNode(' 직급을 삭제하시겠습니까?'));
+            });
+    })();
+</script>
 
 </body>
 </html>
