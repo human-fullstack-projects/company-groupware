@@ -30,6 +30,20 @@ public class ApprovalDocument {
     @Column(name = "content", nullable = false)
     private String content;
 
+    /*
+     * 문서 종류
+     *
+     * GENERAL  : 일반 문서
+     * VACATION : 휴가 신청서
+     * WORKLOG  : 업무일지
+     * PROPOSAL : 품의서
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_type", nullable = false, length = 20)
+    @Builder.Default
+    private ApprovalDocumentType documentType =
+            ApprovalDocumentType.GENERAL;
+
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private String status = "DRAFT";
@@ -49,8 +63,13 @@ public class ApprovalDocument {
 
     @PrePersist
     public void prePersist() {
+
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+
+        if (documentType == null) {
+            documentType = ApprovalDocumentType.GENERAL;
         }
     }
 }
