@@ -1,164 +1,252 @@
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-        loadSignature().then(r => {
-            const fileInput = document.getElementById("signatureFile");
-            const uploadButton = document.getElementById("signatureUploadButton");
-            const deleteButton = document.getElementById("signatureDeleteButton");
+document.addEventListener("DOMContentLoaded", () => {
 
-            uploadButton.addEventListener(
-                "click",
-                () => fileInput.click()
-            );
-            fileInput.addEventListener(
-                "change",
-                uploadSignature
-            );
+    const fileInput =
+        document.getElementById("signatureFile");
 
-            deleteButton.addEventListener(
-                "click",
-                deleteSignature
-            );
+    const uploadButton =
+        document.getElementById("signatureUploadButton");
+
+    const deleteButton =
+        document.getElementById("signatureDeleteButton");
+
+    const deleteInput =
+        document.getElementById("signatureDelete");
+
+    const empty =
+        document.getElementById("signatureEmpty");
+
+    const previewArea =
+        document.getElementById("signaturePreviewArea");
+
+    const preview =
+        document.getElementById("signaturePreview");
+
+
+    // 해당 페이지에 사인 모듈이 없으면 종료
+    if (!fileInput) {
+        return;
+    }
+
+
+    let originalExists = false;
+    let objectUrl = null;
+
+
+    /*
+     * DB에 실제 저장되어 있는 사인 조회
+     */
+    async function loadSignature() {
+
+        clearObjectUrl();
+
+        fileInput.value = "";
+        deleteInput.value = "false";
+
+        try {
+
+            const response =
+                await signatureRequest(
+                    "/approval-signatures/api"
+                );
+
+            originalExists = response.exists;
+
+            if (response.exists) {
+
+                showSavedSignature();
+
+            } else {
+
+                showEmptySignature();
             }
 
-        );
-    }
-);
+        } catch (error) {
 
-
-async function loadSignature() {
-
-    try {
-
-        const response =
-            await signatureRequest(
-                "/approval-signatures/api"
-            );
-
-
-        const empty = document.getElementById("signatureEmpty");
-        const previewArea = document.getElementById("signaturePreviewArea");
-        const preview = document.getElementById( "signaturePreview");
-        const uploadButton = document.getElementById("signatureUploadButton");
-        const deleteButton =document.getElementById("signatureDeleteButton");
-
-        if (!response.exists) {
-            empty.style.display = "block";
-            previewArea.style.display = "none";
-            uploadButton.textContent = "사인 등록";
-            deleteButton.style.display = "none";
-
-            return;
+            console.error(error);
         }
+    }
 
+
+    /*
+     * 현재 저장된 사인 표시
+     */
+    function showSavedSignature() {
 
         empty.style.display = "none";
         previewArea.style.display = "block";
 
-        /*
-         * 브라우저 캐시 방지
-         */
         preview.src =
             "/approval-signatures/image?t="
             + Date.now();
-
 
         uploadButton.textContent =
             "사인 변경";
 
         deleteButton.style.display =
             "inline-block";
-
-    } catch (error) {
-
-        console.error(error);
-    }
-}
-
-
-async function uploadSignature() {
-
-    const input =
-        document.getElementById(
-            "signatureFile"
-        );
-
-
-    if (!input.files.length) {
-        return;
     }
 
 
-    const formData =
-        new FormData();
+    /*
+     * 사인 없음 표시
+     */
+    function showEmptySignature() {
 
-    formData.append(
-        "file",
-        input.files[0]
+        empty.style.display = "flex";
+        previewArea.style.display = "none";
+
+        preview.removeAttribute("src");
+
+        uploadButton.textContent =
+            "사인 등록";
+
+        deleteButton.style.display =
+            "none";
+    }
+
+
+    /*
+     * 파일 선택 버튼
+     */
+    uploadButton.addEventListener(
+        "click",
+        () => fileInput.click()
     );
 
 
-    try {
+    /*
+     * 파일 선택
+     *
+     * 여기서는 서버에 저장하지 않고
+     * 브라우저 미리보기만 변경한다.
+     */
+    fileInput.addEventListener(
+        "change",
+        () => {
 
-        await signatureRequest(
-            "/approval-signatures/api",
-            {
-                method: "POST",
-                body: formData
+            if (!fileInput.files.length) {
+                return;
             }
-        );
+
+            const file =
+                fileInput.files[0];
 
 
-        input.value = "";
+            if (!file.type.startsWith("image/")) {
 
-        await loadSignature();
+                alert("이미지 파일만 선택할 수 있습니다.");
 
-        alert("사인이 저장되었습니다.");
+                fileInput.value = "";
 
-    } catch (error) {
-
-        console.error(error);
-
-        alert(
-            error.message ||
-            "사인 저장에 실패했습니다."
-        );
-    }
-}
-
-
-async function deleteSignature() {
-
-    if (!confirm(
-        "등록된 사인을 삭제하시겠습니까?"
-    )) {
-        return;
-    }
-
-
-    try {
-
-        await signatureRequest(
-            "/approval-signatures/api",
-            {
-                method: "DELETE"
+                return;
             }
-        );
 
 
-        await loadSignature();
+            if (file.size > 5 * 1024 * 1024) {
 
-        alert("사인이 삭제되었습니다.");
+                alert("이미지는 5MB 이하만 등록할 수 있습니다.");
 
-    } catch (error) {
+                fileInput.value = "";
 
-        console.error(error);
+                return;
+            }
 
-        alert(
-            "사인 삭제에 실패했습니다."
-        );
+
+            clearObjectUrl();
+
+            objectUrl =
+                URL.createObjectURL(file);
+
+
+            preview.src =
+                objectUrl;
+
+            empty.style.display =
+                "none";
+
+            previewArea.style.display =
+                "block";
+
+            uploadButton.textContent =
+                "사인 변경";
+
+            deleteButton.style.display =
+                "inline-block";
+
+
+            /*
+             * 새 파일을 선택했으므로
+             * 삭제 예약 해제
+             */
+            deleteInput.value =
+                "false";
+        }
+    );
+
+
+    /*
+     * 삭제 버튼
+     *
+     * 실제 DB/파일 삭제는 하지 않는다.
+     * 삭제 예정 상태만 저장한다.
+     */
+    deleteButton.addEventListener(
+        "click",
+        () => {
+
+            if (!confirm(
+                "사인을 삭제하시겠습니까?\n저장 버튼을 눌러야 실제로 반영됩니다."
+            )) {
+                return;
+            }
+
+
+            clearObjectUrl();
+
+            fileInput.value = "";
+
+
+            /*
+             * 원래 저장된 사인이 있었으면
+             * 저장 시 삭제하도록 표시
+             */
+            deleteInput.value =
+                originalExists
+                    ? "true"
+                    : "false";
+
+
+            showEmptySignature();
+        }
+    );
+
+
+    /*
+     * 취소 등의 상황에서
+     * 원래 서버 상태로 복원
+     */
+    window.resetSignatureEditor =
+        function () {
+
+            loadSignature();
+        };
+
+
+    function clearObjectUrl() {
+
+        if (objectUrl) {
+
+            URL.revokeObjectURL(
+                objectUrl
+            );
+
+            objectUrl = null;
+        }
     }
-}
+
+
+    loadSignature();
+});
 
 
 async function signatureRequest(
@@ -175,9 +263,11 @@ async function signatureRequest(
             'meta[name="_csrf_header"]'
         );
 
+
     options.headers = {
         ...(options.headers || {})
     };
+
 
     if (csrfToken && csrfHeader) {
 
@@ -187,15 +277,12 @@ async function signatureRequest(
     }
 
 
-    /*
-     * FormData를 쓸 때는
-     * Content-Type을 직접 지정하면 안 됨
-     */
     const response =
         await fetch(
             url,
             options
         );
+
 
     if (!response.ok) {
 
@@ -208,9 +295,11 @@ async function signatureRequest(
         );
     }
 
+
     if (response.status === 204) {
         return null;
     }
+
 
     return response.json();
 }

@@ -15,16 +15,20 @@
     <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
     <script defer th:src="@{/js/approval/approval-attachment-selector.js}"> </script>
     <script defer th:src="@{/js/approval/approval-document-detail.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/business-workspace.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-business business-approvals">
+<a class="skip-link" href="#approvalPage">본문으로 이동</a>
 
-<!--<div th:replace="~{module/topinfo :: topinfo}"></div>-->
-<!--<div th:replace="~{module/menubar :: menubar}"></div>-->
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('approvals')}"></div>
 
 <div class="approval-page" id="approvalPage" th:attr="data-document-id=${document.documentId}">
     <div class="page-head">
         <div>
+            <span class="business-eyebrow">ELECTRONIC APPROVAL</span>
             <h1 class="page-title">전자결재 상세</h1>
             <p class="page-desc">
                 문서 번호
@@ -331,5 +335,50 @@
     <!--        </div>-->
     <!--    </div>-->
 </div>
+
+<!-- 반려 사유 입력 모달 -->
+<div class="reject-modal-veil"
+     id="rejectModal"
+     th:if="${canApprove}">
+
+    <div class="reject-modal-box">
+        <h2>문서 반려</h2>
+
+        <p class="reject-modal-desc">
+            반려 사유를 입력해주세요.
+        </p>
+
+        <form id="rejectForm">
+            <textarea
+                    id="rejectComment"
+                    class="reject-comment"
+                    maxlength="500"
+                    placeholder="반려 사유를 입력해주세요."></textarea>
+
+            <div class="reject-comment-info">
+                최대 500자까지 입력할 수 있습니다.
+            </div>
+
+            <div class="reject-error"
+                 id="rejectError"></div>
+
+            <div class="reject-modal-actions">
+                <button type="button"
+                        class="btn"
+                        id="rejectCancelButton">
+                    취소
+                </button>
+
+                <button type="submit"
+                        class="btn btn-danger reject-confirm-button"
+                        id="rejectConfirmButton">
+                    반려
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 </body>
 </html>
+

@@ -1,0 +1,117 @@
+/* 메신저 전용 덮어쓰기: 기존 chat-list.css/chat-detail.css와 home.css 다음에 연결합니다. */
+.workspace-chat { color: #17243d; }
+.workspace-chat button, .workspace-chat input { font: inherit; }
+.workspace-chat button { cursor: pointer; }
+.workspace-chat button:disabled { opacity: .5; cursor: not-allowed; }
+.chat-workspace-content, .workspace-chat .chat-detail {
+    margin-top: var(--topinfo-height);
+    margin-left: var(--menubar-width);
+    min-width: 0;
+    min-height: calc(100vh - var(--topinfo-height));
+    padding: 32px clamp(22px, 3vw, 48px) 36px;
+}
+.chat-page-heading { margin-bottom: 24px; }
+.chat-eyebrow { display: block; color: #728378; font-size: 10px; font-weight: 700; letter-spacing: 1.8px; line-height: 1.6; }
+.chat-page-heading h1 { margin: 7px 0; font-size: 29px; letter-spacing: -1px; }
+.chat-page-heading p { margin: 0; color: #758095; font-size: 13px; line-height: 1.7; }
+.workspace-chat .chat-list {
+    margin: 0; min-height: 510px; height: clamp(510px, calc(100dvh - 250px), 800px);
+    border: 1px solid #e2e7ee; border-radius: 16px; background: #fff;
+    overflow: hidden; box-shadow: 0 5px 22px #17243d04;
+}
+.workspace-chat .chat-list__sidebar { width: 300px; min-width: 0; flex: 0 0 300px; min-height: 0; padding: 22px 16px; border-right: 1px solid #e7ecf1; gap: 20px; }
+.workspace-chat .chat-list__heading { padding: 0 10px 18px; margin: 0; border: 0; font-size: 15px; }
+.workspace-chat .chat-list__room-items { min-height: 0; scrollbar-width: thin; scrollbar-color: #ccd7d3 transparent; }
+.workspace-chat .chat-list__room-items li { margin-bottom: 6px; }
+.workspace-chat .chat-list__room-items a {
+    display: flex; align-items: center; gap: 12px; padding: 15px 12px;
+    border: 1px solid transparent; border-radius: 10px; background: #f7f9fb;
+    color: #30415b; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere;
+}
+.workspace-chat .chat-list__room-items a::before { content: '#'; display: grid; place-items: center; flex: 0 0 34px; height: 34px; border-radius: 10px; background: #e8f1ed; color: #4a7867; font-size: 18px; }
+.workspace-chat .chat-list__room-items a:hover { border-color: #c8dfd3; background: #f0f7f3; }
+.chat-list__empty { display: none; margin: 18px 10px; color: #7b8798; font-size: 12px; line-height: 1.9; }
+/* 실시간으로 방이 추가돼도 안내가 자동으로 사라집니다. */
+.chat-list__room-items:not(:has(li)) + .chat-list__empty { display: block; }
+.workspace-chat .chat-list__create-btn { font-size: 13px; padding: 13px 16px; border-radius: 9px; }
+.workspace-chat .chat-list__content { min-width: 0; padding: 28px; background: radial-gradient(ellipse at center, #f0f7f4 0, #fcfdfd 65%); }
+.chat-welcome { text-align: center; max-width: 400px; }
+.chat-welcome__icon { display: grid; place-items: center; width: 84px; height: 84px; margin: 0 auto 25px; border: 1px solid #d8e9df; border-radius: 25px; background: #e7f2ec; color: #4d806c; transform: rotate(-5deg); }
+.chat-welcome__icon svg { width: 37px; height: 37px; transform: rotate(5deg); }
+.chat-welcome h2 { margin: 12px 0; color: #25364f; font-size: 23px; line-height: 1.5; letter-spacing: -.8px; word-break: keep-all; }
+.chat-welcome p { margin: 0; color: #7a8597; font-size: 13px; line-height: 1.9; word-break: keep-all; }
+.chat-welcome__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 28px; }
+.chat-welcome__tags span { padding: 6px 11px; border: 1px solid #e0e8e4; border-radius: 20px; font-size: 10px; color: #6d8277; background: #ffffffa6; }
+.workspace-chat .chat-detail__header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }
+.workspace-chat .chat-detail__back { flex-basis: 100%; font-size: 12px; color: #758297; margin-bottom: 4px; }
+.chat-detail__heading { flex: 1 1 180px; min-width: 0; }
+.workspace-chat .chat-detail__title { font-size: 25px; line-height: 1.5; letter-spacing: -.7px; margin-top: 5px; overflow-wrap: anywhere; }
+.workspace-chat .chat-detail__status { margin-left: 0; border-radius: 20px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+.workspace-chat .chat-detail__status.connected { background: #e6f2ec; color: #3c755c; }
+.workspace-chat .chat-detail__status.disconnected { background: #edf0f4; color: #6c798a; }
+.workspace-chat .chat-detail__invite-btn, .workspace-chat .chat-detail__leave-btn { font-size: 12px; padding: 10px 14px; border-radius: 8px; }
+.workspace-chat .chat-detail__leave-btn { border-color: #edced2; background: #fff6f6; color: #ac5260; }
+.workspace-chat .chat-detail__leave-btn:hover { background: #fce9ec; color: #8c3543; }
+.workspace-chat .chat-detail__body { align-items: stretch; gap: 0; border: 1px solid #e2e7ee; border-radius: 16px; background: white; overflow: hidden; }
+.workspace-chat .chat-detail__participants { order: 2; width: 190px; height: auto; max-height: 780px; border: 0; border-left: 1px solid #e7ecf1; border-radius: 0; background: #fff; padding: 24px 16px; }
+.workspace-chat .chat-detail__participants-title { font-size: 13px; margin: 0 0 18px; padding-left: 5px; }
+.workspace-chat .chat-detail__participant-item { display: flex; align-items: center; gap: 9px; padding: 12px 5px; border-bottom: 1px solid #f0f3f6; font-size: 12px; color: #52617a; overflow-wrap: anywhere; }
+.workspace-chat .chat-detail__participant-item::before { content: ''; width: 27px; height: 27px; flex: 0 0 27px; border-radius: 9px; background: radial-gradient(circle at 50% 33%, #93ada0 0 4px, transparent 4.5px), radial-gradient(ellipse at 50% 95%, #93ada0 0 8px, transparent 8.5px), #eaf1ed; }
+.workspace-chat .chat-detail__main { min-width: 0; }
+.workspace-chat .chat-detail__messages {
+    height: clamp(300px, calc(100dvh - 350px), 640px); min-height: 300px;
+    margin: 0; padding: 24px; border: 0; border-radius: 0; background: #f5f8fa;
+    scrollbar-width: thin; scrollbar-color: #c5d2cc transparent;
+}
+.workspace-chat .chat-detail__messages li:not(.chat-detail__date-divider) {
+    width: fit-content; max-width: 85%; padding: 12px 16px; margin: 0 auto 15px 0;
+    border: 1px solid #e3e8ee; border-radius: 3px 14px 14px 14px; background: white;
+    font-size: 13px; line-height: 1.8; color: #30405a; overflow-wrap: anywhere; white-space: pre-wrap;
+}
+.workspace-chat .chat-detail__messages li.chat-detail__message--mine { margin-left: auto; margin-right: 0; background: #e5f2eb; border-color: #d0e6da; border-radius: 14px 3px 14px 14px; color: #2b5242; }
+.workspace-chat .chat-detail__meta { display: block; margin: 0 0 5px; font-size: 10px; color: #7c8a99; line-height: 1.6; }
+.workspace-chat .chat-detail__messages .chat-detail__date-divider { padding: 8px 0; margin: 7px 0 17px; background: none; border: 0; font-size: 11px; color: #8b96a6; }
+.workspace-chat .chat-detail__file-link { display: block; font-size: 12px; color: #3f725e; overflow-wrap: anywhere; }
+.workspace-chat .chat-detail__file-image { max-width: min(220px, 100%); height: auto; object-fit: contain; border: 1px solid #dce6e0; border-radius: 8px; margin-top: 9px; }
+.workspace-chat .chat-detail__error { margin: 12px 16px 0; overflow-wrap: anywhere; }
+.workspace-chat .chat-detail__send-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; border-top: 1px solid #e7ecf1; padding: 18px; margin: 0; }
+.workspace-chat .chat-detail__input { width: 100%; min-width: 0; padding: 13px 14px; border: 1px solid #dce3eb; background: #fafbfc; border-radius: 9px; font-size: 13px; }
+.workspace-chat .chat-detail__input:focus { background: #fff; border-color: #78a591; }
+.workspace-chat .chat-detail__send-btn { grid-column: 2; grid-row: 1; padding: 11px 22px; border-radius: 9px; font-size: 13px; }
+.workspace-chat .chat-detail__file-input { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: 100%; min-width: 0; color: #7d899a; font-size: 11px; }
+.workspace-chat .chat-detail__file-input::file-selector-button { padding: 7px 11px; margin-right: 10px; border: 1px solid #dde6e1; border-radius: 7px; background: #f3f8f5; color: #507361; font: inherit; cursor: pointer; }
+@media (max-width: 1100px) {
+    .chat-workspace-content, .workspace-chat .chat-detail { padding: 26px 22px; }
+    .workspace-chat .chat-list__sidebar { width: 250px; flex-basis: 250px; }
+    .workspace-chat .chat-list__content { padding: 22px; }
+    .chat-welcome h2 { font-size: 20px; }
+    .workspace-chat .chat-detail__participants { width: 150px; padding: 20px 12px; }
+}
+@media (max-width: 950px) {
+    .workspace-chat .chat-detail__body { flex-direction: column; }
+    .workspace-chat .chat-detail__participants { order: 0; width: 100%; max-height: 150px; border-left: 0; border-bottom: 1px solid #e7ecf1; padding: 14px 18px; }
+    .workspace-chat .chat-detail__participants-title { margin-bottom: 9px; padding: 0; }
+    .workspace-chat .chat-detail__participant-list { display: flex; gap: 8px; flex-wrap: wrap; }
+    .workspace-chat .chat-detail__participant-item { padding: 5px 9px; background: #f4f7f5; border: 0; border-radius: 8px; max-width: 100%; }
+    .workspace-chat .chat-detail__participant-item::before { display: none; }
+    .workspace-chat .chat-list__sidebar { width: 220px; flex-basis: 220px; padding: 18px 12px; }
+    .chat-welcome__tags { display: none; }
+}
+@media (max-width: 760px) {
+    .chat-workspace-content, .workspace-chat .chat-detail { margin: 0; padding: 24px 18px; min-height: 0; }
+    .chat-page-heading h1 { font-size: 24px; }
+    .workspace-chat .chat-list { flex-direction: column; height: auto; min-height: 0; }
+    .workspace-chat .chat-list__sidebar { width: 100%; flex-basis: auto; border-right: 0; padding: 20px 16px; }
+    .workspace-chat .chat-list__room-items { max-height: 42dvh; }
+    .workspace-chat .chat-list__content { border-top: 1px solid #e7ecf1; padding: 28px 18px; }
+    .chat-welcome__icon { width: 55px; height: 55px; border-radius: 17px; margin-bottom: 16px; }
+    .chat-welcome__icon svg { width: 27px; height: 27px; }
+    .workspace-chat .chat-detail__heading { flex-basis: 100%; }
+    .workspace-chat .chat-detail__title { font-size: 23px; }
+    .workspace-chat .chat-detail__status { margin-right: auto; }
+    .workspace-chat .chat-detail__messages { padding: 16px 12px; height: 48dvh; }
+    .workspace-chat .chat-detail__messages li:not(.chat-detail__date-divider) { max-width: 92%; padding: 10px 12px; }
+    .workspace-chat .chat-detail__send-row { padding: 12px; gap: 8px; }
+    .workspace-chat .chat-detail__input { font-size: 16px; }
+    .workspace-chat .chat-detail__send-btn { padding: 10px 15px; }
+}

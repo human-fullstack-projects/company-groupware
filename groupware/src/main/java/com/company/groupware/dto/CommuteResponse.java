@@ -1,6 +1,7 @@
 package com.company.groupware.dto;
 
 import com.company.groupware.entity.Commute;
+import com.company.groupware.entity.CommuteStatus;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ public class CommuteResponse {
     private final String startTime;
     private final String finishTime;
     private final LocalDate attendanceDate;
+    private final CommuteStatus status;
 
     public CommuteResponse(Commute commute) {
         this.commuteId = commute.getCommuteId();
@@ -21,5 +23,6 @@ public class CommuteResponse {
         this.startTime = commute.getStartTime();
         this.finishTime = commute.getFinishTime();
         this.attendanceDate = commute.getAttendanceDate();
+        this.status = commute.getStatus();
     }
 }

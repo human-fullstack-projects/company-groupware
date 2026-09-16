@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -81,16 +80,11 @@ public class BoardService {
     }
 
     /**
-     * 부서공지 카테고리 이름 → 해당 부서명 매핑
-     * (예: "개발공지" 카테고리는 "개발팀" 소속 직원만 대상)
+     * 부서공지 카테고리 이름 접미사. "개발공지" 카테고리는 이름에서 이 접미사를 뗀
+     * "개발" + "팀" = "개발팀" 소속 직원만 대상이 된다 (부서명 자체가 "OO팀" 형태이므로
+     * 접미사만 떼면 바로 부서명이 됨).
      */
-    private static final Map<String, String> DEPT_NOTICE_TO_DEPARTMENT = Map.of(
-            "개발공지", "개발팀",
-            "인사공지", "인사팀",
-            "재무공지", "재무팀",
-            "기획공지", "기획팀",
-            "디자인공지", "디자인팀"
-    );
+    private static final String DEPT_NOTICE_SUFFIX = "공지";
 
     private boolean isAdmin(Employee viewer) {
         return viewer != null && Boolean.TRUE.equals(viewer.getEmplStat());
@@ -104,9 +98,20 @@ public class BoardService {
         return category != null && "자유게시판".equals(category.getBoardCategoryName());
     }
 
+    /**
+     * 부서공지 카테고리인지 여부. 전사 공지("공지")는 제외하고,
+     * 이름이 "OO공지" 형태(접미사로 끝남)면 부서공지로 판단한다.
+     */
     private boolean isDeptNotice(BoardCategory category) {
-        return category != null
-                && DEPT_NOTICE_TO_DEPARTMENT.containsKey(category.getBoardCategoryName());
+        if (category == null || isGlobalNotice(category)) {
+            return false;
+        }
+
+        String name = category.getBoardCategoryName();
+
+        return name != null
+                && name.length() > DEPT_NOTICE_SUFFIX.length()
+                && name.endsWith(DEPT_NOTICE_SUFFIX);
     }
 
     /**
@@ -124,7 +129,11 @@ public class BoardService {
 
         String name = category.getBoardCategoryName();
 
-        return DEPT_NOTICE_TO_DEPARTMENT.getOrDefault(name, name);
+        if (isDeptNotice(category)) {
+            return name.substring(0, name.length() - DEPT_NOTICE_SUFFIX.length());
+        }
+
+        return name;
     }
 
     private boolean matchesDepartment(String requiredDeptName, Employee viewer) {
@@ -165,19 +174,15 @@ public class BoardService {
     }
 
     /**
-     * 게시글 쓰기(작성) 가능 여부
-     * - 카테고리 없음 / 관리자 → 항상 가능
-     * - 공지, 부서공지 → 관리자만 가능
-     * - 자유게시판 → 전 직원 가능
-     * - 부서 게시판 → 그 부서 소속 직원만 가능
+     * 게시글 작성 권한
+     * - 로그인 직원 또는 카테고리가 없으면 작성 불가
+     * - 관리자: 모든 유효한 카테고리에 작성 가능
+     * - 전체 공지 및 부서 공지: 관리자만 작성 가능
+     * - 자유게시판: 기존의 전 직원 작성 규칙 유지
+     * - 부서 게시판: 해당 부서 직원만 작성 가능
      */
     public boolean canWrite(BoardCategory category, Employee viewer) {
-
-        if (category == null) {
-            return true;
-        }
-
-        if (viewer == null) {
+        if (viewer == null || category == null) {
             return false;
         }
 
@@ -197,18 +202,33 @@ public class BoardService {
     }
 
     /**
-     * 게시글 수정/삭제 가능 여부
-     * - 관리자 → 항상 가능
-     * - 자유게시판 → 가능 (기존 동작 유지)
-     * - 그 외(공지, 부서 게시판, 부서공지) → 관리자만 가능
+     * 게시글 수정·삭제 권한
+     * - 로그인 직원 또는 게시글이 없으면 거부
+     * - 관리자: 모든 게시글 관리 가능 (카테고리 없는 과거 글 포함)
+     * - 전체 공지 및 부서 공지: 일반 직원은 작성자여도 수정·삭제 불가
+     * - 부서 일반 게시글: 현재 해당 부서 소속인 작성자 본인만 가능
+     * - 자유게시판: 작성자 본인만 가능
      */
-    public boolean canModify(BoardCategory category, Employee viewer) {
+    public boolean canModify(Board board, Employee viewer) {
+        if (board == null || viewer == null) {
+            return false;
+        }
 
         if (isAdmin(viewer)) {
             return true;
         }
 
-        return isFreeBoard(category);
+        // 공지 여부와 현재 부서의 작성 권한을 함께 확인
+        if (!canWrite(board.getBoardCategory(), viewer)) {
+            return false;
+        }
+
+        Employee author = board.getEmployee();
+        if (author == null || viewer.getEmplId() == null) {
+            return false;
+        }
+
+        return viewer.getEmplId().equals(author.getEmplId());
     }
 
     /**

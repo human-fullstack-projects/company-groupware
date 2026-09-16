@@ -28,10 +28,16 @@ public class ChatRoomController {
     private final ChatMessageService chatMessageService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    // 채팅방 생성 (개설자 + 초대 멤버 한 번에 참여 처리)
+    // 채팅방 생성 (개설자 + 초대 멤버 한 번에 참여 처리) - 참여자 전원에게 방 목록 실시간 알림
     @PostMapping
     public ResponseEntity<ChatRoomResponse> createRoom(@RequestBody ChatRoomCreateRequest request) {
         ChatRoomResponse response = chatRoomService.createRoom(request);
+
+        notifyRoomListUpdate(request.getCreatorEmplId(), response);
+        if (request.getMemberEmplIds() != null) {
+            request.getMemberEmplIds().forEach(emplId -> notifyRoomListUpdate(emplId, response));
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -48,13 +54,26 @@ public class ChatRoomController {
         return ResponseEntity.ok(chatRoomService.getActiveMembers(roomId));
     }
 
-    // 방 입장 (신규 참여 또는 재입장)
+    // 방 입장 (신규 참여 또는 재입장) - 입장 처리 후 입장 시스템 메시지를 저장/브로드캐스트하고
+    // 새로 들어온 당사자에게 방 목록 실시간 알림
     @PostMapping("/{roomId}/members")
     public ResponseEntity<ChatRoomMemberResponse> joinRoom(
             @PathVariable Long roomId,
             @RequestBody ChatRoomJoinRequest request) {
         ChatRoomMemberResponse response = chatRoomService.joinRoom(roomId, request.getEmplId());
+
+        ChatMessageResponse systemMessage = chatMessageService.saveSystemMessage(
+                roomId, response.getEmplId(), response.getEmplName() + "님이 입장했습니다");
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, systemMessage);
+
+        notifyRoomListUpdate(response.getEmplId(), chatRoomService.getRoomInfo(roomId));
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 특정 직원의 방 목록 화면(list.html)에 새 방이 생겼음을 개인 큐로 알림
+    private void notifyRoomListUpdate(Long emplId, ChatRoomResponse room) {
+        messagingTemplate.convertAndSendToUser(String.valueOf(emplId), "/queue/rooms", room);
     }
 
     // 특정 방의 전체 대화 이력 (오래된 순)
@@ -98,11 +117,16 @@ public class ChatRoomController {
                 .body(resource);
     }
 
-    // 방 퇴장
+    // 방 퇴장 - 아직 활성 참여자인 상태에서 퇴장 시스템 메시지를 먼저 저장/브로드캐스트한 뒤 실제 퇴장 처리
     @DeleteMapping("/{roomId}/members/{emplId}")
     public ResponseEntity<Void> leaveRoom(
             @PathVariable Long roomId,
             @PathVariable Long emplId) {
+        String emplName = chatRoomService.getEmployeeName(emplId);
+        ChatMessageResponse systemMessage = chatMessageService.saveSystemMessage(
+                roomId, emplId, emplName + "님이 퇴장했습니다");
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, systemMessage);
+
         chatRoomService.leaveRoom(roomId, emplId);
 
         if(chatRoomService.checkTotalMember(roomId) <= 0) {

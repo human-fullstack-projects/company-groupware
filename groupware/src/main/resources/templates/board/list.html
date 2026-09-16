@@ -9,174 +9,21 @@
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            margin-top: calc(var(--topinfo-height) + 40px);
-            margin-left: calc(var(--menubar-width) + 40px);
-        }
 
-        h1 {
-            margin-bottom: 30px;
-        }
-
-        .category-filter {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .filter-pill {
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 999px;
-            padding: 9px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            background-color: #fff;
-            text-decoration: none;
-        }
-
-        .filter-pill.active {
-            background-color: var(--color-navy);
-            border-color: var(--color-navy);
-            color: #fff;
-        }
-
-        .dept-select {
-            border: 1px solid #ccc;
-            border-radius: 999px;
-            padding: 9px 14px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            background-color: #fff;
-        }
-
-        .search-area {
-            margin-bottom: 20px;
-            text-align: right;
-        }
-
-        .search-area input {
-            width: 250px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-
-        .search-area button {
-            padding: 8px 15px;
-            cursor: pointer;
-        }
-
-        .board-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .board-table th,
-        .board-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .board-table th {
-            background-color: #f5f5f5;
-        }
-
-        .board-table td.title {
-            text-align: left;
-        }
-
-        .board-table a {
-            color: #333;
-            text-decoration: none;
-        }
-
-        .board-table a:hover {
-            text-decoration: underline;
-        }
-
-        .button-area {
-            text-align: right;
-        }
-
-        .write-button {
-            display: inline-block;
-            padding: 10px 18px;
-            background-color: #333;
-            color: white !important;
-            text-decoration: none !important;
-            border-radius: 4px;
-        }
-
-        .write-button:hover {
-            background-color: #555;
-        }
-
-        .empty-message {
-            text-align: center;
-            padding: 50px 0;
-            color: #777;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            margin: 30px 0;
-        }
-
-        .pagination a,
-        .pagination span {
-            display: inline-block;
-            min-width: 32px;
-            padding: 7px 10px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .pagination a {
-            color: #333;
-        }
-
-        .pagination a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .pagination .current {
-            background-color: #333;
-            color: white;
-            border-color: #333;
-        }
-
-        .pagination .disabled {
-            color: #aaa;
-            background-color: #f5f5f5;
-        }
-
-        .read-row td {
-            color: #999;
-            background-color: #fafafa;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-board">
+<a class="skip-link" href="#workspace-main">본문으로 건너뛰기</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('boards')}"></div>
+<main class="workspace-content board-view board-list" id="workspace-main">
 
-<h1>게시판</h1>
+<header class="workspace-page-heading"><span class="home-eyebrow">TEAM BOARD</span><h1>게시판</h1><p>공지와 부서 소식을 한곳에서 확인하세요.</p></header>
+<section class="board-panel" aria-label="게시판 목록">
 
 <!-- 카테고리 필터 -->
 <div class="category-filter">
@@ -189,14 +36,26 @@
        class="filter-pill">
     </a>
 
-    <select class="dept-select" onchange="location.href='/boards?categoryId=' + this.value">
+    <select aria-label="부서 게시판 선택" class="dept-select" onchange="location.href='/boards?categoryId=' + this.value">
         <option value="">부서</option>
-        <option th:each="category : ${categories}"
-                th:if="${category.boardCategoryName != '공지' and category.boardCategoryName != '자유게시판'}"
-                th:value="${category.boardCategoryId}"
-                th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
-                th:text="${category.boardCategoryName}">
-        </option>
+
+        <optgroup label="게시판">
+            <option th:each="category : ${categories}"
+                    th:if="${category.boardCategoryName != '자유게시판' and !#strings.endsWith(category.boardCategoryName, '공지')}"
+                    th:value="${category.boardCategoryId}"
+                    th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
+                    th:text="${category.boardCategoryName}">
+            </option>
+        </optgroup>
+
+        <optgroup label="공지">
+            <option th:each="category : ${categories}"
+                    th:if="${category.boardCategoryName != '공지' and #strings.endsWith(category.boardCategoryName, '공지')}"
+                    th:value="${category.boardCategoryId}"
+                    th:selected="${categoryId != null and categoryId == category.boardCategoryId}"
+                    th:text="${category.boardCategoryName}">
+            </option>
+        </optgroup>
     </select>
 
     <a th:each="category : ${categories}"
@@ -216,7 +75,7 @@
 
         <input type="hidden" name="categoryId" th:value="${categoryId}">
 
-        <select name="searchType">
+        <select name="searchType" aria-label="검색 기준">
             <option value="all" th:selected="${searchType == 'all'}">전체</option>
             <option value="title" th:selected="${searchType == 'title'}">제목</option>
             <option value="content" th:selected="${searchType == 'content'}">내용</option>
@@ -224,7 +83,7 @@
         </select>
 
         <input type="text"
-               name="keyword"
+               name="keyword" aria-label="검색어"
                th:value="${keyword}"
                placeholder="검색어 입력">
 
@@ -234,7 +93,7 @@
 
 </div>
 
-<table class="board-table">
+<div class="board-table-scroll"><table class="board-table">
 
     <thead>
     <tr>
@@ -293,7 +152,7 @@
 
     </tbody>
 
-</table>
+</table></div>
 
 <!-- 페이지네이션 -->
 <div class="pagination" th:if="${boardPage.totalPages > 0}">
@@ -347,6 +206,8 @@
 
 </div>
 
+</section>
+</main>
 </body>
 
 </html>

@@ -2,6 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="_login_empl_id" th:content="${loginEmplId}">
@@ -13,17 +14,21 @@
     <link rel="stylesheet" th:href="@{/css/chat-detail.css}">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-workspace.css}">
 </head>
-<body>
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<body class="workspace-home workspace-chat">
+<a class="skip-link" href="#workspace-main">본문으로 이동</a>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('chat')}"></div>
 
-<main class="chat-detail">
+<main class="chat-detail" id="workspace-main">
     <div class="chat-detail__header">
         <a th:href="@{/chat/list}" class="chat-detail__back">← 목록으로</a>
-        <h2 class="chat-detail__title" th:text="${chatRoom.roomId} + ' - ' + ${chatRoom.roomName}">채팅방</h2>
-        <span id="status" class="chat-detail__status disconnected">연결 중...</span>
-        <button type="button" id="inviteBtn" class="chat-detail__invite-btn" onclick="inviteMember()">초대</button>
+        <div class="chat-detail__heading"><span class="chat-eyebrow">TEAM CONVERSATION</span>
+        <h1 class="chat-detail__title" th:text="${chatRoom.roomName}">채팅방</h1></div>
+        <span id="status" role="status" class="chat-detail__status disconnected">연결 중...</span>
+        <button type="button" id="inviteBtn" class="chat-detail__invite-btn" onclick="inviteMember()">동료 초대</button>
         <button type="button" id="leaveBtn" class="chat-detail__leave-btn" onclick="leaveRoom()">나가기</button>
     </div>
 
@@ -34,13 +39,13 @@
         </aside>
 
         <div class="chat-detail__main">
-            <ul id="messages" class="chat-detail__messages"></ul>
+            <ul id="messages" aria-label="대화 내용" class="chat-detail__messages"></ul>
 
-            <div id="errorLog" class="chat-detail__error" style="display:none;"></div>
+            <div id="errorLog" role="alert" class="chat-detail__error" style="display:none;"></div>
 
             <form id="sendForm" class="chat-detail__send-row">
-                <input type="text" id="content" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
-                <input type="file" id="fileInput" class="chat-detail__file-input" multiple>
+                <input type="text" id="content" aria-label="메시지 입력" class="chat-detail__input" placeholder="메시지 입력" autocomplete="off">
+                <input type="file" id="fileInput" aria-label="첨부할 파일 선택" class="chat-detail__file-input" multiple>
                 <button type="submit" class="chat-detail__send-btn">전송</button>
             </form>
         </div>
@@ -125,21 +130,18 @@
     }
 
     // 현재 방에서 나가기
-    async function leaveRoom() {
+    // 응답을 기다리지 않고 바로 이동 - 서버가 브로드캐스트하는 퇴장 메시지를 본인 화면에서
+    // 확인한 뒤에야 이동되는 지연을 없앰. keepalive 로 페이지 이동에 요청이 취소되지 않게 함
+    function leaveRoom() {
         if (!confirm('채팅방에서 나가시겠습니까?')) {
             return;
         }
 
-        const res = await fetch(`/api/chat/rooms/${roomId()}/members/${emplId()}`, {
+        fetch(`/api/chat/rooms/${roomId()}/members/${emplId()}`, {
             method: 'DELETE',
-            headers: csrfHeader()
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            alert('나가기 실패: ' + (err.message || res.status));
-            return;
-        }
+            headers: csrfHeader(),
+            keepalive: true
+        }).catch(err => console.error('나가기 요청 실패', err));
 
         location.href = '/chat/list';
     }
@@ -174,6 +176,13 @@
         return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
     }
 
+    // messageType 컬럼이 없어 문구로 입장/퇴장 시스템 메시지를 판별 (날짜 구분선과 동일한 방식)
+    function isSystemMessage(msg) {
+        return (!msg.files || msg.files.length === 0)
+            && typeof msg.content === 'string'
+            && (msg.content.endsWith('님이 입장했습니다') || msg.content.endsWith('님이 퇴장했습니다'));
+    }
+
     function appendMessage(msg) {
         const list = document.getElementById('messages');
         const created = msg.createdAt ? new Date(msg.createdAt) : new Date();
@@ -187,6 +196,15 @@
             });
             list.appendChild(divider);
             lastMessageDate = dateKey;
+        }
+
+        if (isSystemMessage(msg)) {
+            const systemLi = document.createElement('li');
+            systemLi.className = 'chat-detail__date-divider';
+            systemLi.textContent = msg.content;
+            list.appendChild(systemLi);
+            list.scrollTop = list.scrollHeight;
+            return;
         }
 
         const li = document.createElement('li');
@@ -347,6 +365,29 @@
 
     // 이 화면에 들어오면 바로 연결 (뒤로가기/새로고침으로 나가면 브라우저가 소켓을 자동으로 정리함)
     window.addEventListener('load', connect);
+
+    // 페이지를 벗어날 때 소켓을 명시적으로 정리 (다른 메뉴로 이동 시 재연결 시도가 뜨는 것을 방지)
+    // bfcache에 저장되는 경우(persisted)는 문서가 재사용되므로 연결을 끊지 않음
+    window.addEventListener('pagehide', function (event) {
+        if (event.persisted) {
+            return;
+        }
+        if (reconnectTimer !== null) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect();
+        }
+    });
+
+    // bfcache에서 페이지가 복원된 경우 load 이벤트가 다시 발생하지 않으므로 여기서 재연결
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted && (!stompClient || !stompClient.connected)) {
+            connect();
+        }
+    });
 </script>
 </body>
 </html>
+

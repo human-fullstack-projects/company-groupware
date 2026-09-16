@@ -9,63 +9,21 @@
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            margin-top: calc(var(--topinfo-height) + 40px);
-            margin-left: calc(var(--menubar-width) + 40px);
-        }
 
-        h1 {
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        input,
-        textarea,
-        select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-
-        textarea {
-            height: 300px;
-            resize: vertical;
-        }
-
-        input[type="file"] {
-            padding: 8px;
-        }
-
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-
-        a {
-            margin-left: 10px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-board">
+<a class="skip-link" href="#workspace-main">본문으로 건너뛰기</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('boards')}"></div>
+<main class="workspace-content board-view board-create" id="workspace-main">
 
-<h1>게시글 작성</h1>
+<header class="workspace-page-heading"><span class="home-eyebrow">SHARE WITH YOUR TEAM</span><h1>게시글 작성</h1><p>업무에 필요한 내용을 동료와 공유하세요.</p></header>
+<section class="board-panel" aria-label="게시판 작성">
 
 <p class="error"
    style="color:#c62828;"
@@ -106,11 +64,32 @@
                 카테고리 선택
             </option>
 
-            <option th:each="category : ${categories}"
-                    th:value="${category.boardCategoryId}"
-                    th:text="${category.boardCategoryName}">
-                카테고리
-            </option>
+            <optgroup label="전체">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName == '자유게시판' or category.boardCategoryName == '공지'}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
+
+            <optgroup label="부서 게시판">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName != '자유게시판' and !#strings.endsWith(category.boardCategoryName, '공지')}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
+
+            <optgroup label="부서 공지">
+                <option th:each="category : ${categories}"
+                        th:if="${category.boardCategoryName != '공지' and #strings.endsWith(category.boardCategoryName, '공지')}"
+                        th:value="${category.boardCategoryId}"
+                        th:text="${category.boardCategoryName}">
+                    카테고리
+                </option>
+            </optgroup>
 
         </select>
 
@@ -158,6 +137,8 @@
 
 </form>
 
+</section>
+</main>
 </body>
 
 </html>

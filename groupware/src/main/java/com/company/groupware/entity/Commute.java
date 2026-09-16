@@ -49,4 +49,8 @@ public class Commute {
 
     @Column(name = "attendance_date")
     private LocalDate attendanceDate; // 출근일자
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "commute_status", length = 20)
+    private CommuteStatus status;
 }

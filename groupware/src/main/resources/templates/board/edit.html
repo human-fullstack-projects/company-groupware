@@ -9,64 +9,21 @@
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            margin-top: calc(var(--topinfo-height) + 40px);
-            margin-left: calc(var(--menubar-width) + 40px);
-        }
 
-        h1 {
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        input[type="text"] {
-            width: 500px;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
-        textarea {
-            width: 500px;
-            height: 300px;
-            padding: 10px;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-
-        .buttons {
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 8px 15px;
-            cursor: pointer;
-        }
-
-        a {
-            margin-left: 10px;
-            text-decoration: none;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/workspace-pages.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-board">
+<a class="skip-link" href="#workspace-main">본문으로 건너뛰기</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('boards')}"></div>
+<main class="workspace-content board-view board-edit" id="workspace-main">
 
-<h1>게시글 수정</h1>
+<header class="workspace-page-heading"><span class="home-eyebrow">EDIT YOUR POST</span><h1>게시글 수정</h1><p>게시글 내용을 확인하고 수정하세요.</p></header>
+<section class="board-panel" aria-label="게시판 수정">
 
 <form th:action="@{/boards/{boardId}/edit(boardId=${board.boardId})}"
       method="post">
@@ -115,6 +72,8 @@
 
 </form>
 
+</section>
+</main>
 </body>
 
 </html>

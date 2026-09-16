@@ -10,16 +10,20 @@
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
 
     <link rel="stylesheet" th:href="@{/css/approval/approval-document.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/business-workspace.css}">
 </head>
-<body>
+<body class="workspace-home workspace-business business-approvals">
+<a class="skip-link" href="#business-main">본문으로 이동</a>
 
-<!--<div th:replace="~{module/topinfo :: topinfo}"></div>-->
-<!--<div th:replace="~{module/menubar :: menubar}"></div>-->
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('approvals')}"></div>
 
-<div class="approval-page">
+<div class="approval-page" id="business-main">
 
     <div class="page-head">
         <div>
+            <span class="business-eyebrow">ELECTRONIC APPROVAL</span>
             <h1 class="page-title">전자결재</h1>
             <p class="page-desc">내가 상신한 문서와 현재 내가 결재해야 할 문서를 확인합니다.</p>
         </div>
@@ -37,6 +41,7 @@
             <span class="section-count">현재 내 결재 순서인 문서</span>
         </div>
 
+        <div class="approval-table-scroll" tabindex="0" role="region" aria-label="결재 문서 목록 (좁은 화면에서 좌우 스크롤)">
         <table class="approval-table">
             <colgroup>
                 <col style="width: 80px;">
@@ -106,6 +111,7 @@
 
             </tbody>
         </table>
+        </div>
     </section>
 
     <!-- 내가 작성한 문서(임시저장 포함) -->
@@ -124,6 +130,7 @@
             <span class="section-count">내가 작성하거나 상신한 문서</span>
         </div>
 
+        <div class="approval-table-scroll" tabindex="0" role="region" aria-label="결재 문서 목록 (좁은 화면에서 좌우 스크롤)">
         <table class="approval-table">
             <colgroup>
                 <col style="width: 80px;">
@@ -216,6 +223,7 @@
 <!--            </tr>-->
             </tbody>
         </table>
+        </div>
         <!-- 내 상신문서 페이징 -->
         <div class="pagination"
              th:if="${page.totalPages > 1}">
@@ -267,3 +275,4 @@
 </div>
 </body>
 </html>
+

@@ -2,37 +2,59 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="_login_empl_id" th:content="${loginEmplId}">
     <title>메신저</title>
-    <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
-    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../static/css/menubar.css">
     <link rel="stylesheet" th:href="@{/css/chat-list.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-workspace.css}">
 </head>
-<body>
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<body class="workspace-home workspace-chat">
+<a class="skip-link" href="#workspace-main">본문으로 이동</a>
+<div th:replace="~{module/workspace :: header}"></div>
+<div th:replace="~{module/workspace :: sidebar('chat')}"></div>
 
-<main class="chat-list">
+<main class="chat-workspace-content" id="workspace-main">
+    <div class="chat-page-heading">
+        <span class="chat-eyebrow">TEAM MESSENGER</span>
+        <h1>메신저</h1>
+        <p>동료와 대화하고, 업무에 필요한 파일을 함께 나누세요.</p>
+    </div>
+    <div class="chat-list">
     <aside class="chat-list__sidebar">
         <div class="chat-list__rooms">
-            <h2 class="chat-list__heading">소속된 채팅방 리스트</h2>
-            <ul class="chat-list__room-items">
-                <li th:each="affiliation : ${chatRoomList}">
+            <h2 class="chat-list__heading">내 채팅방</h2>
+            <ul id="roomItems" class="chat-list__room-items">
+                <li th:each="affiliation : ${chatRoomList}" th:attr="data-room-id=${affiliation.chatRoom.roomId}">
                     <!--<a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
                        th:text="${affiliation.chatRoom.roomId} + ' - ' + ${affiliation.chatRoom.roomName}"></a>-->
                     <a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
                        th:text="${affiliation.chatRoom.roomName}"></a>
                 </li>
             </ul>
+            <p class="chat-list__empty">아직 참여한 채팅방이 없습니다.<br>새 채팅방을 만들어 대화를 시작하세요.</p>
         </div>
-        <button type="button" class="chat-list__create-btn" onclick="createRoomWithInvite()">채팅방 생성 +</button>
+        <button type="button" class="chat-list__create-btn" onclick="createRoomWithInvite()">+ 새 채팅방</button>
     </aside>
     <section class="chat-list__content">
-        좌측 목록에서 채팅방을 선택하세요.
+        <div class="chat-welcome">
+            <div class="chat-welcome__icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M38 7H10a5 5 0 0 0-5 5v21a5 5 0 0 0 5 5h5l9 7v-7h14a5 5 0 0 0 5-5V12a5 5 0 0 0-5-5Z"/><path d="M15 18h18M15 26h12"/></svg>
+            </div>
+            <span class="chat-eyebrow">BETTER TOGETHER</span>
+            <h2>대화가 업무의 시작이니까</h2>
+            <p>목록에서 채팅방을 선택하거나<br>새 채팅방을 만들어 동료와 연결하세요.</p>
+            <div class="chat-welcome__tags"><span>실시간 대화</span><span>파일 공유</span><span>동료 초대</span></div>
+        </div>
     </section>
+    </div>
 </main>
 
 <script th:inline="none">
@@ -108,6 +130,74 @@
 
         location.reload();
     }
+
+    // 방 목록 실시간 갱신 (다른 사람이 나를 새 방에 초대했을 때 새로고침 없이 반영)
+    let stompClient = null;
+    let reconnectTimer = null;
+    const RECONNECT_INITIAL_DELAY = 1000;
+    const RECONNECT_MAX_DELAY = 30000;
+    let reconnectDelay = RECONNECT_INITIAL_DELAY;
+
+    function appendRoom(room) {
+        const list = document.getElementById('roomItems');
+        if (list.querySelector('[data-room-id="' + room.roomId + '"]')) {
+            return; // 이미 목록에 있으면 중복 추가하지 않음
+        }
+        const li = document.createElement('li');
+        li.setAttribute('data-room-id', room.roomId);
+        const link = document.createElement('a');
+        link.href = '/chat/detail?roomId=' + room.roomId;
+        link.textContent = room.roomName;
+        li.appendChild(link);
+        list.appendChild(li);
+    }
+
+    function connect() {
+        const socket = new SockJS('/ws?emplId=' + loginEmplId());
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function () {
+            reconnectDelay = RECONNECT_INITIAL_DELAY;
+            stompClient.subscribe('/user/queue/rooms', function (frame) {
+                appendRoom(JSON.parse(frame.body));
+            });
+        }, function () {
+            scheduleReconnect();
+        });
+    }
+
+    function scheduleReconnect() {
+        if (reconnectTimer !== null) {
+            return;
+        }
+        reconnectTimer = setTimeout(function () {
+            reconnectTimer = null;
+            connect();
+        }, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_DELAY);
+    }
+
+    window.addEventListener('load', connect);
+
+    window.addEventListener('pagehide', function (event) {
+        if (event.persisted) {
+            return;
+        }
+        if (reconnectTimer !== null) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect();
+        }
+    });
+
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted && (!stompClient || !stompClient.connected)) {
+            connect();
+        }
+    });
 </script>
 </body>
 </html>
+

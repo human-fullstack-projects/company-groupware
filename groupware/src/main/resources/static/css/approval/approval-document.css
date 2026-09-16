@@ -2,8 +2,19 @@
     box-sizing: border-box;
 }
 
+/*body {*/
+/*    margin: 0;*/
+/*    background: #f6f7f9;*/
+/*    color: #222;*/
+/*    font-family: Arial, "Noto Sans KR", sans-serif;*/
+/*}*/
 body {
     margin: 0;
+
+    /* 상단 메뉴 + 좌측 메뉴 자리 확보 */
+    padding-top: var(--topinfo-height);
+    padding-left: var(--menubar-width);
+
     background: #f6f7f9;
     color: #222;
     font-family: Arial, "Noto Sans KR", sans-serif;
@@ -576,4 +587,130 @@ textarea.form-control {
     color: #d84a4a;
 
     font-size: 12px;
+}
+
+@media (max-width: 850px) {
+
+    .section-card {
+        overflow-x: auto;
+    }
+
+    .approval-table {
+        min-width: 700px;
+    }
+}
+
+
+/* =========================
+   반려 사유 입력 모달
+========================= */
+
+.reject-modal-veil {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(16, 26, 51, 0.45);
+
+    z-index: 1000;
+}
+
+.reject-modal-veil.is-open {
+    display: flex;
+}
+
+.reject-modal-box {
+    width: min(460px, calc(100vw - 40px));
+
+    padding: 24px;
+
+    border-radius: 12px;
+
+    background: #fff;
+
+    box-shadow:
+            0 20px 50px rgba(16, 26, 51, 0.25);
+}
+
+.reject-modal-box h2 {
+    margin: 0 0 8px;
+
+    color: #30343b;
+
+    font-size: 18px;
+}
+
+.reject-modal-desc {
+    margin: 0 0 16px;
+
+    color: #747b86;
+
+    font-size: 13px;
+}
+
+.reject-comment {
+    width: 100%;
+    min-height: 130px;
+
+    padding: 12px;
+
+    border: 1px solid #cfd4da;
+    border-radius: 6px;
+
+    box-sizing: border-box;
+
+    resize: vertical;
+
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.reject-comment:focus {
+    border-color: #8a9099;
+    outline: none;
+
+    box-shadow:
+            0 0 0 3px rgba(48, 52, 59, 0.08);
+}
+
+.reject-comment-info {
+    margin-top: 6px;
+
+    color: #969ca5;
+
+    font-size: 12px;
+}
+
+.reject-error {
+    min-height: 18px;
+    margin-top: 5px;
+
+    color: #b42318;
+
+    font-size: 12px;
+}
+
+.reject-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.reject-confirm-button {
+    border-color: #b42318;
+    background: #b42318;
+    color: #fff;
+}
+
+.reject-confirm-button:hover {
+    border-color: #912018;
+    background: #912018;
 }

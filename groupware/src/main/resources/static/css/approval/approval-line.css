@@ -3,12 +3,12 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background: #f7f8fa;
-    margin: 0;
-    padding: 30px;
-}
+/*body {*/
+/*    font-family: Arial, sans-serif;*/
+/*    background: #f7f8fa;*/
+/*    margin: 0;*/
+/*    padding: 30px;*/
+/*}*/
 
 /*body {*/
 /*    font-family: Arial, sans-serif;*/
@@ -16,6 +16,47 @@ body {
 /*    margin-top: calc(var(--topinfo-height) + 40px);*/
 /*    margin-left: calc(var(--menubar-width) + 40px);*/
 /*}*/
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f8fa;
+    margin: 0;
+}
+
+.approval-line-page {
+    margin-top: var(--topinfo-height);
+    margin-left: var(--menubar-width);
+
+    min-height: calc(100vh - var(--topinfo-height));
+
+    padding: 30px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+
+@media (max-width: 900px) {
+
+    .approval-line-page {
+        padding: 20px 16px;
+    }
+
+    .approval-box {
+        grid-template-columns: 1fr;
+    }
+
+    .line-list-area {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+}
+
+
+
 
 .container {
     max-width: 1000px;
@@ -78,8 +119,8 @@ body {
     margin-bottom: 8px;
 }
 
-input,
-select {
+.approval-line-page input,
+.approval-line-page select {
     padding: 9px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -125,7 +166,7 @@ select {
     flex: 1;
 }
 
-button {
+.approval-line-page button {
     cursor: pointer;
     border: 1px solid #ccc;
     background: white;
@@ -133,7 +174,7 @@ button {
     padding: 8px 12px;
 }
 
-button:hover {
+.approval-line-page button:hover {
     background: #eee;
 }
 
