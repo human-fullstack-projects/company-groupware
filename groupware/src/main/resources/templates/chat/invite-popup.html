@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <meta name="_login_empl_id" th:content="${loginEmplId}">
+    <meta name="_room_id" th:content="${roomId}">
+    <title>동료 초대</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/chat-invite-popup.css}">
+</head>
+<body class="invite-popup">
+<main class="invite-popup__main">
+    <h1 class="invite-popup__title">동료 초대</h1>
+
+    <input type="text" id="filterInput" class="invite-popup__filter"
+           placeholder="이름으로 검색" autocomplete="off">
+
+    <ul id="employeeList" class="invite-popup__list"></ul>
+
+    <div id="emptyMessage" class="invite-popup__empty" style="display:none;">
+        초대할 수 있는 직원이 없습니다.
+    </div>
+
+    <div class="invite-popup__actions">
+        <button type="button" id="cancelBtn" class="invite-popup__cancel-btn">취소</button>
+        <button type="button" id="inviteBtn" class="invite-popup__invite-btn">초대</button>
+    </div>
+</main>
+
+<script th:inline="none">
+    function roomId() {
+        const value = document.querySelector('meta[name="_room_id"]').content;
+        return value ? value : null;
+    }
+
+    let employees = [];
+    const selectedIds = new Set();
+
+    function renderList(filterText) {
+        const list = document.getElementById('employeeList');
+        const emptyMessage = document.getElementById('emptyMessage');
+        list.innerHTML = '';
+
+        const filtered = employees.filter(e => !filterText || e.emplName.includes(filterText));
+
+        if (filtered.length === 0) {
+            emptyMessage.style.display = 'block';
+            return;
+        }
+        emptyMessage.style.display = 'none';
+
+        filtered.forEach(e => {
+            const li = document.createElement('li');
+            li.className = 'invite-popup__item';
+
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = e.emplId;
+            checkbox.checked = selectedIds.has(e.emplId);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    selectedIds.add(e.emplId);
+                } else {
+                    selectedIds.delete(e.emplId);
+                }
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(
+                ' ' + e.emplName + (e.deptName ? ' (' + e.deptName + ')' : '')));
+            li.appendChild(label);
+            list.appendChild(li);
+        });
+    }
+
+    async function loadEmployees() {
+        const rid = roomId();
+        const url = '/api/employees' + (rid ? ('?roomId=' + encodeURIComponent(rid)) : '');
+        const res = await fetch(url);
+        if (!res.ok) {
+            alert('직원 목록을 불러오지 못했습니다.');
+            return;
+        }
+        employees = await res.json();
+        renderList('');
+    }
+
+    document.getElementById('filterInput').addEventListener('input', (event) => {
+        renderList(event.target.value.trim());
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+        window.close();
+    });
+
+    document.getElementById('inviteBtn').addEventListener('click', () => {
+        if (selectedIds.size === 0) {
+            alert('초대할 직원을 한 명 이상 선택하세요.');
+            return;
+        }
+        if (window.opener) {
+            window.opener.postMessage({
+                type: 'CHAT_INVITE_SELECTED',
+                emplIds: Array.from(selectedIds)
+            }, window.location.origin);
+        }
+        window.close();
+    });
+
+    window.addEventListener('load', loadEmployees);
+</script>
+</body>
+</html>

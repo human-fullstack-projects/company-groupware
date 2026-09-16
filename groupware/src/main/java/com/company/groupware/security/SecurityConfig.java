@@ -27,7 +27,7 @@ public class SecurityConfig {
                         // 로그인하지 않아도 접근 가능한 주소
                         .requestMatchers(
                                 "/login",
-                                "/register",
+//                                "/register",
                                 "/css/**",
                                 "/js/**",
                                 "/image/**",
@@ -35,7 +35,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 관리자만 접근 가능
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**","/register").hasRole("ADMIN")
 
                         // 나머지는 로그인 필요
                         .anyRequest().authenticated()

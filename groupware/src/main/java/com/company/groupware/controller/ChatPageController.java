@@ -50,4 +50,20 @@ public class ChatPageController {
 
         return "chat/detail";
     }
+
+    // 동료 초대 팝업 화면 (roomId 없으면 새 채팅방 생성용, 있으면 기존 방 초대용)
+    @GetMapping("/chat/invite-popup")
+    public String invitePopup(
+            @RequestParam(required = false) Long roomId,
+            Authentication authentication, Model model) {
+        Employee loginEmpl = chatAccessService.getHttpEmployee(authentication);
+        model.addAttribute("loginEmplId", loginEmpl.getEmplId());
+
+        if (roomId != null) {
+            chatAccessService.requireActiveMember(loginEmpl.getEmplId(), roomId);
+        }
+        model.addAttribute("roomId", roomId);
+
+        return "chat/invite-popup";
+    }
 }

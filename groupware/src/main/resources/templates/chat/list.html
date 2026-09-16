@@ -68,49 +68,29 @@
         return document.querySelector('meta[name="_login_empl_id"]').content;
     }
 
-    // 이름으로 직원 검색 (부분 일치, 여러 명이면 목록에서 선택)
-    async function findEmplIdByName(name) {
-        const res = await fetch('/api/employees/search?name=' + encodeURIComponent(name));
-        if (!res.ok) {
-            throw new Error(name + ' 검색 실패');
-        }
-        const candidates = await res.json();
-        if (candidates.length === 0) {
-            throw new Error('"' + name + '"와 일치하는 직원이 없습니다.');
-        }
-        if (candidates.length === 1) {
-            return candidates[0].emplId;
-        }
-        const listText = candidates
-            .map((c, i) => (i + 1) + '. ' + c.emplName + (c.deptName ? ' (' + c.deptName + ')' : '') + ' - emplId:' + c.emplId)
-            .join('\n');
-        const picked = prompt('"' + name + '"와 일치하는 직원이 여러 명입니다. 번호를 선택하세요\n' + listText, '1');
-        const idx = Number(picked) - 1;
-        if (!(idx >= 0 && idx < candidates.length)) {
-            throw new Error('선택이 취소되었습니다.');
-        }
-        return candidates[idx].emplId;
-    }
+    // 방 이름을 먼저 받은 뒤 동료 초대 팝업을 연다
+    let pendingRoomName = null;
 
-    // 방 생성 + 초대 (chat-test.html 의 createRoomWithInvite 참조)
-    async function createRoomWithInvite() {
+    function createRoomWithInvite() {
         const roomName = prompt('생성할 채팅방 이름을 입력하세요', '새 채팅방');
         if (!roomName) {
             return;
         }
-        const inviteInput = prompt('초대할 직원 이름을 쉼표로 구분해 입력하세요 (예: 홍길동,김철수)', '');
-        const inviteNames = (inviteInput || '')
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
+        pendingRoomName = roomName;
+        window.open('/chat/invite-popup', 'inviteEmployeePopup', 'width=480,height=600');
+    }
 
-        let inviteIds;
-        try {
-            inviteIds = await Promise.all(inviteNames.map(findEmplIdByName));
-        } catch (e) {
-            alert(e.message);
+    // 팝업에서 선택 완료 후 전달한 emplId 목록을 받아 방 생성
+    window.addEventListener('message', async (event) => {
+        if (event.origin !== window.location.origin) {
             return;
         }
+        if (!event.data || event.data.type !== 'CHAT_INVITE_SELECTED' || !pendingRoomName) {
+            return;
+        }
+
+        const roomName = pendingRoomName;
+        pendingRoomName = null;
 
         const res = await fetch('/api/chat/rooms', {
             method: 'POST',
@@ -118,7 +98,7 @@
             body: JSON.stringify({
                 roomName: roomName,
                 creatorEmplId: Number(loginEmplId()),
-                memberEmplIds: inviteIds
+                memberEmplIds: event.data.emplIds || []
             })
         });
 
@@ -129,7 +109,7 @@
         }
 
         location.reload();
-    }
+    });
 
     // 방 목록 실시간 갱신 (다른 사람이 나를 새 방에 초대했을 때 새로고침 없이 반영)
     let stompClient = null;

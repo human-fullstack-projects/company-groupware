@@ -72,49 +72,21 @@
         return { [header]: token };
     }
 
-    // 이름으로 직원 검색 (부분 일치, 여러 명이면 목록에서 선택)
-    async function findEmplIdByName(name) {
-        const res = await fetch('/api/employees/search?name=' + encodeURIComponent(name));
-        if (!res.ok) {
-            throw new Error(name + ' 검색 실패');
-        }
-        const candidates = await res.json();
-        if (candidates.length === 0) {
-            throw new Error('"' + name + '"와 일치하는 직원이 없습니다.');
-        }
-        if (candidates.length === 1) {
-            return candidates[0].emplId;
-        }
-        const listText = candidates
-            .map((c, i) => (i + 1) + '. ' + c.emplName + (c.deptName ? ' (' + c.deptName + ')' : '') + ' - emplId:' + c.emplId)
-            .join('\n');
-        const picked = prompt('"' + name + '"와 일치하는 직원이 여러 명입니다. 번호를 선택하세요\n' + listText, '1');
-        const idx = Number(picked) - 1;
-        if (!(idx >= 0 && idx < candidates.length)) {
-            throw new Error('선택이 취소되었습니다.');
-        }
-        return candidates[idx].emplId;
+    // 동료 초대 팝업 열기
+    function inviteMember() {
+        window.open('/chat/invite-popup?roomId=' + roomId(), 'inviteEmployeePopup', 'width=480,height=600');
     }
 
-    // 현재 방에 직원 초대
-    async function inviteMember() {
-        const inviteInput = prompt('초대할 직원 이름을 쉼표로 구분해 입력하세요 (예: 홍길동,김철수)', '');
-        const inviteNames = (inviteInput || '')
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-        if (inviteNames.length === 0) {
+    // 팝업에서 선택 완료 후 전달한 emplId 목록을 받아 현재 방에 초대
+    window.addEventListener('message', async (event) => {
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+        if (!event.data || event.data.type !== 'CHAT_INVITE_SELECTED') {
             return;
         }
 
-        let inviteIds;
-        try {
-            inviteIds = await Promise.all(inviteNames.map(findEmplIdByName));
-        } catch (e) {
-            alert(e.message);
-            return;
-        }
-
+        const inviteIds = event.data.emplIds || [];
         for (const id of inviteIds) {
             const res = await fetch(`/api/chat/rooms/${roomId()}/members`, {
                 method: 'POST',
@@ -127,7 +99,7 @@
             }
         }
         loadMembers();
-    }
+    });
 
     // 현재 방에서 나가기
     // 응답을 기다리지 않고 바로 이동 - 서버가 브로드캐스트하는 퇴장 메시지를 본인 화면에서
@@ -147,6 +119,9 @@
     }
 
     let lastMessageDate = null; // 마지막으로 렌더링한 메시지의 날짜(YYYY-MM-DD)
+    let activeMembers = []; // 현재 방의 활성 참여자 [{ emplId(문자열), roomInDate(Date|null) }]
+    let readStatus = {}; // emplId(문자열) -> lastReadMessageId
+    let lastSentReadId = 0; // 마지막으로 서버에 보고한 읽음 위치 (중복 전송 방지)
 
     function toDateKey(date) {
         return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
@@ -208,6 +183,9 @@
         }
 
         const li = document.createElement('li');
+        li.dataset.messageId = msg.messageId;
+        li.dataset.emplId = msg.emplId;
+        li.dataset.createdAt = msg.createdAt || created.toISOString();
         if (String(msg.emplId) === emplId()) {
             li.className = 'chat-detail__message--mine';
         }
@@ -216,6 +194,11 @@
         const meta = document.createElement('span');
         meta.className = 'chat-detail__meta';
         meta.textContent = '[' + time + '] ' + msg.emplName;
+
+        const unreadBadge = document.createElement('span');
+        unreadBadge.className = 'chat-detail__unread-badge';
+        meta.appendChild(unreadBadge);
+
         li.appendChild(meta);
 
         if (msg.files && msg.files.length > 0) {
@@ -246,6 +229,59 @@
 
         list.appendChild(li);
         list.scrollTop = list.scrollHeight;
+        updateUnreadBadges();
+    }
+
+    // senderEmplId를 제외한 활성 참여자 중, 이 메시지가 오간 시점에 이미 참여 중이었고
+    // 아직 이 messageId까지 읽지 않은 사람 수 (메시지 이후에 초대된 사람은 대상에서 제외)
+    function unreadCountFor(messageId, senderEmplId, messageCreatedAt) {
+        return activeMembers.filter(m => {
+            if (m.emplId === String(senderEmplId)) {
+                return false;
+            }
+            if (m.roomInDate && messageCreatedAt && m.roomInDate > messageCreatedAt) {
+                return false;
+            }
+            const read = readStatus[m.emplId];
+            return read == null || Number(read) < Number(messageId);
+        }).length;
+    }
+
+    // 현재 렌더링된 메시지들의 안읽음 배지를 읽음 상태 기준으로 다시 계산
+    function updateUnreadBadges() {
+        document.querySelectorAll('#messages li[data-message-id]').forEach(li => {
+            const badge = li.querySelector('.chat-detail__unread-badge');
+            if (!badge) {
+                return;
+            }
+            const createdAt = li.dataset.createdAt ? new Date(li.dataset.createdAt) : null;
+            const count = unreadCountFor(li.dataset.messageId, li.dataset.emplId, createdAt);
+            badge.textContent = count > 0 ? String(count) : '';
+        });
+    }
+
+    // 서버에 읽음 위치를 보고 (이미 보낸 값보다 작거나 같으면 전송하지 않음)
+    async function sendReadReceipt(lastMessageId) {
+        const id = Number(lastMessageId);
+        if (!id || id <= lastSentReadId) {
+            return;
+        }
+        lastSentReadId = id;
+        try {
+            await fetch(`/api/chat/rooms/${roomId()}/read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+                body: JSON.stringify({ lastMessageId: id })
+            });
+        } catch (e) {
+            console.error('읽음 처리 실패', e);
+        }
+    }
+
+    async function loadReadStatus() {
+        const res = await fetch(`/api/chat/rooms/${roomId()}/read-status`);
+        readStatus = await res.json();
+        updateUnreadBadges();
     }
 
     function appendError(err) {
@@ -261,11 +297,18 @@
         const history = await res.json();
         document.getElementById('messages').innerHTML = '';
         history.forEach(appendMessage);
+        if (history.length > 0) {
+            sendReadReceipt(history[history.length - 1].messageId);
+        }
     }
 
     async function loadMembers() {
         const res = await fetch(`/api/chat/rooms/${roomId()}/members`);
         const members = await res.json();
+        activeMembers = members.map(m => ({
+            emplId: String(m.emplId),
+            roomInDate: m.roomInDate ? new Date(m.roomInDate) : null
+        }));
         const list = document.getElementById('participantList');
         list.innerHTML = '';
         members.forEach(m => {
@@ -274,6 +317,7 @@
             li.textContent = m.emplName;
             list.appendChild(li);
         });
+        updateUnreadBadges();
     }
 
     function connect() {
@@ -288,7 +332,19 @@
 
             // 이 방(roomId)만 구독 - 목록 화면이 아니라 방 하나를 위한 전용 화면이라 방 이동 개념이 없음
             stompClient.subscribe(`/topic/room/${roomId()}`, function (frame) {
-                appendMessage(JSON.parse(frame.body));
+                const msg = JSON.parse(frame.body);
+                appendMessage(msg);
+                sendReadReceipt(msg.messageId); // 방을 열어둔 채 새 메시지를 받으면 바로 읽은 것으로 처리
+                if (isSystemMessage(msg)) {
+                    loadMembers(); // 입장/퇴장으로 활성 인원(분모)이 바뀌었으니 목록과 안읽음 수를 다시 계산
+                }
+            });
+
+            // 다른 접속자의 읽음 위치 갱신 알림 - 이미 렌더링된 메시지들의 안읽음 수를 다시 계산
+            stompClient.subscribe(`/topic/room/${roomId()}/read`, function (frame) {
+                const evt = JSON.parse(frame.body);
+                readStatus[String(evt.emplId)] = evt.lastMessageId;
+                updateUnreadBadges();
             });
 
             stompClient.subscribe('/user/queue/errors', function (frame) {
@@ -297,6 +353,7 @@
 
             loadHistory();
             loadMembers();
+            loadReadStatus();
         }, function (error) {
             appendError({ message: '연결 끊김: ' + error });
             document.getElementById('status').textContent = '재연결 중...';

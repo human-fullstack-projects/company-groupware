@@ -2,6 +2,8 @@ package com.company.groupware.controller;
 
 
 import com.company.groupware.dto.ChatMessageResponse;
+import com.company.groupware.dto.ChatReadEvent;
+import com.company.groupware.dto.ChatReadRequest;
 import com.company.groupware.dto.ChatRoomCreateRequest;
 import com.company.groupware.dto.ChatRoomJoinRequest;
 import com.company.groupware.dto.ChatRoomMemberResponse;
@@ -81,6 +83,31 @@ public class ChatRoomController {
         notifyRoomListUpdate(response.getEmplId(), chatRoomService.getRoomInfo(roomId));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // 메시지 읽음 처리 - 읽음 위치 갱신 후 같은 방을 보고 있는 다른 접속자들에게 실시간 알림
+    @PostMapping("/{roomId}/read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable Long roomId,
+            @RequestBody ChatReadRequest request,
+            Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(emplId, roomId);
+        chatRoomService.markAsRead(roomId, emplId, request.getLastMessageId());
+
+        messagingTemplate.convertAndSend(
+                "/topic/room/" + roomId + "/read",
+                new ChatReadEvent(emplId, request.getLastMessageId()));
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // 방의 활성 참여자 전원의 읽음 위치 (emplId -> lastReadMessageId) - 안읽은 인원 수 계산용
+    @GetMapping("/{roomId}/read-status")
+    public ResponseEntity<Map<Long, Long>> getReadStatus(@PathVariable Long roomId, Principal principal) {
+        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
+        chatAccessService.requireActiveMember(emplId, roomId);
+        return ResponseEntity.ok(chatRoomService.getReadStatus(roomId));
     }
 
     // 특정 직원의 방 목록 화면(list.html)에 새 방이 생겼음을 개인 큐로 알림

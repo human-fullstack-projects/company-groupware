@@ -15,4 +15,6 @@ public interface ChatRoomAffiliationRepository extends JpaRepository<ChatRoomAff
 
     // 특정 직원이 현재 참여 중인 방 목록 (퇴장하지 않은 방만)
     List<ChatRoomAffiliation> findByEmployee_EmplIdAndRoomOutDateIsNull(Long emplId);
+
+
 }

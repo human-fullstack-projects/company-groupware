@@ -141,6 +141,13 @@
     margin-right: 8px;
 }
 
+.chat-detail__unread-badge {
+    margin-left: 6px;
+    color: #e08e0b;
+    font-size: 11px;
+    font-weight: 700;
+}
+
 .chat-detail__date-divider {
     text-align: center;
     color: #999;
