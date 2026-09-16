@@ -48,6 +48,7 @@ public class Comment {
         comment.employee = employee;
         comment.board = board;
         comment.parentComment = parent;
+        comment.createdAt = LocalDateTime.now();
         return comment;
     }
 
