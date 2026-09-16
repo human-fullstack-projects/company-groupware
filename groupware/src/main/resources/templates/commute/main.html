@@ -4,154 +4,356 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>출퇴근</title>
-<<<<<<< HEAD
-    <style>
-        body {
-            font-family: sans-serif;
-        }
-        .commute-main {
-            margin-top: var(--topinfo-height);
-            margin-left: var(--menubar-width);
-            min-height: calc(100vh - var(--topinfo-height));
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 60px 24px;
-        }
-        .commute-btn {
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            border: 3px solid #333;
-            background-color: #fff;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.15s ease;
-        }
-        .commute-btn--checkin {
-            border-color: #2e7d32;
-            color: #2e7d32;
-        }
-        .commute-btn--checkin:hover {
-            background-color: #e8f5e9;
-        }
-        .commute-btn--checkout {
-            border-color: #d35400;
-            color: #d35400;
-        }
-        .commute-btn--checkout:hover {
-            background-color: #fdf0e6;
-        }
-        .commute-done {
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            border: 3px solid #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #666;
-            text-align: center;
-        }
-        .info-table {
-            margin-top: 30px;
-            border-collapse: collapse;
-        }
-        .info-table td {
-            border: 2px solid #333;
-            padding: 12px 20px;
-            font-size: 16px;
-        }
-        .info-table td.label {
-            font-weight: bold;
-            text-align: center;
-            width: 100px;
-        }
-        .info-table td.value {
-            min-width: 220px;
-        }
-        .error-box {
-            margin-top: 16px;
-            padding: 10px 16px;
-            border: 1px solid #c0392b;
-            color: #c0392b;
-            border-radius: 4px;
-        }
-        .status-badge {
-            margin-left: 10px;
-            font-weight: bold;
-        }
-        .status-badge--late {
-            color: #d35400;
-        }
-        .status-badge--normal {
-            color: #2e7d32;
-        }
-    </style>
-=======
->>>>>>> a809cae3fefbdd67aa59ba3f58c89adebc940c1e
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
     <link rel="stylesheet" th:href="@{/css/home.css}">
     <link rel="stylesheet" th:href="@{/css/business-workspace.css}">
+
+    <style>
+        .attendance-dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .annual-leave-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 28px;
+            box-sizing: border-box;
+        }
+
+        .annual-leave-card h2 {
+            margin: 6px 0 24px;
+        }
+
+        .annual-leave-list {
+            display: grid;
+            gap: 0;
+        }
+
+        .annual-leave-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .annual-leave-item:last-child {
+            border-bottom: 0;
+        }
+
+        .annual-leave-label {
+            color: #666666;
+        }
+
+        .annual-leave-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .annual-leave-remaining {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #f7f8fa;
+        }
+
+        .annual-leave-remaining .annual-leave-value {
+            font-size: 28px;
+        }
+
+        .annual-leave-link {
+            display: block;
+            margin-top: 20px;
+            padding: 13px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #222222;
+            font-weight: 600;
+        }
+
+        .annual-leave-link:hover {
+            background: #f7f8fa;
+        }
+
+        @media (max-width: 1000px) {
+            .attendance-dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+
 <body class="workspace-home workspace-business business-commute">
-<a class="skip-link" href="#business-main">본문으로 이동</a>
+
+<a class="skip-link" href="#business-main">
+    본문으로 이동
+</a>
 
 <div th:replace="~{module/workspace :: userHeader}"></div>
 <div th:replace="~{module/workspace :: sidebar('commute')}"></div>
 
 <main class="commute-main" id="business-main">
-    <div class="business-heading"><span class="business-eyebrow">ATTENDANCE</span><h1>근태 관리</h1><p>오늘의 출퇴근을 기록하고 근무 상태를 확인하세요.</p></div>
-    <section class="attendance-card" aria-label="오늘의 출퇴근">
-    <div class="attendance-intro"><span class="business-eyebrow">MY WORKDAY</span><h2>오늘의 근무</h2>
-    <p th:if="${commuteState == 'NOT_CHECKED_IN'}">업무를 시작할 준비가 되셨나요?</p>
-    <p th:if="${commuteState == 'CHECKED_IN'}">근무 중입니다. 업무를 마치면 퇴근을 기록하세요.</p>
-    <p th:if="${commuteState == 'CHECKED_OUT'}">오늘도 수고하셨습니다.</p></div>
 
-    <!-- 에러 메시지 (중복 출근/퇴근 시도 등) -->
-    <div class="error-box" role="alert" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+    <div class="business-heading">
+        <span class="business-eyebrow">
+            ATTENDANCE
+        </span>
 
-    <!-- 출근 전: 출근 버튼 -->
-    <form th:if="${commuteState == 'NOT_CHECKED_IN'}" method="post" th:action="@{/commute/check-in}">
-        <input type="hidden" name="emplId" th:value="${emplId}">
-        <button type="submit" class="commute-btn commute-btn--checkin">출근</button>
-    </form>
+        <h1>근태 관리</h1>
 
-    <!-- 출근 완료, 퇴근 전: 퇴근 버튼 -->
-    <form th:if="${commuteState == 'CHECKED_IN'}" method="post" th:action="@{/commute/check-out}">
-        <input type="hidden" name="emplId" th:value="${emplId}">
-        <button type="submit" class="commute-btn commute-btn--checkout">퇴근</button>
-    </form>
-
-    <!-- 퇴근 완료: 버튼 대신 안내만 표시 -->
-    <div th:if="${commuteState == 'CHECKED_OUT'}" class="commute-done">
-        오늘 근무가<br>종료되었습니다
+        <p>
+            오늘의 출퇴근을 기록하고 근무 상태를 확인하세요.
+        </p>
     </div>
 
-    <table class="info-table">
-        <tr>
-            <td class="label">출근시간</td>
-            <td class="value">
-                <span th:text="${today != null and today.startTime != null} ? ${today.startTime} : '출근 안함'"></span>
-                <span th:if="${today != null and today.status != null}" th:switch="${today.status.name()}">
-                    <span th:case="'LATE'" class="status-badge status-badge--late">지각</span>
-                    <span th:case="'NORMAL'" class="status-badge status-badge--normal">정상출근</span>
+
+    <div class="attendance-dashboard">
+
+        <!-- 오늘의 근무 -->
+        <section
+                class="attendance-card"
+                aria-label="오늘의 출퇴근">
+
+            <div class="attendance-intro">
+
+                <span class="business-eyebrow">
+                    MY WORKDAY
                 </span>
-            </td>
-        </tr>
-        <tr>
-            <td class="label">퇴근시간</td>
-            <td class="value" th:text="${today != null and today.finishTime != null} ? ${today.finishTime} : '퇴근 안함'"></td>
-        </tr>
-    </table>
-    <p class="attendance-note">출퇴근 시간은 버튼을 누른 뒤 서버에서 처리된 기록으로 표시됩니다.</p>
-    </section>
+
+                <h2>오늘의 근무</h2>
+
+                <p th:if="${commuteState == 'NOT_CHECKED_IN'}">
+                    업무를 시작할 준비가 되셨나요?
+                </p>
+
+                <p th:if="${commuteState == 'CHECKED_IN'}">
+                    근무 중입니다. 업무를 마치면 퇴근을 기록하세요.
+                </p>
+
+                <p th:if="${commuteState == 'CHECKED_OUT'}">
+                    오늘도 수고하셨습니다.
+                </p>
+
+            </div>
+
+
+            <!-- 에러 메시지 -->
+            <div
+                    class="error-box"
+                    role="alert"
+                    th:if="${errorMessage != null}"
+                    th:text="${errorMessage}">
+            </div>
+
+
+            <!-- 출근 -->
+            <form
+                    th:if="${commuteState == 'NOT_CHECKED_IN'}"
+                    method="post"
+                    th:action="@{/commute/check-in}">
+
+                <input
+                        type="hidden"
+                        name="emplId"
+                        th:value="${emplId}">
+
+                <button
+                        type="submit"
+                        class="commute-btn commute-btn--checkin">
+                    출근
+                </button>
+
+            </form>
+
+
+            <!-- 퇴근 -->
+            <form
+                    th:if="${commuteState == 'CHECKED_IN'}"
+                    method="post"
+                    th:action="@{/commute/check-out}">
+
+                <input
+                        type="hidden"
+                        name="emplId"
+                        th:value="${emplId}">
+
+                <button
+                        type="submit"
+                        class="commute-btn commute-btn--checkout">
+                    퇴근
+                </button>
+
+            </form>
+
+
+            <!-- 근무 종료 -->
+            <div
+                    th:if="${commuteState == 'CHECKED_OUT'}"
+                    class="commute-done">
+
+                오늘 근무가<br>
+                종료되었습니다
+
+            </div>
+
+
+            <table class="info-table">
+
+                <tr>
+                    <td class="label">
+                        출근시간
+                    </td>
+
+                    <td class="value">
+
+                        <span
+                                th:text="${today != null and today.startTime != null}
+                                ? ${today.startTime}
+                                : '출근 안함'">
+                        </span>
+
+                        <span
+                                th:if="${today != null and today.status != null}"
+                                th:switch="${today.status.name()}">
+
+                            <span
+                                    th:case="'LATE'"
+                                    class="status-badge status-badge--late">
+                                지각
+                            </span>
+
+                            <span
+                                    th:case="'NORMAL'"
+                                    class="status-badge status-badge--normal">
+                                정상출근
+                            </span>
+
+                        </span>
+
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="label">
+                        퇴근시간
+                    </td>
+
+                    <td
+                            class="value"
+                            th:text="${today != null and today.finishTime != null}
+                            ? ${today.finishTime}
+                            : '퇴근 안함'">
+                    </td>
+                </tr>
+
+            </table>
+
+
+            <p class="attendance-note">
+                출퇴근 시간은 버튼을 누른 뒤
+                서버에서 처리된 기록으로 표시됩니다.
+            </p>
+
+        </section>
+
+
+        <!-- 나의 연차 -->
+        <section
+                class="annual-leave-card"
+                aria-label="나의 연차">
+
+            <span class="business-eyebrow">
+                MY ANNUAL LEAVE
+            </span>
+
+            <h2>나의 연차</h2>
+
+
+            <div class="annual-leave-list">
+
+                <div class="annual-leave-item">
+
+                    <span class="annual-leave-label">
+                        총 연차
+                    </span>
+
+                    <span
+                            class="annual-leave-value"
+                            th:text="${annualLeaveSummary.totalDays} + '일'">
+                        15.0일
+                    </span>
+
+                </div>
+
+
+                <div class="annual-leave-item">
+
+                    <span class="annual-leave-label">
+                        사용 연차
+                    </span>
+
+                    <span
+                            class="annual-leave-value"
+                            th:text="${annualLeaveSummary.usedDays} + '일'">
+                        0일
+                    </span>
+
+                </div>
+
+
+                <div class="annual-leave-item">
+
+                    <span class="annual-leave-label">
+                        결재중
+                    </span>
+
+                    <span
+                            class="annual-leave-value"
+                            th:text="${annualLeaveSummary.pendingDays} + '일'">
+                        0일
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="annual-leave-remaining">
+
+                <div class="annual-leave-label">
+                    잔여 연차
+                </div>
+
+                <div
+                        class="annual-leave-value"
+                        th:text="${annualLeaveSummary.remainingDays} + '일'">
+                    15.0일
+                </div>
+
+            </div>
+
+
+            <a
+                    class="annual-leave-link"
+                    th:href="@{/commute/leave}">
+                연차 관리 →
+            </a>
+
+        </section>
+
+    </div>
+
 </main>
 
 </body>
 </html>
-

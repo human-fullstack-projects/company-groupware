@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="comment-header">
                     <span class="comment-writer">${comment.emplName}</span>
                     <span class="comment-date">
-                        ${comment.createdAt}
+                        ${formatDateTime(comment.createdAt)}
                     </span>
                 </div>
                 
@@ -519,3 +519,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadComments();
 });
+
+function formatDateTime(dateTime) {
+    if (!dateTime) {
+        return '-';
+    }
+
+    const date = new Date(dateTime);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hour}시${minute}분`;
+}
