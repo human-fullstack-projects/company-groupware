@@ -76,6 +76,101 @@
             margin-bottom: 6px;
         }
 
+        h2 {
+            margin: 40px 0 16px;
+            font-size: 17px;
+            color: var(--color-navy-dark);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 40px 0 16px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+        }
+
+        .btn-detail {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-white);
+            background: var(--color-navy);
+            border-radius: 6px;
+            padding: 8px 14px;
+            text-decoration: none;
+        }
+
+        .btn-detail:hover {
+            background: var(--color-navy-light);
+        }
+
+        .attendance-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px 24px;
+            background: #fcfcfb;
+            max-width: 480px;
+        }
+
+        .attendance-card__header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .attendance-card__title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--color-navy-dark);
+            margin-bottom: 6px;
+        }
+
+        .attendance-card__present {
+            font-size: 13px;
+            color: #52514e;
+        }
+
+        .attendance-card__present strong {
+            font-size: 22px;
+            color: var(--color-navy-dark);
+            margin-right: 2px;
+        }
+
+        .attendance-card__date {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .attendance-card__date label {
+            font-size: 11px;
+            color: #898781;
+        }
+
+        .attendance-card__date input {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+        }
+
+        .attendance-card__body {
+            display: flex;
+            justify-content: center;
+            padding-top: 8px;
+        }
+
+        .attendance-card__body canvas {
+            max-width: 220px;
+            max-height: 220px;
+        }
+
     </style>
 </head>
 
@@ -105,6 +200,82 @@
     </a>
 
 </div>
+
+<div class="section-header">
+    <h2>근태 관리</h2>
+    <a class="btn-detail" th:href="@{/admin/commute}">세부 직원 근태관리</a>
+</div>
+
+<div class="attendance-card">
+    <div class="attendance-card__header">
+        <div>
+            <div class="attendance-card__title">전체 직원 출근 현황</div>
+            <div class="attendance-card__present">
+                <strong id="presentCount" th:text="${commuteStats.presentCount}">0</strong>명 출근
+            </div>
+        </div>
+        <div class="attendance-card__date">
+            <label for="attendanceDate">조회 날짜</label>
+            <input type="date" id="attendanceDate" th:value="${commuteStats.attendanceDate}">
+        </div>
+    </div>
+    <div class="attendance-card__body">
+        <canvas id="attendanceChart" width="220" height="220"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const initialCommuteStats = /*[[${commuteStats}]]*/ {normalCount: 0, lateCount: 0, absentCount: 0, presentCount: 0};
+    /*]]>*/
+
+    let attendanceChart;
+
+    function renderAttendanceChart(stats) {
+        const data = [stats.normalCount, stats.lateCount, stats.absentCount];
+
+        if (attendanceChart) {
+            attendanceChart.data.datasets[0].data = data;
+            attendanceChart.update();
+        } else {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            attendanceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['정상', '지각', '결근'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#0ca30c', '#fab219', '#d03b3b'],
+                        borderColor: '#fcfcfb',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {boxWidth: 12, font: {size: 12}}
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('presentCount').textContent = stats.presentCount;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderAttendanceChart(initialCommuteStats);
+
+        document.getElementById('attendanceDate').addEventListener('change', function () {
+            fetch('/admin/commute-stats?date=' + this.value)
+                .then(function (res) { return res.json(); })
+                .then(renderAttendanceChart);
+        });
+    });
+</script>
 
 </body>
 

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 출퇴근 기록
@@ -53,4 +54,13 @@ public class Commute {
     @Enumerated(EnumType.STRING)
     @Column(name = "commute_status", length = 20)
     private CommuteStatus status;
+
+    @Column(name = "modify_reason", length = 255)
+    private String modifyReason; // 관리자가 근태를 수정한 사유
+
+    @Column(name = "modified_by", length = 50)
+    private String modifiedBy; // 수정한 관리자 이름
+
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedAt; // 수정 시각
 }
