@@ -92,7 +92,7 @@
         }
 
         .dept-add-form textarea {
-            resize: vertical;
+            resize: none;
         }
 
         .priority-select {
@@ -283,8 +283,8 @@
             <h2>직급 목록 관리</h2>
             <p class="page-sub" style="margin-bottom:12px;">숫자가 작을수록 높은 서열입니다. 새로 추가한 직급은 가장 낮은 서열로 들어가며, 드롭다운에서 순위를 바꾸면 사이에 있던 직급들이 자동으로 밀려납니다.</p>
 
-            <form th:action="@{/admin/grades/add}" method="post" class="dept-add-form">
-                <textarea name="gradeNames" rows="3" placeholder="새 직급 이름 (한 줄에 하나씩)" required></textarea>
+            <form th:action="@{/admin/grades/add}" method="post" class="dept-add-form" id="gradeAddForm">
+                <textarea name="gradeNames" id="gradeNamesInput" rows="3" placeholder="새 직급 이름 (한 줄에 하나씩)" required></textarea>
                 <button type="submit" class="action-btn">일괄 생성</button>
             </form>
 
@@ -479,6 +479,42 @@
                 bodyEl.appendChild(nameEl);
                 bodyEl.appendChild(document.createTextNode(' 직급을 삭제하시겠습니까?'));
             });
+
+        // 직급 일괄 추가: 한 줄(직급 이름 하나)이 20자를 넘지 못하도록 입력 중에 바로 잘라냄
+        var gradeAddForm = document.getElementById('gradeAddForm');
+        var gradeNamesInput = document.getElementById('gradeNamesInput');
+        var MAX_GRADE_NAME_LENGTH = 20;
+
+        gradeNamesInput.addEventListener('input', function () {
+            var cursor = gradeNamesInput.selectionStart;
+            var original = gradeNamesInput.value;
+            var truncated = original
+                .split(/\r?\n/)
+                .map(function (line) {
+                    return line.length > MAX_GRADE_NAME_LENGTH ? line.slice(0, MAX_GRADE_NAME_LENGTH) : line;
+                })
+                .join('\n');
+
+            if (truncated !== original) {
+                var removed = original.length - truncated.length;
+                gradeNamesInput.value = truncated;
+                var newCursor = Math.max(cursor - removed, 0);
+                gradeNamesInput.setSelectionRange(newCursor, newCursor);
+            }
+        });
+
+        // 붙여넣기 등으로 20자 초과 줄이 그대로 제출되는 경우를 대비한 최종 방어
+        gradeAddForm.addEventListener('submit', function (ev) {
+            var tooLongNames = gradeNamesInput.value
+                .split(/\r?\n/)
+                .map(function (line) { return line.trim(); })
+                .filter(function (line) { return line.length > MAX_GRADE_NAME_LENGTH; });
+
+            if (tooLongNames.length > 0) {
+                ev.preventDefault();
+                alert('직급 이름은 ' + MAX_GRADE_NAME_LENGTH + '자 이내로 입력해주세요.\n\n' + tooLongNames.join('\n'));
+            }
+        });
     })();
 </script>
 

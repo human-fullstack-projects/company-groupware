@@ -265,7 +265,7 @@
             <h2>부서 목록 관리</h2>
 
             <form th:action="@{/admin/departments/add}" method="post" class="dept-add-form">
-                <input type="text" name="deptName" placeholder="새 부서 이름" required>
+                <input type="text" name="deptName" placeholder="새 부서 이름" maxlength="20" required>
                 <button type="submit" class="action-btn">부서 추가</button>
             </form>
 
