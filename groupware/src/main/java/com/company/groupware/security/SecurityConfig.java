@@ -18,7 +18,8 @@ public class SecurityConfig {
 
     // 로그인 및 페이지 접근 설정
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                     AdminAccessDeniedHandler adminAccessDeniedHandler)
             throws Exception {
 
         http
@@ -26,7 +27,7 @@ public class SecurityConfig {
                         // 로그인하지 않아도 접근 가능한 주소
                         .requestMatchers(
                                 "/login",
-                                "/register",
+//                                "/register",
                                 "/css/**",
                                 "/js/**",
                                 "/image/**",
@@ -34,11 +35,13 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 관리자만 접근 가능
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**","/register").hasRole("ADMIN")
 
                         // 나머지는 로그인 필요
                         .anyRequest().authenticated()
                 )
+                // 관리자 권한 없이 /admin/** 접근 시 whitelabel 403 대신 홈으로 리다이렉트
+                .exceptionHandling(ex -> ex.accessDeniedHandler(adminAccessDeniedHandler))
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")

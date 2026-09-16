@@ -179,7 +179,7 @@ public class BoardController {
 
     /**
      * 게시글 작성
-     *
+     * <p>
      * 게시글과 첨부파일을 함께 저장한다.
      */
     @PostMapping("/boards")
@@ -306,7 +306,7 @@ public class BoardController {
      */
     @GetMapping("/boards/files/{boardFileId}/download")
     public ResponseEntity<Resource> download(
-            @PathVariable Integer boardFileId,
+            @PathVariable Long boardFileId,
             Authentication authentication) {
 
         BoardFile boardFile =
@@ -323,10 +323,7 @@ public class BoardController {
             );
         }
 
-        Resource resource =
-                boardService.loadFileAsResource(
-                        boardFileId
-                );
+        Resource resource = boardService.loadFileAsResource(boardFileId);
 
         String originalName =
                 boardFile.getBoardFileOriginName();
@@ -391,6 +388,11 @@ public class BoardController {
                 categories
         );
 
+        model.addAttribute(
+                "boardFiles",
+                boardService.findBoardFiles(boardId)
+        );
+
         return "board/edit";
     }
 
@@ -403,6 +405,8 @@ public class BoardController {
             @RequestParam String boardTitle,
             @RequestParam String boardContent,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) List<MultipartFile> files,
+            @RequestParam(required = false) List<Long> deleteFileIds,
             Authentication authentication) {
 
         Board board =
@@ -435,7 +439,9 @@ public class BoardController {
                 boardId,
                 boardTitle,
                 boardContent,
-                categoryId
+                categoryId,
+                files,
+                deleteFileIds
         );
 
         return "redirect:/boards/" + boardId;

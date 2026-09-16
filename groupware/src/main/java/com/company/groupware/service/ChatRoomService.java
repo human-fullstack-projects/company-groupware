@@ -15,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -30,10 +30,10 @@ public class ChatRoomService {
     private final EmployeeRepository employeeRepository;
 
     @Transactional
-    public ChatRoomResponse createRoom(ChatRoomCreateRequest request) {
-        Employee creator = employeeRepository.findById(request.getCreatorEmplId())
+    public ChatRoomResponse createRoom(ChatRoomCreateRequest request, Long creatorEmplId) {
+        Employee creator = employeeRepository.findById(creatorEmplId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "직원을 찾을 수 없습니다. empl_id=" + request.getCreatorEmplId()));
+                        "직원을 찾을 수 없습니다. empl_id=" + creatorEmplId));
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setRoomName(request.getRoomName());
@@ -139,6 +139,38 @@ public class ChatRoomService {
      */
     public ChatRoomResponse getRoomInfo(Long roomId) {
         return new ChatRoomResponse(getChatRoomOrThrow(roomId));
+    }
+
+    /**
+     * 읽음 위치 갱신 - 역행 방지(이미 더 최신 값이 저장돼 있으면 무시)
+     */
+    @Transactional
+    public void markAsRead(Long roomId, Long emplId, Long lastMessageId) {
+        ChatRoomAffiliation affiliation = affiliationRepository
+                .findByEmployee_EmplIdAndChatRoom_RoomId(emplId, roomId)
+                .filter(a -> a.getRoomOutDate() == null)
+                .orElseThrow(() -> new InvalidChatRoomStateException(
+                        "해당 방에 참여 중이 아닙니다. empl_id=" + emplId + ", room_id=" + roomId));
+
+        if (lastMessageId == null) {
+            return;
+        }
+        Long current = affiliation.getLastReadMessageId();
+        if (current == null || current < lastMessageId) {
+            affiliation.setLastReadMessageId(lastMessageId);
+        }
+    }
+
+    /**
+     * 방의 활성 참여자 전원의 읽음 위치 (emplId -> lastReadMessageId, 아직 하나도 안 읽었으면 0)
+     */
+    public Map<Long, Long> getReadStatus(Long roomId) {
+        getChatRoomOrThrow(roomId);
+        return affiliationRepository.findByChatRoom_RoomIdAndRoomOutDateIsNull(roomId).stream()
+                .collect(Collectors.toMap(
+                        a -> a.getEmployee().getEmplId(),
+                        a -> a.getLastReadMessageId() == null ? 0L : a.getLastReadMessageId()
+                ));
     }
 
     private ChatRoomAffiliation addMember(ChatRoom chatRoom, Employee employee) {

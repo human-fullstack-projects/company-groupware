@@ -4,6 +4,7 @@ import com.company.groupware.dto.ChatRoomEmployeeSearchResponse;
 import com.company.groupware.entity.Department;
 import com.company.groupware.entity.Employee;
 import com.company.groupware.entity.Grade;
+import com.company.groupware.repository.ChatRoomAffiliationRepository;
 import com.company.groupware.repository.ChatRoomEmployeeRepository;
 import com.company.groupware.repository.DepartmentRepository;
 import com.company.groupware.repository.GradeRepository;
@@ -14,13 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ChatRoomEmployeeService {
 
     private final ChatRoomEmployeeRepository employeeRepository;
+    private final ChatRoomAffiliationRepository affiliationRepository;
     private final DepartmentRepository departmentRepository;
     private final GradeRepository gradeRepository;
     private final PasswordEncoder passwordEncoder;
@@ -143,6 +147,23 @@ public class ChatRoomEmployeeService {
         }
         return employeeRepository.findByEmplNameContaining(emplName.trim())
                 .stream()
+                .map(ChatRoomEmployeeSearchResponse::new)
+                .toList();
+    }
+
+    // 초대 가능한 직원 목록 (본인 제외, roomId가 있으면 해당 방의 현재 참여자도 제외)
+    public List<ChatRoomEmployeeSearchResponse> listInvitable(Long roomId, Long excludeEmplId) {
+        Set<Long> excludeIds = new HashSet<>();
+        if (excludeEmplId != null) {
+            excludeIds.add(excludeEmplId);
+        }
+        if (roomId != null) {
+            affiliationRepository.findByChatRoom_RoomIdAndRoomOutDateIsNull(roomId)
+                    .forEach(affiliation -> excludeIds.add(affiliation.getEmployee().getEmplId()));
+        }
+
+        return employeeRepository.findAll().stream()
+                .filter(employee -> !excludeIds.contains(employee.getEmplId()))
                 .map(ChatRoomEmployeeSearchResponse::new)
                 .toList();
     }

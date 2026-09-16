@@ -37,4 +37,7 @@ public class ChatRoomAffiliation {
 
     @Column(name = "room_out_date")
     private LocalDateTime roomOutDate; // 퇴장 일시
+
+    @Column(name = "last_read_message_id")
+    private Long lastReadMessageId; // 이 방에서 마지막 읽은 메시지 ID (안 읽은 수 표시에 사용)
 }

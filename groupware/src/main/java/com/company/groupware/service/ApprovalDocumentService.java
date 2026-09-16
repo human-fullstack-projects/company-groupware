@@ -1,5 +1,6 @@
 package com.company.groupware.service;
 
+import com.company.groupware.dto.AnnualLeaveRequest;
 import com.company.groupware.dto.ApprovalDocumentRequest;
 import com.company.groupware.dto.ApprovalDocumentResponse;
 import com.company.groupware.dto.ApprovalStepResponse;
@@ -12,6 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -30,15 +34,11 @@ public class ApprovalDocumentService {
 
     private final ApprovalDocumentAttachmentService approvalDocumentAttachmentService;
 
+    private final AnnualLeaveRepository annualLeaveRepository;
+
 
     /**
      * 문서 상신
-     *
-     * 1. 로그인 사용자 확인
-     * 2. 본인이 만든 개인 결재라인인지 확인
-     * 3. 문서 저장
-     * 4. 개인 결재라인의 결재자들을 문서 결재자 테이블로 복사
-     * 5. 첫 번째 결재자만 PENDING, 나머지는 WAITING
      */
     @Transactional
     public ApprovalDocumentResponse submitDocument(
@@ -53,12 +53,16 @@ public class ApprovalDocumentService {
 
         Employee writer = employeeRepository.findById(writerEmplId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new IllegalArgumentException(
+                                "사용자를 찾을 수 없습니다."
+                        ));
 
         ApprovalLine approvalLine = approvalLineRepository
                 .findById(request.getApprovalLineId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("결재라인을 찾을 수 없습니다."));
+                        new IllegalArgumentException(
+                                "결재라인을 찾을 수 없습니다."
+                        ));
 
         // 다른 사람의 개인 결재라인 사용 방지
         if (!Objects.equals(
@@ -82,18 +86,31 @@ public class ApprovalDocumentService {
             );
         }
 
+        // 휴가 신청서라면 저장 전에 휴가 정보 검증
+        if (request.getDocumentType() == ApprovalDocumentType.VACATION) {
+            validateAnnualLeave(request.getAnnualLeave());
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         ApprovalDocument document = ApprovalDocument.builder()
                 .writer(writer)
                 .title(request.getTitle())
                 .content(request.getContent())
+                .documentType(
+                        request.getDocumentType() != null
+                                ? request.getDocumentType()
+                                : ApprovalDocumentType.GENERAL
+                )
                 .approvalLineName(approvalLine.getLineName())
                 .status("IN_PROGRESS")
                 .submittedAt(now)
                 .build();
 
         approvalDocumentRepository.save(document);
+
+        // 휴가 신청서 상세정보 저장
+        saveAnnualLeave(document, request);
 
         for (int i = 0; i < lineMembers.size(); i++) {
 
@@ -113,11 +130,9 @@ public class ApprovalDocumentService {
         return toResponse(document);
     }
 
+
     /**
      * 문서 임시저장
-     *
-     * 결재라인 없이 저장 가능
-     * 결재자 테이블은 생성하지 않음
      */
     @Transactional
     public ApprovalDocumentResponse saveDraft(
@@ -129,6 +144,11 @@ public class ApprovalDocumentService {
                         new IllegalArgumentException(
                                 "사용자를 찾을 수 없습니다."
                         ));
+
+        // 휴가 신청서라면 휴가 정보 검증
+        if (request.getDocumentType() == ApprovalDocumentType.VACATION) {
+            validateAnnualLeave(request.getAnnualLeave());
+        }
 
         ApprovalDocument document =
                 ApprovalDocument.builder()
@@ -143,27 +163,203 @@ public class ApprovalDocumentService {
                                         ? ""
                                         : request.getContent()
                         )
+                        .documentType(
+                                request.getDocumentType() != null
+                                        ? request.getDocumentType()
+                                        : ApprovalDocumentType.GENERAL
+                        )
                         .status("DRAFT")
                         .build();
 
         approvalDocumentRepository.save(document);
+
+        // 휴가 신청서 상세정보 저장
+        saveAnnualLeave(document, request);
 
         return toResponse(document);
     }
 
 
     /**
+     * 휴가 상세정보 저장
+     */
+    private void saveAnnualLeave(
+            ApprovalDocument document,
+            ApprovalDocumentRequest request) {
+
+        if (document.getDocumentType() != ApprovalDocumentType.VACATION) {
+            return;
+        }
+
+        AnnualLeaveRequest leaveRequest =
+                request.getAnnualLeave();
+
+        validateAnnualLeave(leaveRequest);
+
+        LocalDate startDate =
+                leaveRequest.getStartDate();
+
+        LocalDate endDate =
+                leaveRequest.getEndDate();
+
+        LeaveType leaveType =
+                leaveRequest.getLeaveType();
+
+        BigDecimal leaveDays;
+
+
+        /*
+         * 오전/오후 반차
+         */
+        if (leaveType == LeaveType.AM_HALF
+                || leaveType == LeaveType.PM_HALF) {
+
+            if (isWeekend(startDate)) {
+                throw new IllegalArgumentException(
+                        "주말에는 반차를 신청할 수 없습니다."
+                );
+            }
+
+            // 반차는 무조건 같은 날짜
+            endDate = startDate;
+
+            leaveDays = new BigDecimal("0.5");
+
+        } else {
+
+            /*
+             * 연차
+             * 토/일 제외
+             */
+            int weekdayCount =
+                    countWeekdays(
+                            startDate,
+                            endDate
+                    );
+
+            if (weekdayCount <= 0) {
+                throw new IllegalArgumentException(
+                        "선택한 기간에 사용 가능한 평일이 없습니다."
+                );
+            }
+
+            leaveDays =
+                    BigDecimal.valueOf(
+                            weekdayCount
+                    );
+        }
+
+
+        AnnualLeave annualLeave =
+                AnnualLeave.builder()
+                        .document(document)
+                        .leaveType(leaveType)
+                        .startDate(startDate)
+                        .endDate(endDate)
+                        .leaveDays(leaveDays)
+                        .build();
+
+        annualLeaveRepository.save(annualLeave);
+    }
+
+
+    /**
+     * 휴가 입력값 검증
+     */
+    private void validateAnnualLeave(
+            AnnualLeaveRequest request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "휴가 정보를 입력해주세요."
+            );
+        }
+
+        if (request.getLeaveType() == null) {
+            throw new IllegalArgumentException(
+                    "휴가 종류를 선택해주세요."
+            );
+        }
+
+        if (request.getStartDate() == null) {
+            throw new IllegalArgumentException(
+                    "휴가 시작일을 선택해주세요."
+            );
+        }
+
+
+        /*
+         * 반차
+         */
+        if (request.getLeaveType() == LeaveType.AM_HALF
+                || request.getLeaveType() == LeaveType.PM_HALF) {
+
+            return;
+        }
+
+
+        /*
+         * 연차
+         */
+        if (request.getEndDate() == null) {
+            throw new IllegalArgumentException(
+                    "휴가 종료일을 선택해주세요."
+            );
+        }
+
+        if (request.getEndDate()
+                .isBefore(request.getStartDate())) {
+
+            throw new IllegalArgumentException(
+                    "휴가 종료일은 시작일보다 빠를 수 없습니다."
+            );
+        }
+    }
+
+
+    /**
+     * 시작일 ~ 종료일 중 평일 수 계산
+     */
+    private int countWeekdays(
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        int count = 0;
+
+        LocalDate date =
+                startDate;
+
+        while (!date.isAfter(endDate)) {
+
+            if (!isWeekend(date)) {
+                count++;
+            }
+
+            date =
+                    date.plusDays(1);
+        }
+
+        return count;
+    }
+
+
+    /**
+     * 토/일 확인
+     */
+    private boolean isWeekend(
+            LocalDate date) {
+
+        DayOfWeek dayOfWeek =
+                date.getDayOfWeek();
+
+        return dayOfWeek == DayOfWeek.SATURDAY
+                || dayOfWeek == DayOfWeek.SUNDAY;
+    }
+
+
+    /**
      * 내가 상신한 문서
      */
-//    @Transactional(readOnly = true)
-//    public List<ApprovalDocumentResponse> getMyDocuments(Long emplId) {
-//
-//        return approvalDocumentRepository
-//                .findByWriter_EmplIdOrderByCreatedAtDesc(emplId)
-//                .stream()
-//                .map(this::toResponse)
-//                .toList();
-//    }
     @Transactional(readOnly = true)
     public Page<ApprovalDocumentResponse> getMyDocuments(
             Long emplId,
@@ -186,7 +382,9 @@ public class ApprovalDocumentService {
      * 현재 내가 결재해야 하는 문서
      */
     @Transactional(readOnly = true)
-    public List<ApprovalDocumentResponse> getPendingDocuments(Long emplId) {
+    public List<ApprovalDocumentResponse> getPendingDocuments(
+            Long emplId) {
+
         return approvalDocumentMemberRepository
                 .findByApprover_EmplIdAndStatusOrderByDocument_CreatedAtDesc(
                         emplId,
@@ -201,18 +399,15 @@ public class ApprovalDocumentService {
 
     /**
      * 문서 상세 조회
-     *
-     * 작성자는 항상 조회 가능.
-     * 결재자는 자신의 순서가 아직 오지 않은 WAITING 상태라면 조회를 막습니다.
      */
     @Transactional(readOnly = true)
     public ApprovalDocumentResponse getDocument(
             Long documentId,
             Long emplId) {
 
-        ApprovalDocument document = getDocumentEntity(documentId);
+        ApprovalDocument document =
+                getDocumentEntity(documentId);
 
-        // 작성자라면 바로 조회 가능
         if (Objects.equals(
                 document.getWriter().getEmplId(),
                 emplId)) {
@@ -250,9 +445,12 @@ public class ApprovalDocumentService {
             Long emplId,
             String comment) {
 
-        ApprovalDocument document = getDocumentEntity(documentId);
+        ApprovalDocument document =
+                getDocumentEntity(documentId);
 
-        if (!"IN_PROGRESS".equals(document.getStatus())) {
+        if (!"IN_PROGRESS".equals(
+                document.getStatus())) {
+
             throw new IllegalArgumentException(
                     "이미 결재가 종료된 문서입니다."
             );
@@ -271,10 +469,11 @@ public class ApprovalDocumentService {
                                 ));
 
         currentMember.setStatus("APPROVED");
-        currentMember.setApprovedAt(LocalDateTime.now());
+        currentMember.setApprovedAt(
+                LocalDateTime.now()
+        );
         currentMember.setComment(comment);
 
-        // 다음 WAITING 결재자를 찾음
         ApprovalDocumentMember nextMember =
                 approvalDocumentMemberRepository
                         .findFirstByDocument_DocumentIdAndStatusOrderByApprovalOrderAsc(
@@ -284,11 +483,15 @@ public class ApprovalDocumentService {
                         .orElse(null);
 
         if (nextMember != null) {
+
             nextMember.setStatus("PENDING");
+
         } else {
-            // 더 이상 결재자가 없으면 최종 승인
+
             document.setStatus("APPROVED");
-            document.setCompletedAt(LocalDateTime.now());
+            document.setCompletedAt(
+                    LocalDateTime.now()
+            );
         }
 
         return toResponse(document);
@@ -297,7 +500,6 @@ public class ApprovalDocumentService {
 
     /**
      * 반려
-     * 반려되는 순간 문서 전체 결재 종료
      */
     @Transactional
     public ApprovalDocumentResponse rejectDocument(
@@ -305,9 +507,12 @@ public class ApprovalDocumentService {
             Long emplId,
             String comment) {
 
-        ApprovalDocument document = getDocumentEntity(documentId);
+        ApprovalDocument document =
+                getDocumentEntity(documentId);
 
-        if (!"IN_PROGRESS".equals(document.getStatus())) {
+        if (!"IN_PROGRESS".equals(
+                document.getStatus())) {
+
             throw new IllegalArgumentException(
                     "이미 결재가 종료된 문서입니다."
             );
@@ -326,15 +531,23 @@ public class ApprovalDocumentService {
                                 ));
 
         currentMember.setStatus("REJECTED");
-        currentMember.setApprovedAt(LocalDateTime.now());
+        currentMember.setApprovedAt(
+                LocalDateTime.now()
+        );
         currentMember.setComment(comment);
 
         document.setStatus("REJECTED");
-        document.setCompletedAt(LocalDateTime.now());
+        document.setCompletedAt(
+                LocalDateTime.now()
+        );
 
         return toResponse(document);
     }
 
+
+    /**
+     * 문서 수정
+     */
     @Transactional
     public ApprovalDocumentResponse updateDocument(
             Long documentId,
@@ -344,8 +557,6 @@ public class ApprovalDocumentService {
         ApprovalDocument document =
                 getDocumentEntity(documentId);
 
-
-        // 작성자 확인
         if (!Objects.equals(
                 document.getWriter().getEmplId(),
                 emplId)) {
@@ -355,30 +566,35 @@ public class ApprovalDocumentService {
             );
         }
 
-
-        // 이미 누군가 승인/반려함
         if (hasApprovalAction(documentId)) {
             throw new IllegalArgumentException(
                     "결재가 진행된 문서는 수정할 수 없습니다."
             );
         }
 
-        // 종료된 문서 방어
-        if ("APPROVED".equals(document.getStatus())||"REJECTED".equals(document.getStatus())) {
+        if ("APPROVED".equals(document.getStatus())
+                || "REJECTED".equals(document.getStatus())) {
+
             throw new IllegalArgumentException(
                     "결재가 종료된 문서는 수정할 수 없습니다."
             );
         }
 
-        document.setTitle(request.getTitle());
-        document.setContent(request.getContent());
+        document.setTitle(
+                request.getTitle()
+        );
 
+        document.setContent(
+                request.getContent()
+        );
 
         return toResponse(document);
     }
 
 
-    //문서 제거 (처리 전에만 가능)
+    /**
+     * 문서 제거
+     */
     @Transactional
     public void deleteDocument(
             Long documentId,
@@ -386,7 +602,6 @@ public class ApprovalDocumentService {
 
         ApprovalDocument document =
                 getDocumentEntity(documentId);
-
 
         if (!Objects.equals(
                 document.getWriter().getEmplId(),
@@ -397,14 +612,12 @@ public class ApprovalDocumentService {
             );
         }
 
-
         if (hasApprovalAction(documentId)) {
 
             throw new IllegalArgumentException(
                     "결재가 진행된 문서는 삭제할 수 없습니다."
             );
         }
-
 
         if ("APPROVED".equals(document.getStatus())
                 || "REJECTED".equals(document.getStatus())) {
@@ -414,21 +627,32 @@ public class ApprovalDocumentService {
             );
         }
 
-        // 첨부파일 먼저 제거
-        approvalDocumentAttachmentService.deleteByDocumentId(documentId);
+        approvalDocumentAttachmentService
+                .deleteByDocumentId(documentId);
 
+        approvalDocumentMemberRepository
+                .deleteByDocument_DocumentId(
+                        documentId
+                );
 
-        // 결재자 제거
-        approvalDocumentMemberRepository.deleteByDocument_DocumentId(documentId);
+        /*
+         * 휴가 상세정보가 있다면 먼저 삭제
+         */
+        annualLeaveRepository
+                .findByDocument_DocumentId(
+                        documentId
+                )
+                .ifPresent(
+                        annualLeaveRepository::delete
+                );
 
-
-        // 문서 제거
-        approvalDocumentRepository.delete(document);
-
+        approvalDocumentRepository
+                .delete(document);
     }
 
 
-    private ApprovalDocument getDocumentEntity(Long documentId) {
+    private ApprovalDocument getDocumentEntity(
+            Long documentId) {
 
         return approvalDocumentRepository
                 .findById(documentId)
@@ -479,29 +703,61 @@ public class ApprovalDocumentService {
                         .toList();
 
         return ApprovalDocumentResponse.builder()
-                .documentId(document.getDocumentId())
-                .writerEmplId(document.getWriter().getEmplId())
-                .writerName(document.getWriter().getEmplName())
-                .title(document.getTitle())
-                .content(document.getContent())
-                .status(document.getStatus())
-                .approvalLineName(document.getApprovalLineName())
-                .createdAt(document.getCreatedAt())
-                .submittedAt(document.getSubmittedAt())
-                .completedAt(document.getCompletedAt())
-                .approvers(approvers)
+                .documentId(
+                        document.getDocumentId()
+                )
+                .writerEmplId(
+                        document.getWriter().getEmplId()
+                )
+                .writerName(
+                        document.getWriter().getEmplName()
+                )
+                .title(
+                        document.getTitle()
+                )
+                .content(
+                        document.getContent()
+                )
+                .status(
+                        document.getStatus()
+                )
+                .approvalLineName(
+                        document.getApprovalLineName()
+                )
+                .createdAt(
+                        document.getCreatedAt()
+                )
+                .submittedAt(
+                        document.getSubmittedAt()
+                )
+                .completedAt(
+                        document.getCompletedAt()
+                )
+                .approvers(
+                        approvers
+                )
                 .build();
     }
 
-    // 처리중인 문서인지 확인
-    private boolean hasApprovalAction(Long documentId) {
+
+    /**
+     * 처리 시작 여부 확인
+     */
+    private boolean hasApprovalAction(
+            Long documentId) {
 
         return approvalDocumentMemberRepository
-                .findByDocument_DocumentIdOrderByApprovalOrderAsc(documentId)
+                .findByDocument_DocumentIdOrderByApprovalOrderAsc(
+                        documentId
+                )
                 .stream()
                 .anyMatch(member ->
-                        "APPROVED".equals(member.getStatus())
-                                || "REJECTED".equals(member.getStatus())
+                        "APPROVED".equals(
+                                member.getStatus()
+                        )
+                                || "REJECTED".equals(
+                                member.getStatus()
+                        )
                 );
     }
 }

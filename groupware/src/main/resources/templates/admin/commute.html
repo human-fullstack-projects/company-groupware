@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>세부 직원 근태관리</title>
+
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/employee-search.css}">
+
+    <style>
+        body {
+            margin-top: var(--topinfo-height);
+            margin-left: var(--menubar-width);
+        }
+
+        main.admin-commute-content {
+            padding: 24px 40px 60px;
+        }
+
+        .admin-commute-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1.page-title {
+            margin: 0 0 4px;
+            font-size: 22px;
+            color: var(--color-navy-dark);
+        }
+
+        p.page-sub {
+            margin: 0 0 24px;
+            font-size: 13px;
+            color: #868e96;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot--normal {
+            background: #0ca30c;
+        }
+
+        .status-dot--late {
+            background: #fab219;
+        }
+
+        .status-dot--absent {
+            background: #d03b3b;
+        }
+
+        .status-dot--none {
+            background: #c3c2b7;
+        }
+
+        .modify-info {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .modify-info__by {
+            font-weight: 700;
+            color: #333333;
+        }
+
+        .modify-info__at,
+        .modify-info__reason {
+            color: #868e96;
+        }
+
+        .action-btn {
+            height: 32px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            background: var(--color-navy-dark);
+            color: var(--color-white);
+            border: 1px solid var(--color-navy-dark);
+        }
+
+        .action-btn:hover {
+            background: var(--color-navy);
+        }
+
+        .modal-veil {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 26, 51, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-veil.is-open {
+            display: flex;
+        }
+
+        .modal-box {
+            width: min(360px, calc(100vw - 32px));
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(16, 26, 51, .25);
+        }
+
+        .modal-box h2 {
+            margin: 0 0 16px;
+            font-size: 16px;
+            color: var(--color-navy-dark);
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #868e96;
+            margin-bottom: 6px;
+        }
+
+        .modal-field input,
+        .modal-field select,
+        .modal-field textarea {
+            width: 100%;
+            height: 38px;
+            padding: 0 10px;
+            font-size: 14px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-field textarea {
+            height: 70px;
+            padding: 8px 10px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .modal-error {
+            font-size: 12px;
+            color: #9a2b2b;
+            margin: -8px 0 12px;
+            display: none;
+        }
+
+        .modal-error.is-visible {
+            display: block;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-actions button {
+            height: 36px;
+            padding: 0 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-actions .cancel {
+            background: var(--color-white);
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+
+        .modal-actions .confirm {
+            background: var(--color-navy-dark);
+            border: 1px solid var(--color-navy-dark);
+            color: var(--color-white);
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/menubar :: menubar}"></div>
+
+<main class="admin-commute-content">
+    <div class="admin-commute-container">
+
+        <h1 class="page-title">세부 직원 근태관리</h1>
+        <p class="page-sub">조회 날짜의 직원별 근태 현황을 확인하고, 출근시간과 상태를 직접 수정합니다.</p>
+
+        <section class="search-filter-section">
+            <form th:action="@{/admin/commute}" method="get" class="search-filter-form">
+
+                <span class="search-filter-label">조회 날짜</span>
+                <input type="date" name="date" class="search-input" th:value="${date}">
+
+                <span class="search-filter-label filter-label-grade">부서</span>
+                <select name="departmentId" class="search-select">
+                    <option value="">전체</option>
+                    <option th:each="dept : ${departments}"
+                            th:value="${dept.deptId}"
+                            th:text="${dept.deptName}"
+                            th:selected="${departmentId != null and departmentId == dept.deptId}">
+                    </option>
+                </select>
+
+                <input type="text"
+                       name="emplName"
+                       class="search-input"
+                       placeholder="직원이름"
+                       th:value="${emplName}">
+
+                <button type="submit" class="search-btn">검색</button>
+            </form>
+        </section>
+
+        <section class="employee-table-section">
+            <table class="employee-table">
+                <thead>
+                <tr>
+                    <th style="width: 8%;">사번</th>
+                    <th style="width: 12%;">이름</th>
+                    <th style="width: 12%;">부서</th>
+                    <th style="width: 12%;">출근시간</th>
+                    <th style="width: 12%;">상태</th>
+                    <th style="width: 24%;">최근 수정</th>
+                    <th style="width: 10%;">작업</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${commuteList}">
+                    <td class="text-center" th:text="${row.emplId}">1</td>
+                    <td class="text-center" th:text="${row.emplName}">홍길동</td>
+                    <td class="text-center" th:text="${row.departmentName}">부서명</td>
+                    <td class="text-center" th:text="${row.startTime != null ? row.startTime : '-'}">09:00:00</td>
+                    <td class="text-center">
+                        <span class="status-badge">
+                            <span class="status-dot"
+                                  th:classappend="${row.status == null ? 'status-dot--none' :
+                                                    (row.status.name() == 'NORMAL' ? 'status-dot--normal' :
+                                                    (row.status.name() == 'LATE' ? 'status-dot--late' : 'status-dot--absent'))}"></span>
+                            <span th:text="${row.statusLabel}">출근 전</span>
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div th:if="${row.modifiedBy != null}" class="modify-info">
+                            <div class="modify-info__by" th:text="${row.modifiedBy}">관리자</div>
+                            <div class="modify-info__at"
+                                 th:text="${#temporals.format(row.modifiedAt, 'yyyy-MM-dd HH:mm')}">2026-09-16 10:00</div>
+                            <div class="modify-info__reason" th:text="${row.modifyReason}">사유</div>
+                        </div>
+                        <span th:if="${row.modifiedBy == null}">-</span>
+                    </td>
+                    <td class="text-center">
+                        <button type="button"
+                                class="action-btn edit-commute-btn"
+                                th:attr="data-empl-id=${row.emplId},
+                                         data-empl-name=${row.emplName},
+                                         data-attendance-date=${row.attendanceDate},
+                                         data-start-time=${row.startTime},
+                                         data-status=${row.status}">수정</button>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(commuteList)}">
+                    <td colspan="7" class="empty-result">조회된 직원이 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+</main>
+
+<div class="modal-veil" id="commuteModalVeil">
+    <div class="modal-box">
+        <h2 id="commuteModalTitle">근태 수정</h2>
+        <div class="modal-error" id="commuteModalError"></div>
+        <div class="modal-field">
+            <label for="commuteModalTime">출근시간</label>
+            <input type="time" id="commuteModalTime" step="1">
+        </div>
+        <div class="modal-field">
+            <label for="commuteModalStatus">상태</label>
+            <select id="commuteModalStatus">
+                <option value="NORMAL">정상</option>
+                <option value="LATE">지각</option>
+                <option value="ABSENT">결근</option>
+            </select>
+        </div>
+        <div class="modal-field">
+            <label for="commuteModalReason">수정 사유</label>
+            <textarea id="commuteModalReason" placeholder="예) 지문인식 오류로 관리자가 직접 수정" style="resize: none"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="cancel" id="commuteModalCancel">취소</button>
+            <button type="button" class="confirm" id="commuteModalConfirm">저장</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="none">
+    (function () {
+        var csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        var veil = document.getElementById('commuteModalVeil');
+        var titleEl = document.getElementById('commuteModalTitle');
+        var errorEl = document.getElementById('commuteModalError');
+        var timeInput = document.getElementById('commuteModalTime');
+        var statusSelect = document.getElementById('commuteModalStatus');
+        var reasonInput = document.getElementById('commuteModalReason');
+        var confirmBtn = document.getElementById('commuteModalConfirm');
+        var cancelBtn = document.getElementById('commuteModalCancel');
+        var pendingButton = null;
+
+        function openModal(button) {
+            pendingButton = button;
+            titleEl.textContent = button.dataset.emplName + ' 근태 수정';
+            errorEl.classList.remove('is-visible');
+            timeInput.value = button.dataset.startTime || '';
+            statusSelect.value = button.dataset.status || 'NORMAL';
+            reasonInput.value = '';
+            veil.classList.add('is-open');
+        }
+
+        function closeModal() {
+            veil.classList.remove('is-open');
+            pendingButton = null;
+        }
+
+        function showError(message) {
+            errorEl.textContent = message;
+            errorEl.classList.add('is-visible');
+        }
+
+        document.querySelectorAll('.edit-commute-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                openModal(button);
+            });
+        });
+
+        cancelBtn.addEventListener('click', closeModal);
+        veil.addEventListener('click', function (ev) {
+            if (ev.target === veil) closeModal();
+        });
+
+        confirmBtn.addEventListener('click', function () {
+            if (!pendingButton) return;
+
+            if (!timeInput.value) {
+                showError('출근시간을 입력해주세요.');
+                return;
+            }
+            if (!reasonInput.value.trim()) {
+                showError('수정 사유를 입력해주세요.');
+                return;
+            }
+
+            var emplId = pendingButton.dataset.emplId;
+            var attendanceDate = pendingButton.dataset.attendanceDate;
+
+            var headers = {'Content-Type': 'application/json'};
+            headers[csrfHeader] = csrfToken;
+
+            fetch('/admin/commute/' + emplId + '?date=' + attendanceDate, {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({
+                    startTime: timeInput.value,
+                    status: statusSelect.value,
+                    reason: reasonInput.value.trim()
+                })
+            }).then(function (res) {
+                if (!res.ok) {
+                    throw new Error('수정에 실패했습니다.');
+                }
+                return res.json();
+            }).then(function () {
+                window.location.reload();
+            }).catch(function (err) {
+                showError(err.message);
+            });
+        });
+    })();
+</script>
+
+</body>
+
+</html>
