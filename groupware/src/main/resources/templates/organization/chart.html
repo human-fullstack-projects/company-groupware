@@ -1,15 +1,20 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>조직도| COMPANY TALK</title>
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
     <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
     <link rel="stylesheet" th:href="@{/css/organization-chart.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/people-workspace.css}">
 </head>
+
 <body class="workspace-home">
 <a class="skip-link" href="#chart-main">본문으로 건너뛰기</a>
 
@@ -37,11 +42,9 @@
         <!-- 페이지 상단 타이틀 영역 (박스 바깥 상단) -->
         <div class="home-heading">
             <div>
-                <span class="home-eyebrow">COMPANY STRUCTURE</span>
                 <h1 th:text="${chartData.currentDeptName != null ? chartData.currentDeptName : '조직도'}">조직도</h1>
                 <p>사내 부서 편제 및 직원 구조를 확인합니다.</p>
             </div>
-            <span class="home-label">조직 현황</span>
         </div>
 
         <!-- ★ 핵심: 조직도 내용 전체를 감싸는 흰색 테두리 박스 -->
@@ -107,23 +110,27 @@
 
                 </th:block>
 
-                <!-- 직원 상세 정보 모달 팝업 -->
-                <div id="employeeModal" class="modal-overlay">
-                    <div class="modal-content">
-                        <h3 class="modal-header">직원 상세 정보</h3>
+                </div>
 
-                        <div class="modal-body-info">
-                            <p><strong>이름:</strong> <span id="modalEmpName"></span></p>
-                            <p><strong>부서:</strong> <span id="modalDeptName"></span></p>
-                            <p><strong>직급:</strong> <span id="modalGradeName"></span></p>
-                            <p><strong>연락처:</strong> <span id="modalPhone"></span></p>
-                            <p><strong>이메일:</strong> <span id="modalEmail"></span></p>
-                            <p><strong>주소:</strong> <span id="modalAddress"></span></p>
-                        </div>
+        </th:block>
 
-                        <div class="modal-footer">
-                            <button type="button" id="closeModalBtn" class="modal-close-btn">닫기</button>
-                        </div>
+            <!-- 직원 상세 정보 모달 팝업 -->
+            <div id="employeeModal" class="modal-overlay">
+                <div class="modal-content">
+                    <h3 class="modal-header">직원 상세 정보</h3>
+
+                    <div class="modal-body-info">
+                        <p><strong>이름:</strong> <span id="modalEmpName"></span></p>
+                        <p><strong>부서:</strong> <span id="modalDeptName"></span></p>
+                        <p><strong>직급:</strong> <span id="modalGradeName"></span></p>
+                        <p><strong>연락처:</strong> <span id="modalPhone"></span></p>
+                        <p><strong>이메일:</strong> <span id="modalEmail"></span></p>
+                        <p><strong>주소:</strong> <span id="modalAddress"></span></p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" id="closeModalBtn" class="modal-close-btn">닫기</button>
+
                     </div>
                 </div>
 
@@ -134,6 +141,8 @@
         <footer class="home-footer" style="margin-top: 40px;">COMPANY TALK <span>함께 일하는 우리를 위한 공간</span></footer>
     </main>
 </div>
+
+</div><!-- /people-content -->
 
 <script>
     function openEmployeeModal(element) {

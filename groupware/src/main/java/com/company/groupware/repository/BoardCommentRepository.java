@@ -6,8 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface BoardCommentRepository extends JpaRepository<Comment, Long> {
-    // select * from comment where board_id = {넘겨준 파라미터} order by created_at and com_id asc
-//    List<Comment> findByBoardIdOrderByCreatedAtAscComIdAsc(Long boardId);
+
     List<Comment> findByBoardBoardIdOrderByCreatedAtAscComIdAsc(Long boardId);
+
     boolean existsByParentComment_ComId(Long commentId);
+
+    // 해당 게시글의 최상위 댓글 조회
+    List<Comment> findByBoardBoardIdAndParentCommentIsNull(Long boardId);
+
+    // 해당 댓글 바로 아래의 답글 조회
+    List<Comment> findByParentComment_ComId(Long parentCommentId);
 }

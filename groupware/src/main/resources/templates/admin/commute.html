@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>세부 직원 근태관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>직원 근태 관리 · COMPANY TALK</title>
 
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
@@ -201,12 +202,18 @@
             color: var(--color-white);
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/people-workspace.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-people people-admin">
+<a class="skip-link" href="#people-main">본문으로 이동</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('admin')}"></div>
+<div class="people-content" id="people-main">
+<div class="people-eyebrow">ATTENDANCE MANAGEMENT</div>
+<nav class="people-tabs" aria-label="관리자 메뉴"><a th:href="@{/admin}">개요</a><a th:href="@{/admin/employees}">직원계정</a><a th:href="@{/admin/departments}">부서</a><a th:href="@{/admin/grades}">직급</a><a th:href="@{/admin/commute}" class="is-current" aria-current="page">근태</a></nav>
 
 <main class="admin-commute-content">
     <div class="admin-commute-container">
@@ -324,6 +331,8 @@
         </div>
     </div>
 </div>
+
+</div><!-- /people-content -->
 
 <script th:inline="none">
     (function () {

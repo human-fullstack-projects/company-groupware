@@ -28,9 +28,28 @@
 <!-- 카테고리 필터 -->
 <div class="category-filter">
 
+    <!-- 전체보기: 관리자는 전체 카테고리, 일반 직원은 자신이 볼 수 있는 카테고리(소속 부서/부서공지/공지/자유게시판) 전부 -->
+    <a th:href="@{/boards}"
+       th:classappend="${categoryId == null} ? ' active' : ''"
+       class="filter-pill">
+        전체
+    </a>
+
     <a th:each="category : ${categories}"
        th:if="${category.boardCategoryName == '공지'}"
-       th:href="@{/boards(categoryId=${category.boardCategoryId})}"
+       th:href="${categoryId != null and categoryId == category.boardCategoryId}
+            ? @{/boards}
+            : @{/boards(categoryId=${category.boardCategoryId})}"
+       th:text="${category.boardCategoryName}"
+       th:classappend="${categoryId != null and categoryId == category.boardCategoryId} ? ' active' : ''"
+       class="filter-pill">
+    </a>
+
+    <a th:each="category : ${categories}"
+       th:if="${category.boardCategoryName == '자유게시판'}"
+       th:href="${categoryId != null and categoryId == category.boardCategoryId}
+            ? @{/boards}
+            : @{/boards(categoryId=${category.boardCategoryId})}"
        th:text="${category.boardCategoryName}"
        th:classappend="${categoryId != null and categoryId == category.boardCategoryId} ? ' active' : ''"
        class="filter-pill">
@@ -57,14 +76,6 @@
             </option>
         </optgroup>
     </select>
-
-    <a th:each="category : ${categories}"
-       th:if="${category.boardCategoryName == '자유게시판'}"
-       th:href="@{/boards(categoryId=${category.boardCategoryId})}"
-       th:text="${category.boardCategoryName}"
-       th:classappend="${categoryId != null and categoryId == category.boardCategoryId} ? ' active' : ''"
-       class="filter-pill">
-    </a>
 
 </div>
 

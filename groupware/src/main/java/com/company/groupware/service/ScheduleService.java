@@ -68,7 +68,7 @@ public class ScheduleService {
         Employee employee = getEmployee(loginId);
         lockCalendar();
         Schedule schedule = findSchedule(scheduleId);
-        requireSameDepartment(schedule, employee);
+        requireManagePermission(schedule, employee);
         if (isCancelled(schedule)) {
             throw error(HttpStatus.CONFLICT, "취소된 일정은 수정할 수 없습니다.");
         }
@@ -86,7 +86,7 @@ public class ScheduleService {
         Employee employee = getEmployee(loginId);
         lockCalendar();
         Schedule schedule = findSchedule(scheduleId);
-        requireSameDepartment(schedule, employee);
+        requireManagePermission(schedule, employee);
 
         // 이미 취소되었으면 재요청해도 기록을 다시 바꾸지 않음
         if (isCancelled(schedule)) return toResponse(schedule, employee);
@@ -150,10 +150,18 @@ public class ScheduleService {
                                   schedule.getDepartment().getDeptId());
     }
 
-    private void requireSameDepartment(Schedule schedule, Employee employee) {
-        if (!sameDepartment(schedule, employee)) {
+    // 관리자 또는 일정 담당 부서 직원에게 관리 권한을 허용합니다.
+    // 서버의 수정·취소 검사와 화면의 editable 판단에서 같은 규칙을 사용합니다.
+    private boolean canManage(Schedule schedule, Employee employee) {
+        return employee != null
+                && (Boolean.TRUE.equals(employee.getEmplStat())
+                    || sameDepartment(schedule, employee));
+    }
+
+    private void requireManagePermission(Schedule schedule, Employee employee) {
+        if (!canManage(schedule, employee)) {
             throw error(HttpStatus.FORBIDDEN,
-                    "일정 담당 부서 직원만 수정하거나 취소할 수 있습니다.");
+                    "관리자 또는 일정 담당 부서 직원만 수정하거나 취소할 수 있습니다.");
         }
     }
 
@@ -192,7 +200,7 @@ public class ScheduleService {
                 schedule.getScheduleId(), schedule.getTitle(), schedule.getContent(),
                 schedule.getStartAt(), schedule.getEndAt(),
                 schedule.getDepartment().getDeptName(), schedule.getEmployee().getEmplName(),
-                schedule.getVersion(), sameDepartment(schedule, employee) && !cancelled, cancelled
+                schedule.getVersion(), canManage(schedule, employee) && !cancelled, cancelled
         );
     }
 

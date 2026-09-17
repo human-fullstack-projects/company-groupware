@@ -8,6 +8,7 @@ import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.BoardCategoryRepository;
 import com.company.groupware.repository.BoardFileRepository;
 import com.company.groupware.repository.BoardRepository;
+import com.company.groupware.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -31,6 +32,9 @@ import java.util.UUID;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.company.groupware.entity.Comment;
+import com.company.groupware.repository.BoardCommentRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +45,8 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardCategoryRepository boardCategoryRepository;
     private final BoardFileRepository boardFileRepository;
+    private final BoardCommentRepository commentRepository;
+    private final DepartmentRepository departmentRepository;
 
     /**
      * 게시글 전체 조회
@@ -265,6 +271,40 @@ public class BoardService {
 
         return findAllCategories().stream()
                 .filter(category -> canWrite(category, viewer))
+                .toList();
+    }
+
+    /**
+     * 부서 게시판/부서공지 카테고리인데, 그 이름이 가리키는 부서가 더 이상 존재하지 않는지 여부.
+     * 부서를 삭제해도 카테고리 행 자체는 지우지 않으므로(과거 글 보존), 드롭다운에서만 걸러낸다.
+     */
+    private boolean isOrphanedDeptCategory(BoardCategory category) {
+
+        String requiredDept = requiredDepartmentName(category);
+
+        return requiredDept != null && !departmentRepository.existsByDeptName(requiredDept);
+    }
+
+    /**
+     * 목록 화면의 카테고리 필터 드롭다운에 보여줄 카테고리.
+     * 읽기 권한은 visibleCategories와 동일하되, 부서가 삭제되어 더 이상 존재하지 않는
+     * 부서 게시판/부서공지는 선택지에서 제외한다 (해당 카테고리의 기존 글 열람 권한에는 영향 없음).
+     */
+    public List<BoardCategory> visibleDropdownCategories(Employee viewer) {
+
+        return visibleCategories(viewer).stream()
+                .filter(category -> !isOrphanedDeptCategory(category))
+                .toList();
+    }
+
+    /**
+     * 글쓰기/수정 폼의 카테고리 드롭다운에 보여줄 카테고리.
+     * 부서가 삭제되어 더 이상 존재하지 않는 부서 게시판/부서공지는 선택지에서 제외한다.
+     */
+    public List<BoardCategory> writableDropdownCategories(Employee viewer) {
+
+        return writableCategories(viewer).stream()
+                .filter(category -> !isOrphanedDeptCategory(category))
                 .toList();
     }
 
@@ -742,15 +782,64 @@ public class BoardService {
     /**
      * 게시글 삭제
      */
+    @Transactional
     public void delete(
             Long boardId) {
 
         Board board =
                 findById(boardId);
 
-        boardRepository.delete(
-                board
-        );
+        /*
+         * 댓글 삭제
+         *
+         * 댓글이 com_id2로 자기 자신을 참조하고 있으므로
+         * 최하위 대댓글부터 부모 댓글 방향으로 삭제
+         */
+        commentRepository
+                .findByBoardBoardIdAndParentCommentIsNull(boardId)
+                .forEach(this::deleteCommentTree);
+
+        // 댓글 DELETE를 먼저 DB에 반영
+        commentRepository.flush();
+
+
+        /*
+         * 게시글 첨부파일 삭제
+         *
+         * Board_file 역시 board_id FK를 가지고 있어서
+         * 게시글보다 먼저 삭제해야 함
+         */
+        List<BoardFile> boardFiles =
+                boardFileRepository.findByBoard(board);
+
+        for (BoardFile boardFile : boardFiles) {
+            deleteBoardFile(boardFile);
+        }
+
+        boardFileRepository.flush();
+
+
+        /*
+         * 댓글/첨부파일 제거 후
+         * 마지막으로 게시글 삭제
+         */
+        boardRepository.delete(board);
+    }
+
+
+    /**
+     * 댓글 + 대댓글 재귀 삭제
+     */
+    private void deleteCommentTree(
+            Comment comment) {
+
+        // 내 밑에 달린 답글부터 먼저 삭제
+        commentRepository
+                .findByParentComment_ComId(comment.getComId())
+                .forEach(this::deleteCommentTree);
+
+        // 자식이 전부 없어지고 나면 나를 삭제
+        commentRepository.delete(comment);
     }
 
     /**
