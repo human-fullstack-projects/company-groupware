@@ -115,7 +115,7 @@ public class BoardController {
 
         model.addAttribute(
                 "categories",
-                boardService.visibleCategories(loginEmployee)
+                boardService.visibleDropdownCategories(loginEmployee)
         );
 
         model.addAttribute(
@@ -167,7 +167,7 @@ public class BoardController {
         Employee employee = getLoginEmployee(authentication);
 
         List<BoardCategory> categories =
-                boardService.writableCategories(employee);
+                boardService.writableDropdownCategories(employee);
 
         model.addAttribute(
                 "categories",
@@ -376,7 +376,7 @@ public class BoardController {
         }
 
         List<BoardCategory> categories =
-                boardService.writableCategories(employee);
+                boardService.writableDropdownCategories(employee);
 
         model.addAttribute(
                 "board",
