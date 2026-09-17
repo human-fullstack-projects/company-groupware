@@ -3,25 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사내 메신저 - 직원 검색</title>
+    <title>직원 조회 · COMPANY TALK</title>
     <!-- 사이트 공통 스타일 및 상단바/메뉴바 CSS -->
     <link rel="stylesheet" th:href="@{/css/common.css}" href="../../static/css/common.css">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../../static/css/topinfo.css">
     <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../../static/css/menubar.css">
     <!-- 직원 검색 화면 전용 CSS -->
     <link rel="stylesheet" th:href="@{/css/employee-search.css}" href="../../static/css/employee-search.css">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/people-workspace.css}">
 </head>
-<body>
+<body class="workspace-home workspace-people people-employees">
+<a class="skip-link" href="#people-main">본문으로 이동</a>
 
 <!-- 1. 최상단 사이트 정보 및 로그인 바 모듈 삽입 -->
-<div th:replace="~{module/topinfo :: topinfo}"></div>
+<div th:replace="~{module/workspace :: userHeader}"></div>
 
 <!-- 2. 좌측 고정 네비게이션 메뉴바 모듈 삽입 -->
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: sidebar('employees')}"></div>
+<div class="people-content" id="people-main">
+<div class="people-eyebrow">PEOPLE DIRECTORY</div>
 
 <!-- 3. 메인 콘텐츠 영역: 우측 화면에 위치 -->
 <main class="employee-content">
     <div class="employee-container">
+<header class="people-heading"><h1>직원 조회</h1><p>부서와 직급으로 동료를 찾고 연락처를 확인하세요.</p></header>
 
         <!-- 직원검색 기능 영역 -->
         <div id="employeeSearchArea">
@@ -97,5 +103,6 @@
     </div>
 </main>
 
+</div><!-- /people-content -->
 </body>
 </html>

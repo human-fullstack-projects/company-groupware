@@ -1,21 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>조직도</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>조직도 · COMPANY TALK</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
     <link rel="stylesheet" th:href="@{/css/employee-search.css}">
     <link rel="stylesheet" th:href="@{/css/organization-chart.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/people-workspace.css}">
 </head>
-<body>
+<body class="workspace-home workspace-people people-organization">
+<a class="skip-link" href="#people-main">본문으로 이동</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('organization')}"></div>
+<div class="people-content" id="people-main" role="main">
+<div class="people-eyebrow">OUR ORGANIZATION</div>
 
 <div class="employee-content">
     <div class="employee-container">
+<header class="people-heading"><h1>우리 회사 조직도</h1><p>부서를 선택해 구성원을 확인하고, 직원 이름을 눌러 상세 정보를 확인하세요.</p></header>
 
         <div class="search-filter-section" style="text-align: center;">
             <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--color-black);"
@@ -73,7 +80,7 @@
                         <!-- 해당 직급의 행(Row) 리스트 (한 행에 최대 5개) -->
                         <div class="grade-row-wrapper" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;">
                             <div class="org-level-row" th:each="row : ${tier.rowEmployeeLists}" style="display: flex; justify-content: center; gap: 15px; width: 100%; flex-wrap: wrap;">
-                                <div class="org-box employee-box" th:each="emp : ${row}"
+                                <div class="org-box employee-box" role="button" tabindex="0" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault();openEmployeeModal(this);}" th:each="emp : ${row}"
                                      th:text="${emp.emplName}"
                                      th:data-empl-id="${emp.emplId}"
                                      style="cursor: pointer;"
@@ -84,6 +91,7 @@
                             <!-- 직급 묶음들과 묶음 사이의 연결선 (필요시 유지 또는 조정) -->
                             <div class="org-line-vertical" th:if="${!tierStat.last}" style="height: 20px; margin: 5px 0;"></div>
 
+                    </div><!-- /dept-tier-group -->
                     </th:block>
                 </div>
 
@@ -120,6 +128,8 @@
 
     </div>
 </div>
+
+</div><!-- /people-content -->
 
 <script>
     // 직원 박스 클릭 시 실행되는 함수

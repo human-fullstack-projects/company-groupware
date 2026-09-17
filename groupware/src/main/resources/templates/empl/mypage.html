@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>마이페이지</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>마이페이지 · COMPANY TALK</title>
 
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
@@ -258,12 +259,17 @@
             object-fit: contain;
         }
     </style>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/people-workspace.css}">
 </head>
 
-<body>
+<body class="workspace-home workspace-people people-mypage">
+<a class="skip-link" href="#people-main">본문으로 이동</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<div th:replace="~{module/workspace :: userHeader}"></div>
+<div th:replace="~{module/workspace :: sidebar('mypage')}"></div>
+<div class="people-content" id="people-main">
+<div class="people-eyebrow">MY ACCOUNT</div>
 
 <main class="mypage-content">
     <div class="mypage-container">
@@ -591,6 +597,8 @@
 
 </div>
 
+
+</div><!-- /people-content -->
 
 <script th:inline="none">
 
