@@ -8,6 +8,7 @@ import com.company.groupware.entity.Employee;
 import com.company.groupware.repository.BoardCategoryRepository;
 import com.company.groupware.repository.BoardFileRepository;
 import com.company.groupware.repository.BoardRepository;
+import com.company.groupware.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -45,6 +46,7 @@ public class BoardService {
     private final BoardCategoryRepository boardCategoryRepository;
     private final BoardFileRepository boardFileRepository;
     private final BoardCommentRepository commentRepository;
+    private final DepartmentRepository departmentRepository;
 
     /**
      * 게시글 전체 조회
@@ -269,6 +271,40 @@ public class BoardService {
 
         return findAllCategories().stream()
                 .filter(category -> canWrite(category, viewer))
+                .toList();
+    }
+
+    /**
+     * 부서 게시판/부서공지 카테고리인데, 그 이름이 가리키는 부서가 더 이상 존재하지 않는지 여부.
+     * 부서를 삭제해도 카테고리 행 자체는 지우지 않으므로(과거 글 보존), 드롭다운에서만 걸러낸다.
+     */
+    private boolean isOrphanedDeptCategory(BoardCategory category) {
+
+        String requiredDept = requiredDepartmentName(category);
+
+        return requiredDept != null && !departmentRepository.existsByDeptName(requiredDept);
+    }
+
+    /**
+     * 목록 화면의 카테고리 필터 드롭다운에 보여줄 카테고리.
+     * 읽기 권한은 visibleCategories와 동일하되, 부서가 삭제되어 더 이상 존재하지 않는
+     * 부서 게시판/부서공지는 선택지에서 제외한다 (해당 카테고리의 기존 글 열람 권한에는 영향 없음).
+     */
+    public List<BoardCategory> visibleDropdownCategories(Employee viewer) {
+
+        return visibleCategories(viewer).stream()
+                .filter(category -> !isOrphanedDeptCategory(category))
+                .toList();
+    }
+
+    /**
+     * 글쓰기/수정 폼의 카테고리 드롭다운에 보여줄 카테고리.
+     * 부서가 삭제되어 더 이상 존재하지 않는 부서 게시판/부서공지는 선택지에서 제외한다.
+     */
+    public List<BoardCategory> writableDropdownCategories(Employee viewer) {
+
+        return writableCategories(viewer).stream()
+                .filter(category -> !isOrphanedDeptCategory(category))
                 .toList();
     }
 
