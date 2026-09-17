@@ -50,7 +50,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "LEFT JOIN FETCH e.grade g " +
             "LEFT JOIN FETCH e.department d " +
             "WHERE d.deptId = :deptId " +
-            "ORDER BY g.gradeId ASC, e.emplName ASC")
+            "ORDER BY g.gradePriority ASC, e.emplName ASC")
     List<Employee> findOrgEmployeesByDepartmentId(@Param("deptId") Long deptId);
 
 //    List<Employee> findByDepartmentDeptId(@Param("deptId") Long deptId);
