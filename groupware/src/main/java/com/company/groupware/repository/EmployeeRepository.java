@@ -30,12 +30,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "LEFT JOIN FETCH e.grade g " +
             "WHERE (:departmentId IS NULL OR d.deptId = :departmentId) " +
             "AND (:gradeId IS NULL OR g.gradeId = :gradeId) " +
-            "AND (:emplName IS NULL OR e.emplName LIKE %:emplName%) " +
+            "AND (:emplName IS NULL OR :emplName = '' OR " +
+            "     (:nameLength >= 3 AND e.emplName = :emplName) OR " +
+            "     (:nameLength < 3 AND e.emplName LIKE %:emplName%)) " +
             "ORDER BY d.deptName ASC, g.gradeId ASC, e.emplName ASC")
-    List<Employee> searchEmployees(
+    List<Employee> searchEmployeesWithLengthCheck(
             @Param("departmentId") Long departmentId,
             @Param("gradeId") Long gradeId,
-            @Param("emplName") String emplName
+            @Param("emplName") String emplName,
+            @Param("nameLength") int nameLength
     );
 
     /**

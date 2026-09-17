@@ -115,7 +115,14 @@ public class CommuteService {
      */
     public List<CommuteAdminListResponse> getCommuteList(LocalDate date, Long departmentId, String emplName) {
         String keyword = StringUtils.hasText(emplName) ? emplName.trim() : null;
-        List<Employee> employees = employeeRepository.searchEmployees(departmentId, null, keyword);
+
+        // 이름의 글자 수 계산 (null인 경우 0으로 처리)
+        int nameLength = (keyword != null) ? keyword.length() : 0;
+
+        // gradeId 자리에 null을 넣고, 마지막에 nameLength 파라미터를 추가하여 4개 맞춤
+        List<Employee> employees = employeeRepository.searchEmployeesWithLengthCheck(
+                departmentId, null, keyword, nameLength
+        );
 
         Map<Long, Commute> commuteByEmplId = commuteRepository.findByAttendanceDateWithEmployee(date).stream()
                 .collect(Collectors.toMap(c -> c.getEmployee().getEmplId(), c -> c));

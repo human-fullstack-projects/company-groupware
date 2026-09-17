@@ -83,22 +83,32 @@
                 <path d="M9 6h9v5m-3-3 3 3 3-3M15 18H6v-5"/>
             </svg>
             <span>결재라인 관리</span><span class="ct-active-dot" aria-hidden="true" th:if="${active == 'lines'}"></span></a></section>
-        <section class="ct-nav-group" aria-labelledby="nav-organization"><h2 id="nav-organization">조직</h2><a
-                class="ct-nav-link" th:href="@{/employees}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
-                 stroke-linejoin="round" aria-hidden="true">
-                <circle cx="9" cy="7" r="3"/>
-                <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v2"/>
-            </svg>
-            <span>직원 조회</span></a><span class="ct-nav-link is-unavailable" aria-disabled="true" title="현재 화면 연결 준비 중"><svg
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2"
-                                                                                                                y="17"
-                                                                                                                width="6"
-                                                                                                                height="5"
-                                                                                                                rx="1"/><rect
-                x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-5h14v5"/></svg><span>조직도</span><small>준비 중</small></span>
+
+        <!-- 기존 준비 중 코드를 아래와 같이 a 태그 링크로 변경 -->
+        <section class="ct-nav-group" aria-labelledby="nav-organization">
+            <h2 id="nav-organization">조직</h2>
+
+            <!-- 직원 조회 -->
+            <a class="ct-nav-link" th:classappend="${active == 'employees'} ? ' is-active' : ''"
+               th:attr="aria-current=${active == 'employees' ? 'page' : null}" th:href="@{/employees}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v2"/>
+                </svg>
+                <span>직원 조회</span>
+                <span class="ct-active-dot" aria-hidden="true" th:if="${active == 'employees'}"></span>
+            </a>
+
+            <!-- 조직도 (준비 중 제거 및 링크 연결) -->
+            <a class="ct-nav-link" th:classappend="${active == 'organization'} ? ' is-active' : ''"
+               th:attr="aria-current=${active == 'organization' ? 'page' : null}" th:href="@{/organization/chart}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-5h14v5"/>
+                </svg>
+                <span>조직도</span>
+                <span class="ct-active-dot" aria-hidden="true" th:if="${active == 'organization'}"></span>
+            </a>
         </section>
+
         <div class="ct-nav-bottom"><a class="ct-nav-link" th:href="@{/mypage}"><svg
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
                 stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path

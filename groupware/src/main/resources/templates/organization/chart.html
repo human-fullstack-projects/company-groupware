@@ -2,135 +2,146 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>조직도</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>조직도| COMPANY TALK</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}">
     <link rel="stylesheet" th:href="@{/css/menubar.css}">
-    <link rel="stylesheet" th:href="@{/css/employee-search.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
     <link rel="stylesheet" th:href="@{/css/organization-chart.css}">
 </head>
-<body>
+<body class="workspace-home">
+<a class="skip-link" href="#chart-main">본문으로 건너뛰기</a>
 
-<div th:replace="~{module/topinfo :: topinfo}"></div>
-<div th:replace="~{module/menubar :: menubar}"></div>
+<!-- 상단 헤더 (home.html과 동일한 구조) -->
+<header class="topinfo">
+    <h1 class="topinfo__title"><a th:href="@{/}" style="color: inherit; text-decoration: none;">COMPANY TALK</a></h1>
+    <div class="topinfo__auth">
+        <th:block th:if="${loginEmployee != null}">
+            <a th:href="@{/mypage}" class="topinfo__login-btn topinfo__user-btn"><span th:text="${loginEmployee.emplName}">이름</span><span class="topinfo__user-id" th:text="'(' + ${loginEmployee.loginId} + ')'">(아이디)</span></a>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="topinfo__login-btn">로그아웃</button>
+            </form>
+        </th:block>
+        <a th:if="${loginEmployee == null}" th:href="@{/login}" class="topinfo__login-btn">로그인</a>
+    </div>
+</header>
 
-<div class="employee-content">
+<!-- 좌측 사이드바 연동 (조직도 활성화 'organization') -->
+<div th:replace="~{module/workspace :: sidebar('organization')}"></div>
+
+<!-- 메인 콘텐츠 영역 (home-content 클래스 적용 및 흰색 박스 컨테이너 배치) -->
+<main class="home-content" id="chart-main">
     <div class="employee-container">
 
-        <div class="search-filter-section" style="text-align: center;">
-            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--color-black);"
-                th:text="${chartData.currentDeptName != null ? chartData.currentDeptName : '조직도'}">조직도</h2>
+        <!-- 페이지 상단 타이틀 영역 (박스 바깥 상단) -->
+        <div class="home-heading">
+            <div>
+                <span class="home-eyebrow">COMPANY STRUCTURE</span>
+                <h1 th:text="${chartData.currentDeptName != null ? chartData.currentDeptName : '조직도'}">조직도</h1>
+                <p>사내 부서 편제 및 직원 구조를 확인합니다.</p>
+            </div>
+            <span class="home-label">조직 현황</span>
         </div>
 
-        <div class="org-chart-wrapper">
+        <!-- ★ 핵심: 조직도 내용 전체를 감싸는 흰색 테두리 박스 -->
+        <div class="employee-box-wrapper">
+            <div class="org-chart-wrapper">
 
-            <!-- [CASE 1] 부서를 선택하지 않은 경우: 전체 회사 조직도 표시 -->
-            <th:block th:if="${chartData.gradeTierGroups == null}">
-                <div class="org-level-1">
-                    <div class="org-box ceo-box" th:text="${chartData.title}">대표이사</div>
-                </div>
+                <!-- [CASE 1] 부서를 선택하지 않은 경우 -->
+                <th:block th:if="${chartData.gradeTierGroups == null}">
+                    <div class="org-level-1">
+                        <div class="org-box ceo-box" th:text="${chartData.title}">대표이사</div>
+                    </div>
 
-                <div class="org-line-vertical"></div>
+                    <div class="org-line-vertical"></div>
 
-                <div class="org-level-2" th:if="${chartData.topLevelNodes != null and not #lists.isEmpty(chartData.topLevelNodes)}">
-                    <div class="org-box sub-box" th:each="node : ${chartData.topLevelNodes}" th:text="${node.name}">고문</div>
-                </div>
+                    <div class="org-level-2" th:if="${chartData.topLevelNodes != null and not #lists.isEmpty(chartData.topLevelNodes)}">
+                        <div class="org-box sub-box" th:each="node : ${chartData.topLevelNodes}" th:text="${node.name}">고문</div>
+                    </div>
 
-                <div class="org-line-vertical"></div>
+                    <div class="org-line-vertical"></div>
 
-                <div class="org-level-3" th:if="${chartData.departments != null and not #lists.isEmpty(chartData.departments)}">
-                    <div class="org-dept-column" th:each="dept : ${chartData.departments}">
-                        <!-- 부서를 클릭하면 해당 부서의 상세 조직도 경로로 이동 -->
-                        <a th:href="@{/organization/chart/{id}(id=${dept.deptId})}" style="text-decoration: none;">
-                            <div class="org-box dept-box" th:text="${dept.deptName}">부서명</div>
+                    <div class="org-level-3" th:if="${chartData.departments != null and not #lists.isEmpty(chartData.departments)}">
+                        <div class="org-dept-column" th:each="dept : ${chartData.departments}">
+                            <a th:href="@{/organization/chart/{id}(id=${dept.deptId})}" style="text-decoration: none;">
+                                <div class="org-box dept-box" th:text="${dept.deptName}">부서명</div>
+                            </a>
+                        </div>
+                    </div>
+                </th:block>
+
+                <!-- [CASE 2] 특정 부서를 선택한 경우 -->
+                <th:block th:if="${chartData.gradeTierGroups != null}">
+                    <div class="dept-org-container" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 20px;">
+
+                        <!-- 각 직급과 소속 직원 묶음 -->
+                        <th:block th:each="tier, tierStat : ${chartData.gradeTierGroups}">
+                            <div class="dept-tier-group" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+
+                                <div class="org-box grade-title-box" th:text="${tier.gradeName}">직급 이름</div>
+
+                                <div class="grade-row-wrapper" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;">
+                                    <div class="org-level-row" th:each="row : ${tier.rowEmployeeLists}" style="display: flex; justify-content: center; gap: 15px; width: 100%; flex-wrap: wrap;">
+                                        <div class="org-box employee-box" th:each="emp : ${row}"
+                                             th:text="${emp.emplName}"
+                                             th:data-empl-id="${emp.emplId}"
+                                             style="cursor: pointer;"
+                                             onclick="openEmployeeModal(this)">직원이름</div>
+                                    </div>
+                                </div>
+
+                                <div class="org-line-vertical" th:if="${!tierStat.last}" style="height: 20px; margin: 5px 0;"></div>
+                            </div>
+                        </th:block>
+
+                    </div>
+
+                    <!-- 특정 부서 선택 시 하단에 위치하는 '전체 조직도로 돌아가기' 버튼 -->
+                    <div style="margin-top: 70px; text-align: center;">
+                        <a th:href="@{/organization/chart}"
+                           style="display: inline-block; background-color: #111111; color: #ffffff; padding: 12px 24px; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background-color 0.2s;">
+                            전체 조직도로 돌아가기
                         </a>
                     </div>
-                </div>
-            </th:block>
 
-            <!-- [CASE 2] 특정 부서를 클릭한 경우: 해당 부서의 직급별 직원 조직도 표시 (오름차순 정렬) (최대 5개씩 행 나열) -->
-            <th:block th:if="${chartData.gradeTierGroups != null}">
-                <!-- 전체 조직도로 돌아가기 버튼 -->
-<!--                <div style="margin-bottom: 20px;">-->
-<!--                    <a th:href="@{/organization/chart}" class="search-btn" style="text-decoration: none; padding: 6px 14px; display: inline-block;">전체 조직도로 돌아가기</a>-->
-<!--                </div>-->
+                </th:block>
 
-                <!-- 직급별 계층 순회 -->
-                <div class="dept-org-container" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 20px;">
+                <!-- 직원 상세 정보 모달 팝업 -->
+                <div id="employeeModal" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3 class="modal-header">직원 상세 정보</h3>
 
-                    <!-- 각 직급과 소속 직원들을 하나의 묶음(Tier Group)으로 처리 -->
-                    <th:block th:each="tier, tierStat : ${chartData.gradeTierGroups}">
-
-                        <div class="dept-tier-group" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
-
-                        <!-- 직급 타이틀 박스 -->
-                        <div class="org-box grade-title-box" th:text="${tier.gradeName}">직급 이름</div>
-
-                        <!-- 세로 연결선 -->
-<!--                        <div class="org-line-vertical" th:if="${!tierStat.last}"></div>-->
-                            <!-- [변경] 직급과 이름 사이의 세로 막대를 제거하고 간격을 가깝게 배치 -->
-
-                        <!-- 해당 직급의 행(Row) 리스트 (한 행에 최대 5개) -->
-                        <div class="grade-row-wrapper" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;">
-                            <div class="org-level-row" th:each="row : ${tier.rowEmployeeLists}" style="display: flex; justify-content: center; gap: 15px; width: 100%; flex-wrap: wrap;">
-                                <div class="org-box employee-box" th:each="emp : ${row}"
-                                     th:text="${emp.emplName}"
-                                     th:data-empl-id="${emp.emplId}"
-                                     style="cursor: pointer;"
-                                     onclick="openEmployeeModal(this)">직원이름</div>
-                            </div>
+                        <div class="modal-body-info">
+                            <p><strong>이름:</strong> <span id="modalEmpName"></span></p>
+                            <p><strong>부서:</strong> <span id="modalDeptName"></span></p>
+                            <p><strong>직급:</strong> <span id="modalGradeName"></span></p>
+                            <p><strong>연락처:</strong> <span id="modalPhone"></span></p>
+                            <p><strong>이메일:</strong> <span id="modalEmail"></span></p>
+                            <p><strong>주소:</strong> <span id="modalAddress"></span></p>
                         </div>
 
-                            <!-- 직급 묶음들과 묶음 사이의 연결선 (필요시 유지 또는 조정) -->
-                            <div class="org-line-vertical" th:if="${!tierStat.last}" style="height: 20px; margin: 5px 0;"></div>
-
-                    </th:block>
-                </div>
-
-
-            <!-- [수정] '전체 조직도로 돌아가기' 버튼을 마지막 직급 하단으로 위치 이동 -->
-            <div style="margin-top: 30px;">
-                <a th:href="@{/organization/chart}" class="search-btn" style="text-decoration: none; padding: 10px 20px; display: inline-block; line-height: normal;">전체 조직도로 돌아가기</a>
-            </div>
-
-
-        </th:block>
-
-            <!-- 직원 상세 정보 모달 팝업 -->
-            <div id="employeeModal" class="modal-overlay">
-                <div class="modal-content">
-                    <h3 class="modal-header">직원 상세 정보</h3>
-
-                    <div class="modal-body-info">
-                        <p><strong>이름:</strong> <span id="modalEmpName"></span></p>
-                        <p><strong>부서:</strong> <span id="modalDeptName"></span></p>
-                        <p><strong>직급:</strong> <span id="modalGradeName"></span></p>
-                        <p><strong>연락처:</strong> <span id="modalPhone"></span></p>
-                        <p><strong>이메일:</strong> <span id="modalEmail"></span></p>
-                        <p><strong>주소:</strong> <span id="modalAddress"></span></p>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" id="closeModalBtn" class="modal-close-btn">닫기</button>
+                        <div class="modal-footer">
+                            <button type="button" id="closeModalBtn" class="modal-close-btn">닫기</button>
+                        </div>
                     </div>
                 </div>
+
             </div>
 
         </div>
 
-    </div>
+        <footer class="home-footer" style="margin-top: 40px;">COMPANY TALK <span>함께 일하는 우리를 위한 공간</span></footer>
+    </main>
 </div>
 
 <script>
-    // 직원 박스 클릭 시 실행되는 함수
     function openEmployeeModal(element) {
         const emplId = element.getAttribute("data-empl-id");
 
-        // REST API 호출
         fetch(`/organization/api/employee/${emplId}`)
             .then(response => response.json())
             .then(data => {
-                // 모달 내부 텍스트 채우기
                 document.getElementById("modalEmpName").innerText = data.emplName || '-';
                 document.getElementById("modalDeptName").innerText = data.deptName || '-';
                 document.getElementById("modalGradeName").innerText = data.gradeName || '-';
@@ -138,7 +149,6 @@
                 document.getElementById("modalEmail").innerText = data.email || '-';
                 document.getElementById("modalAddress").innerText = data.address || '-';
 
-                // 모달 창 띄우기 (display: flex)
                 document.getElementById("employeeModal").style.display = "flex";
             })
             .catch(error => {
@@ -147,12 +157,10 @@
             });
     }
 
-    // 닫기 버튼 클릭 시 모달 닫기
     document.getElementById("closeModalBtn").addEventListener("click", function() {
         document.getElementById("employeeModal").style.display = "none";
     });
 
-    // 모달 배경 바깥쪽 클릭 시 모달 닫기
     window.addEventListener("click", function(event) {
         const modal = document.getElementById("employeeModal");
         if (event.target === modal) {

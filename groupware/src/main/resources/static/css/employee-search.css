@@ -3,16 +3,29 @@
    ========================================================================== */
 
 /* 1. 메인 콘텐츠 및 레이아웃 배치 (상단 헤더 및 좌측 고정 메뉴바 여백 확보) */
+/* 1. 메인 콘텐츠 영역 바탕색을 연회색(#f3f5f9)으로 설정 */
 .employee-content {
     margin-top: var(--topinfo-height);
     margin-left: var(--menubar-width);
     min-height: calc(100vh - var(--topinfo-height));
-    padding: 24px 40px 40px;
-    background-color: var(--color-white);
+    padding: 36px clamp(24px, 4vw, 60px) 40px;
+    background-color: #f3f5f9; /* 캘린더 페이지와 동일한 바탕색 */
+    line-height: 1.6;
+    color: #17243d;
 }
 
+/* 2. 내용들을 감싸는 흰색 박스 컨테이너 스타일 (홈 화면의 .home-tip/.home-directory 박스 스타일 준용) */
+.employee-box-wrapper {
+    background: #fff;
+    border: 1px solid #e2e7ee;
+    border-radius: 13px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(22, 37, 62, 0.03); /* 선택사항: 은은한 그림자 효과 */
+}
+
+/* 3. 기존 employee-container 관련 맥락 조정 */
 .employee-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
@@ -45,9 +58,10 @@
     margin-left: 10px;
 }
 
-.search-select {
+/* 부서 셀렉트 박스 전용 스타일 (글자가 길어서 넉넉하게 지정) */
+.search-select-dept {
     height: 38px;
-    padding: 0 18px 0 8px;
+    padding: 0 6px 0 10px;
     font-size: 14px;
     color: var(--color-black);
     background-color: var(--color-white);
@@ -55,11 +69,30 @@
     border-radius: 2px;
     outline: none;
     cursor: pointer;
-    width: 90px;
+    width: 120px; /* 부서 박스 길이 */
     box-sizing: border-box;
 }
 
-.search-select:focus {
+.search-select-dept:focus {
+    border-color: #0d6efd;
+}
+
+/* 직급 셀렉트 박스 전용 스타일 */
+.search-select-grade {
+    height: 38px;
+    padding: 0 6px 0 10px;
+    font-size: 14px;
+    color: var(--color-black);
+    background-color: var(--color-white);
+    border: 1px solid #ced4da;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    width: 70px; /* 직급 박스 길이 */
+    box-sizing: border-box;
+}
+
+.search-select-grade:focus {
     border-color: #0d6efd;
 }
 
@@ -72,7 +105,7 @@
     border: 1px solid #ced4da;
     border-radius: 2px;
     outline: none;
-    width: 140px;
+    width: 120px;
     box-sizing: border-box;
 }
 

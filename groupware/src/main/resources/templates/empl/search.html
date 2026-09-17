@@ -2,100 +2,159 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사내 메신저 - 직원 검색</title>
-    <!-- 사이트 공통 스타일 및 상단바/메뉴바 CSS -->
-    <link rel="stylesheet" th:href="@{/css/common.css}" href="../../static/css/common.css">
-    <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../../static/css/topinfo.css">
-    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../../static/css/menubar.css">
-    <!-- 직원 검색 화면 전용 CSS -->
-    <link rel="stylesheet" th:href="@{/css/employee-search.css}" href="../../static/css/employee-search.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>직원 검색 | COMPANY TALK</title>
+    <!-- 사이트 공통 및 페이지별 스타일시트 연동 -->
+    <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../static/css/menubar.css">
+    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
+    <link rel="stylesheet" th:href="@{/css/employee-search.css}" href="../static/css/employee-search.css">
+    <style>
+        /* 메인 콘텐츠 영역 바탕색 연회색(#f3f5f9) 설정 */
+        .employee-content {
+            background-color: #f3f5f9 !important;
+            padding: 36px clamp(24px, 4vw, 60px) 40px !important;
+        }
+        /* 내용 전체를 감싸는 흰색 박스 스타일 */
+        .employee-box-wrapper {
+            background: #fff;
+            border: 1px solid #e2e7ee;
+            border-radius: 13px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(22, 37, 62, 0.03);
+        }
+        .employee-container {
+            max-width: 100% !important;
+            margin: 0 auto;
+        }
+    </style>
 </head>
-<body>
+<body class="workspace-home">
+<a class="skip-link" href="#employee-main">본문으로 건너뛰기</a>
 
-<!-- 1. 최상단 사이트 정보 및 로그인 바 모듈 삽입 -->
-<div th:replace="~{module/topinfo :: topinfo}"></div>
+<!-- 상단 헤더 -->
+<header class="topinfo">
+    <h1 class="topinfo__title"><a th:href="@{/}" style="color: inherit; text-decoration: none;">COMPANY TALK</a></h1>
 
-<!-- 2. 좌측 고정 네비게이션 메뉴바 모듈 삽입 -->
-<div th:replace="~{module/menubar :: menubar}"></div>
+    <div class="topinfo__auth">
+        <th:block th:if="${loginEmployee != null}">
+            <a th:href="@{/mypage}" class="topinfo__login-btn topinfo__user-btn"><span th:text="${loginEmployee.emplName}">이름</span><span class="topinfo__user-id" th:text="'(' + ${loginEmployee.loginId} + ')'">(아이디)</span></a>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="topinfo__login-btn">로그아웃</button>
+            </form>
+        </th:block>
+        <a th:if="${loginEmployee == null}" th:href="@{/login}" class="topinfo__login-btn">로그인</a>
+    </div>
+</header>
 
-<!-- 3. 메인 콘텐츠 영역: 우측 화면에 위치 -->
-<main class="employee-content">
+<!-- 좌측 사이드바 연동 -->
+<div th:replace="~{module/workspace :: sidebar('employees')}"></div>
+
+<!-- 메인 콘텐츠 영역 -->
+<main class="employee-content" id="employee-main">
     <div class="employee-container">
 
-        <!-- 직원검색 기능 영역 -->
-        <div id="employeeSearchArea">
-            <!-- 4. 검색 필터 바 (부서, 직급, 직원이름 검색, 검색 버튼) -->
-            <section class="search-filter-section">
-            <form th:action="@{/employees}" method="get" class="search-filter-form">
-                
-                <!-- 부서 선택 라벨 및 드롭다운 -->
-                <span class="search-filter-label">부서</span>
-                <select name="departmentId" class="search-select">
-                    <option value="">전체</option>
-                    <option th:each="dept : ${departments}"
-                            th:value="${dept.deptId}"
-                            th:text="${dept.deptName}"
-                            th:selected="${searchRequest != null and searchRequest.departmentId == dept.deptId}">
-                    </option>
-                </select>
+        <!-- 페이지 상단 헤딩 영역 (박스 바깥 상단에 위치) -->
+        <div class="home-heading">
+            <div>
+                <span class="home-eyebrow">EMPLOYEE DIRECTORY</span>
+                <h1>직원 조회</h1>
+                <p>사내 직원의 부서, 직급 및 연락처를 확인합니다.</p>
+            </div>
+            <span class="home-label">직원 목록</span>
+        </div>
 
-                <!-- 직급 선택 라벨 및 드롭다운 -->
-                <span class="search-filter-label filter-label-grade">직급</span>
-                <select name="gradeId" class="search-select">
-                    <option value="">전체</option>
-                    <option th:each="grade : ${grades}"
-                            th:value="${grade.gradeId}"
-                            th:text="${grade.gradeName}"
-                            th:selected="${searchRequest != null and searchRequest.gradeId == grade.gradeId}">
-                    </option>
-                </select>
+        <!-- ★ 핵심: 검색 필터와 테이블 내용 전체를 감싸는 흰색 박스 컨테이너 -->
+        <div class="employee-box-wrapper">
+            <div id="employeeSearchArea">
+                <!-- 검색 필터 바 -->
+                <section class="search-filter-section">
+                    <form th:action="@{/employees}" method="get" class="search-filter-form" id="searchForm">
 
-                <!-- 직원 이름 입력 필드 -->
-                <input type="text"
-                       name="emplName"
-                       class="search-input"
-                       placeholder="직원이름"
-                       th:value="${searchRequest != null ? searchRequest.emplName : ''}">
+                        <!-- 부서 선택 -->
+                        <span class="search-filter-label">부서</span>
+                        <select name="departmentId" class="search-select-dept" onchange="filterBySelect()">
+                            <option value="">전체</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.deptId}"
+                                    th:text="${dept.deptName}"
+                                    th:selected="${searchRequest != null and searchRequest.departmentId == dept.deptId}">
+                            </option>
+                        </select>
 
-                <!-- 검색 실행 버튼 -->
-                <button type="submit" class="search-btn">검색</button>
-            </form>
-        </section>
+                        <!-- 직급 선택 -->
+                        <span class="search-filter-label filter-label-grade">직급</span>
+                        <select name="gradeId" class="search-select-grade" onchange="filterBySelect()">
+                            <option value="">전체</option>
+                            <option th:each="grade : ${grades}"
+                                    th:value="${grade.gradeId}"
+                                    th:text="${grade.gradeName}"
+                                    th:selected="${searchRequest != null and searchRequest.gradeId == grade.gradeId}">
+                            </option>
+                        </select>
 
-        <!-- 5. 검색 결과 테이블 영역 -->
-        <section class="employee-table-section">
-            <table class="employee-table">
-                <thead>
-                <tr>
-                    <th style="width: 18%;">부서</th>
-                    <th style="width: 15%;">직급</th>
-                    <th style="width: 17%;">이름</th>
-                    <th style="width: 22%;">연락처</th>
-                    <th style="width: 28%;">이메일</th>
-                </tr>
-                </thead>
-                <tbody>
-                <!-- 6. 검색 결과가 존재하는 경우: 직원 목록 반복 출력 -->
-                <tr th:each="employee : ${employees}">
-                    <td class="text-center" th:text="${employee.departmentName}">부서명</td>
-                    <td class="text-center" th:text="${employee.gradeName}">직급명</td>
-                    <td class="text-center" th:text="${employee.emplName}">홍길동</td>
-                    <td class="text-center" th:text="${employee.emplPhone}">010-0000-0000</td>
-                    <td class="text-center" th:text="${employee.emplEmail}">user@company.com</td>
-                </tr>
+                        <!-- 직원 이름 입력 필드 -->
+                        <span class="search-filter-label filter-label-grade">이름</span>
+                        <input type="text"
+                               name="emplName"
+                               id="emplNameInput"
+                               class="search-input"
+                               placeholder="이름입력"
+                               th:value="${searchRequest != null ? searchRequest.emplName : ''}">
 
-                <!-- 7. 검색 결과가 없는 경우: 안내 메시지 표시 -->
-                <tr th:if="${#lists.isEmpty(employees)}">
-                    <td colspan="5" class="empty-result">조회된 직원 정보가 없습니다.</td>
-                </tr>
-                </tbody>
-            </table>
-        </section>
+                        <!-- 검색 실행 버튼 -->
+                        <button type="submit" class="search-btn">검색</button>
+                    </form>
+                </section>
+
+                <!-- 검색 결과 테이블 영역 -->
+                <section class="employee-table-section">
+                    <table class="employee-table">
+                        <thead>
+                        <tr>
+                            <th style="width: 18%;">부서</th>
+                            <th style="width: 15%;">직급</th>
+                            <th style="width: 17%;">이름</th>
+                            <th style="width: 22%;">연락처</th>
+                            <th style="width: 28%;">이메일</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- 검색 결과가 존재하는 경우 -->
+                        <tr th:each="employee : ${employees}">
+                            <td class="text-center" th:text="${employee.departmentName}">부서명</td>
+                            <td class="text-center" th:text="${employee.gradeName}">직급명</td>
+                            <td class="text-center" th:text="${employee.emplName}">홍길동</td>
+                            <td class="text-center" th:text="${employee.emplPhone}">010-0000-0000</td>
+                            <td class="text-center" th:text="${employee.emplEmail}">user@company.com</td>
+                        </tr>
+
+                        <!-- 검색 결과가 없는 경우 -->
+                        <tr th:if="${#lists.isEmpty(employees)}">
+                            <td colspan="5" class="empty-result">조회된 직원 정보가 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
         </div>
 
     </div>
+
+    <footer class="home-footer" style="margin-top: 40px;">COMPANY TALK <span>함께 일하는 우리를 위한 공간</span></footer>
 </main>
+
+<!-- 부서/직급 변경 시 이름 입력값을 비워주는 자바스크립트 함수 -->
+<script>
+    function filterBySelect() {
+        const nameInput = document.getElementById("emplNameInput");
+        if (nameInput) {
+            nameInput.value = "";
+        }
+        document.getElementById("searchForm").submit();
+    }
+</script>
 
 </body>
 </html>

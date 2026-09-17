@@ -131,6 +131,7 @@ public class EmployeeService {
         String emplName = null;
         Long departmentId = null;
         Long gradeId = null;
+        int nameLength = 0; // 글자 수 저장을 위한 변수 추가
 
         if (request != null) {
             departmentId = request.getDepartmentId();
@@ -138,11 +139,13 @@ public class EmployeeService {
 
             if (StringUtils.hasText(request.getEmplName())) {
                 emplName = request.getEmplName().trim();
+                nameLength = emplName.length(); // 입력된 이름의 글자 수 계산
             }
         }
 
+        // 기존 searchEmployees 대신 length 체크가 포함된 쿼리 메서드 호출
         List<Employee> employees =
-                employeeRepository.searchEmployees(departmentId, gradeId, emplName);
+                employeeRepository.searchEmployeesWithLengthCheck(departmentId, gradeId, emplName, nameLength);
 
         return employees.stream()
                 // .sorted(EmployeeSortHelper.EMPLOYEE_COMPARATOR)

@@ -1,8 +1,9 @@
 /* ==========================================================================
-   조직도 페이지 전용 스타일시트 (색감 및 인터랙션 수정본)
+   조직도 페이지 전용 스타일시트 (organization-chart.css)
    ========================================================================== */
 
 /* 1. 조직도 전체 래퍼 및 레이아웃 컨테이너 */
+/* 1. 조직도 전체 래퍼 수정 (기존의 중복된 margin 및 고정 width 제거) */
 .org-chart-wrapper {
     display: flex;
     flex-direction: column;
@@ -10,84 +11,69 @@
     width: 100%;
     box-sizing: border-box;
     overflow-x: auto;
-    padding: 20px 0;
+    padding: 20px 0; /* 내부 여백을 주어 꽉 차 보이지 않고 시원한 비율 유지 */
     background-color: transparent;
 }
 
-/* 2. 일반 공통 박스 디자인 (기본적으로 호버 효과 포함) */
+/* 2. 공통 조직도 박스 디자인 (둥근 모서리, 파란색 톤, 그림자 및 부드러운 전환 효과) */
+/* 2. 공통 조직도 박스 크기 및 폰트 확대 */
 .org-box {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 32px;
-    font-size: 16px;
+    padding: 16px 32px;       /* 박스 내부 여백을 넓혀서 크기 확대 */
+    font-size: 16px;          /* 기본 폰트 크기 상향 */
     font-weight: 700;
     color: #ffffff;
-    background-color: #303b63; /* 메뉴바와 어울리는 진한 남색 계열 */
-    border-radius: 12px;
+    background-color: #374b8d;
+    border-radius: 14px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
     text-align: center;
     box-sizing: border-box;
     transition: all 0.2s ease;
 }
 
-/* 일반 박스(부서 박스, 직원 박스 등 클릭 가능한 요소들)의 호버 반응 */
 .org-box:hover {
-    background-color: #1a4547;
+    background-color: #3b73c7;
     transform: translateY(-2px);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.12);
 }
 
-/* 3. 계층별 개별 박스 스타일 (메뉴바 톤에 맞춘 진한/연한 남색 계열 적용) */
-
-/* 대표이사 박스 (최상단) - 반응 제거 */
+/* 3. 계층별 개별 박스 스타일 및 폰트 크기 조절 */
+/* 대표이사 박스 (최상단) */
 .ceo-box {
-    background-color: #000000;
-    min-width: 180px;
-    font-size: 18px;
+    background-color: #3371e5;
+    min-width: 180px;         /* 최소 너비 확대 */
+    font-size: 18px;          /* 폰트 크기 확대 */
     padding: 18px 40px;
 }
 
-/* 고문, 총괄임원 등 상단 임원진 박스 - 반응 제거 */
+/* 고문, 총괄임원 등 상단 임원진 박스 */
 .sub-box {
-    background-color: #172d55;
+    background-color: #6a9ee8;
     min-width: 150px;
     font-size: 16px;
     padding: 15px 30px;
 }
 
-/* 부문명 박스 (하단 대분류) - 클릭 이동 링크가 있으므로 호버 유지 가능 */
+/* 부문명 박스 (하단 대분류) */
 .dept-box {
-    background-color: #183b73; /* 연한 남색(포인트 블루) */
+    background-color: #7ab3f5;
     min-width: 160px;
     font-size: 15px;
     padding: 14px 24px;
     border-radius: 12px;
 }
 
-/* ★ 핵심: 대표이사, 고문, 임원 박스의 마우스 오버(반응) 효과 원천 차단 */
-.ceo-box:hover{
-/*.sub-box:hover {*/
-    background-color: #000000; /* 마우스 올려도 색상 변하지 않도록 고정 */
-    transform: none;           /* 위로 떠오르는 애니메이션 제거 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08); /* 그림자 고정 */
-}
-.sub-box:hover {
-    background-color: #172d55;
-    transform: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
-}
-
-
-/* 4. 연결선 스타일 (박스와 적당히 떨어지도록 마진 부여) */
+/* 4. 연결선 스타일 (박스와 떨어지도록 위아래 마진 추가) */
 .org-line-vertical {
     width: 2px;
-    height: 30px;
-    background-color: #6491ba;
-    margin: 12px auto;
+    height: 30px;             /* 세로선 길이 조절 */
+    background-color: #adb5bd;
+    margin: 12px auto;        /* ★ 핵심: 위아래 여백(12px)을 주어 박스와 떨어지게 만듦 */
 }
 
-/* 5. 계층별 배치 레이아웃 및 간격 */
+/* 5. 계층별 배치 레이아웃 및 간격(Gap) 확대 */
 .org-level-1 {
     display: flex;
     justify-content: center;
@@ -97,7 +83,7 @@
 .org-level-2 {
     display: flex;
     justify-content: center;
-    gap: 200px;
+    gap: 200px; /* 고문과 총괄임원 사이 간격을 넓혀서 전체적인 스케일 키움 */
     width: 100%;
     position: relative;
 }
@@ -105,11 +91,12 @@
 .org-level-3 {
     display: flex;
     justify-content: center;
-    gap: 40px;
+    gap: 40px;  /* 하단 부서들 사이의 가로 간격 확대 */
     width: 100%;
     flex-wrap: nowrap;
 }
 
+/* 각 부문별 세로 컬럼 컨테이너 */
 .org-dept-column {
     display: flex;
     flex-direction: column;
@@ -117,6 +104,15 @@
     min-width: 160px;
 }
 
+/* [추가] 부서별 직급 조직도 전용 스타일 */
+.grade-title-box {
+    background-color: #2b5dbe;
+    min-width: 200px;
+    font-size: 17px;
+    padding: 14px 32px;
+}
+
+/* 7. 반응형 디자인 대응 */
 @media (max-width: 1024px) {
     .org-level-2 {
         gap: 60px;
@@ -127,44 +123,33 @@
     }
 }
 
-
-/* [추가] 부서별 조직도 전용 스타일 (색감 및 직급 박스 반응 제거) */
-
-/* 직급 이름 박스 (부서별 조직도의 타이틀 성격 박스) */
+/* [추가] 부서별 직급 조직도 전용 스타일 */
 .grade-title-box {
-    background-color: #172a50; /* 진한 남색 계열 */
-    min-width: 200px;
-    font-size: 17px;
-    padding: 14px 32px;
+    background-color: #2b5dbe;
+    min-width: 160px;
+    font-size: 15px;
+    padding: 12px 28px;
 }
 
-/* ★ 핵심: 부서별 조직도의 직급 박스 마우스 오버(반응) 효과 제거 */
-.grade-title-box:hover {
-    background-color: #172a50; /* 색상 고정 */
-    transform: none;           /* 이동 효과 제거 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
-}
-
-/* 직원 이름 박스 (클릭해서 모달을 띄워야 하므로 호버 반응 유지) */
 .employee-box {
-    background-color: #1f3e68; /* 연한 남색(포인트) */
+    background-color: #629bf5;
     min-width: 100px;
     font-size: 15px;
-    padding: 10px 16px;
+    padding: 12px 24px;
     border-radius: 10px;
 }
 
 .org-level-row {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 20px; /* 직원들 간의 가로 간격 확대 */
 }
 
+/* 특정 부서 내부 계층별 연결선 간격 조정 */
 .dept-tier-group .org-line-vertical {
     height: 25px;
-    margin: 10px auto;
+    margin: 10px auto; /* 박스와 선 사이에 여백 부여 */
 }
-
 
 /* --- 직원 상세 정보 모달 스타일 --- */
 .modal-overlay {
@@ -213,7 +198,7 @@
 
 .modal-close-btn {
     padding: 6px 14px;
-    background: #545463;
+    background: #6c757d;
     color: white;
     border: none;
     border-radius: 4px;
@@ -221,7 +206,7 @@
 }
 
 .modal-close-btn:hover {
-    background: #000000;
+    background: #5a6268;
 }
 
 /* 내용 전체를 감싸는 흰색 박스 디자인 */
@@ -229,7 +214,7 @@
     background: #fff;
     border: 1px solid #e2e7ee;
     border-radius: 13px;
-    padding: 40px 30px;
+    padding: 40px 30px; /* 내부 여백을 넉넉하게 주어 시원한 느낌 부여 */
     box-shadow: 0 4px 12px rgba(22, 37, 62, 0.03);
 }
 
