@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="modal" class="invite-modal-veil" id="inviteModalVeil">
+    <div class="invite-modal-box">
+        <h2 class="invite-popup__title">동료 초대</h2>
+
+        <input type="text" id="inviteFilterInput" class="invite-popup__filter"
+               placeholder="이름으로 검색" autocomplete="off">
+
+        <ul id="inviteEmployeeList" class="invite-popup__list"></ul>
+
+        <div id="inviteEmptyMessage" class="invite-popup__empty" style="display:none;">
+            초대할 수 있는 직원이 없습니다.
+        </div>
+
+        <div class="invite-popup__actions">
+            <button type="button" id="inviteCancelBtn" class="invite-popup__cancel-btn">취소</button>
+            <button type="button" id="inviteConfirmBtn" class="invite-popup__invite-btn">초대</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
