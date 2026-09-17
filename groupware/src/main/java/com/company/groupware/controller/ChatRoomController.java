@@ -3,12 +3,14 @@ package com.company.groupware.controller;
 
 import com.company.groupware.dto.ChatMessageResponse;
 import com.company.groupware.dto.ChatReadEvent;
+import com.company.groupware.dto.ChatRoomClosedEvent;
 import com.company.groupware.dto.ChatReadRequest;
 import com.company.groupware.dto.ChatRoomCreateRequest;
 import com.company.groupware.dto.ChatRoomJoinRequest;
 import com.company.groupware.dto.ChatRoomMemberResponse;
 import com.company.groupware.dto.ChatRoomResponse;
 import com.company.groupware.entity.ChatRoomFile;
+import com.company.groupware.entity.Employee;
 import com.company.groupware.service.ChatMessageService;
 import com.company.groupware.service.ChatRoomService;
 import com.company.groupware.service.ChatAccessService;
@@ -51,11 +53,14 @@ public class ChatRoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // 로그인한(요청한) 직원이 현재 참여 중인 방 목록
+    // 로그인한(요청한) 직원이 현재 참여 중인 방 목록. 관리자 계정은 참여 여부와 무관하게 전체 방 목록을 조회합니다.
     @GetMapping
     public ResponseEntity<List<ChatRoomResponse>> getMyRooms(Principal principal) {
-        Long emplId = chatAccessService.getHttpEmployee(principal).getEmplId();
-        return ResponseEntity.ok(chatRoomService.getMyRooms(emplId));
+        Employee employee = chatAccessService.getHttpEmployee(principal);
+        if (Boolean.TRUE.equals(employee.getEmplStat())) {
+            return ResponseEntity.ok(chatRoomService.getAllRooms());
+        }
+        return ResponseEntity.ok(chatRoomService.getMyRooms(employee.getEmplId()));
     }
 
     // 특정 방의 현재 활성 참여자 목록
@@ -182,6 +187,24 @@ public class ChatRoomController {
 
         return ResponseEntity.noContent().build();
     }
+
+    // 관리자 강제 삭제(비활성화) - 활성 참여자 전원을 강제 퇴장 처리한 뒤 방을 닫고,
+    // 그 방을 보고 있던 접속자 및 강제 퇴장된 인원 전원에게 실시간으로 알림
+    @DeleteMapping("/{roomId}")
+    public ResponseEntity<List<ChatRoomMemberResponse>> closeRoom(@PathVariable Long roomId, Principal principal) {
+        Employee employee = chatAccessService.getHttpEmployee(principal);
+        chatAccessService.requireAdmin(employee);
+
+        List<ChatRoomMemberResponse> removedMembers = chatRoomService.adminCloseRoom(roomId);
+
+        ChatRoomClosedEvent closedEvent = new ChatRoomClosedEvent(roomId, "관리자에 의해 채팅방이 삭제되었습니다");
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, closedEvent);
+        removedMembers.forEach(member ->
+                messagingTemplate.convertAndSendToUser(String.valueOf(member.getEmplId()), "/queue/rooms/removed", closedEvent));
+
+        return ResponseEntity.ok(removedMembers);
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleAccessError(ResponseStatusException error) {
         return ResponseEntity.status(error.getStatusCode())

@@ -1,15 +1,28 @@
-/* 동료 초대 팝업 화면 (독립 창) */
-.invite-popup {
-    margin: 0;
-    background-color: var(--color-white);
+/* 동료 초대 모달 */
+.invite-modal-veil {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 26, 51, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
 }
 
-.invite-popup__main {
+.invite-modal-veil.is-open {
+    display: flex;
+}
+
+.invite-modal-box {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    padding: 20px;
+    width: min(420px, calc(100vw - 32px));
+    max-height: min(600px, calc(100vh - 64px));
+    background-color: var(--color-white);
+    border-radius: 12px;
+    padding: 24px;
     box-sizing: border-box;
+    box-shadow: 0 20px 50px rgba(16, 26, 51, .25);
 }
 
 .invite-popup__title {
@@ -28,6 +41,7 @@
 
 .invite-popup__list {
     flex: 1;
+    min-height: 0;
     margin: 0;
     padding: 0;
     list-style: none;
