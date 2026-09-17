@@ -1,84 +1,89 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>홈 | COMPANY TALK</title>
-    <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
-    <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
-    <link rel="stylesheet" th:href="@{/css/menubar.css}" href="../static/css/menubar.css">
-    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
-    <style>
-        .admin-denied-toast {
-            position: fixed;
-            left: 50%;
-            bottom: 28px;
-            transform: translate(-50%, 14px);
-            background: var(--color-navy-dark);
-            color: var(--color-white);
-            padding: 13px 22px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 12px 30px rgba(16, 26, 51, .28);
-            opacity: 0;
-            transition: opacity .25s ease, transform .25s ease;
-            pointer-events: none;
-            z-index: 100;
-            white-space: nowrap;
-        }
-
-        .admin-denied-toast.is-visible {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-    </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>홈 | COMPANY TALK</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/topinfo.css}">
+    <link rel="stylesheet" th:href="@{/css/menubar.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/home-dashboard.css}">
 </head>
-<body class="workspace-home">
+<body class="workspace-home workspace-dashboard">
 <a class="skip-link" href="#home-main">본문으로 건너뛰기</a>
-<header class="topinfo">
-    <h1 class="topinfo__title"><a th:href="@{/}" style="color: inherit; text-decoration: none;">COMPANY TALK</a></h1>
-
-    <div class="topinfo__auth">
-        <th:block th:if="${loginEmployee != null}">
-            <a th:href="@{/mypage}" class="topinfo__login-btn topinfo__user-btn"><span th:text="${loginEmployee.emplName}">이름</span><span class="topinfo__user-id" th:text="'(' + ${loginEmployee.loginId} + ')'">(아이디)</span></a>
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="topinfo__login-btn">로그아웃</button>
-            </form>
-        </th:block>
-        <a th:if="${loginEmployee == null}" th:href="@{/login}" class="topinfo__login-btn">로그인</a>
-    </div>
-
-</header>
+<div th:replace="~{module/workspace :: userHeader}"></div>
 <div th:replace="~{module/workspace :: sidebar('home')}"></div>
-<main class="home-content" id="home-main">
-    <div class="home-heading"><div><span class="home-eyebrow">YOUR WORKSPACE</span><h1>함께 시작하는 오늘</h1><p>대화하고, 일정을 확인하고, 팀의 소식을 나눠보세요.</p></div><span class="home-label">사내 업무 공간</span></div>
-    <section class="home-hero" aria-labelledby="hero-title"><div><span class="home-eyebrow">BETTER TOGETHER</span><h2 id="hero-title">좋은 협업은<br>한 번의 대화에서 시작됩니다.</h2><p>동료에게 전할 이야기가 있나요?<br>메신저에서 우리 팀의 대화를 이어가세요.</p><a class="home-primary" th:href="@{/chat/list}">메신저 열기 <span aria-hidden="true">↗</span></a></div>
-        <div class="hero-art" aria-hidden="true"><div class="art-label">CONNECTED TEAM</div><div class="art-bubble bubble-one"><span class="art-avatar">C</span><div><i></i><i></i></div></div><div class="art-bubble bubble-two"><span class="art-check">✓</span><div><i></i><i></i></div></div><div class="art-caption">대화에서 시작되는 팀워크</div></div></section>
-    <section class="home-section" aria-labelledby="shortcut-title"><div class="section-heading"><h2 id="shortcut-title">자주 쓰는 업무</h2><span>필요한 곳으로 바로 이동하세요</span></div>
-        <div class="shortcut-grid">
-            <a class="shortcut-card" th:href="@{/chat/list}"><span class="shortcut-icon">01</span><h3>메신저</h3><p>동료와 대화하고 파일을 공유해요.</p><span class="shortcut-action">채팅방으로 <span aria-hidden="true">↗</span></span></a>
-            <a class="shortcut-card" th:href="@{/calendar}"><span class="shortcut-icon mint">02</span><h3>캘린더</h3><p>팀의 일정을 확인하고 등록해요.</p><span class="shortcut-action">일정 확인하기 <span aria-hidden="true">↗</span></span></a>
-            <a class="shortcut-card" th:href="@{/boards}"><span class="shortcut-icon sand">03</span><h3>게시판</h3><p>공지와 업무 소식을 함께 나눠요.</p><span class="shortcut-action">게시판 보기 <span aria-hidden="true">↗</span></span></a>
-        </div></section>
-    <section class="home-bottom" aria-label="업무 안내"><div class="home-tip"><span class="home-eyebrow">MAKE TODAY COUNT</span><h2>오늘의 업무를 준비해 볼까요?</h2><p>캘린더에서 일정을 확인한 뒤, 필요한 내용을 팀에 공유해 보세요.</p></div><div class="home-directory"><h2>함께 일하는 동료</h2><p>부서와 직급으로 직원을 찾아보세요.</p><a th:href="@{/employees}">직원 조회 <span aria-hidden="true">→</span></a></div></section>
-    <footer class="home-footer">COMPANY TALK <span>함께 일하는 우리를 위한 공간</span></footer>
+<main class="home-content dashboard-content" id="home-main">
+    <header class="dashboard-heading">
+        <div><span class="dashboard-eyebrow">TODAY AT COMPANY TALK</span>
+            <h1><span th:text="${dashboard.employeeName}">직원</span>님, 오늘도 반가워요.</h1>
+            <p><span th:text="${dashboard.departmentName}">부서</span><span class="heading-dot" aria-hidden="true">·</span>오늘 필요한 업무를 한눈에 확인하세요.</p>
+        </div>
+        <div class="dashboard-date"><span>오늘 · 한국 시간</span><strong th:text="${#temporals.format(dashboard.today, 'yyyy.MM.dd')}">2026.09.17</strong></div>
+    </header>
+
+    <section class="dashboard-stats" aria-label="오늘의 업무 요약">
+        <a class="dashboard-stat" th:href="@{/chat/list}"><span class="stat-label"><span class="stat-icon mint" aria-hidden="true">↗</span>안 읽은 메시지</span><div><strong th:text="${dashboard.unreadCount}">0</strong><span>건</span></div><small>현재 참여 중인 채팅방<span aria-hidden="true">→</span></small></a>
+        <a class="dashboard-stat" th:href="@{/approvals}"><span class="stat-label"><span class="stat-icon lilac" aria-hidden="true">✓</span>내 결재 대기</span><div><strong th:text="${dashboard.pendingApprovalCount}">0</strong><span>건</span></div><small>지금 내 승인이 필요한 문서<span aria-hidden="true">→</span></small></a>
+        <a class="dashboard-stat" th:href="@{/calendar}"><span class="stat-label"><span class="stat-icon sand" aria-hidden="true">▦</span>오늘 일정</span><div><strong th:text="${dashboard.todayScheduleCount}">0</strong><span>건</span></div><small>전체 부서 · 취소 일정 제외<span aria-hidden="true">→</span></small></a>
+    </section>
+
+    <div class="dashboard-grid">
+        <section class="dashboard-panel chat-panel" aria-labelledby="recent-chat-title">
+            <div class="dashboard-panel-heading"><div><span class="dashboard-eyebrow">CONVERSATIONS</span><h2 id="recent-chat-title">최근 채팅</h2></div><a th:href="@{/chat/list}">전체 보기 <span aria-hidden="true">↗</span></a></div>
+            <p class="dashboard-empty" th:if="${#lists.isEmpty(dashboard.chats)}">참여 중인 채팅방이 없습니다.<br><a th:href="@{/chat/list}">동료와 첫 대화를 시작해 보세요.</a></p>
+            <ul class="dashboard-list chat-list" th:unless="${#lists.isEmpty(dashboard.chats)}">
+                <li th:each="chat : ${dashboard.chats}"><a class="dashboard-chat" th:href="@{/chat/detail(roomId=${chat.roomId})}">
+                    <span class="chat-avatar" aria-hidden="true" th:text="${#strings.substring(chat.roomName, 0, 1)}">C</span>
+                    <span class="chat-copy"><strong th:text="${chat.roomName}">채팅방</strong><span th:text="${chat.preview}">최근 메시지</span></span>
+                    <span class="chat-meta"><time th:text="${chat.timeLabel}">09:30</time><span class="unread-badge" th:if="${chat.unreadCount > 0}" th:text="${chat.unreadCount > 99 ? '99+' : chat.unreadCount}" th:attr="aria-label=${'안 읽은 메시지 ' + chat.unreadCount + '건'}">2</span></span>
+                </a></li>
+            </ul>
+            <div class="dashboard-panel-foot">홈에서는 메시지가 읽음 처리되지 않아요.</div>
+        </section>
+
+        <section class="dashboard-panel schedule-panel" aria-labelledby="schedule-title">
+            <div class="dashboard-panel-heading"><div><span class="dashboard-eyebrow">TEAM SCHEDULE</span><h2 id="schedule-title" th:text="${dashboard.upcoming ? '다가오는 일정' : '오늘의 일정'}">오늘의 일정</h2></div><a th:href="@{/calendar}">캘린더 <span aria-hidden="true">↗</span></a></div>
+            <p class="schedule-scope" th:if="${dashboard.upcoming}">오늘 일정이 없어 다음 일정을 보여드려요.</p>
+            <p class="schedule-scope" th:unless="${dashboard.upcoming}">전체 부서의 일정 · 최대 4개</p>
+            <p class="dashboard-empty" th:if="${#lists.isEmpty(dashboard.schedules)}">등록된 예정 일정이 없습니다.<br><a th:href="@{/calendar}">캘린더에서 일정을 확인하세요.</a></p>
+            <ul class="dashboard-list schedule-list">
+                <li th:each="schedule : ${dashboard.schedules}"><a th:href="@{/calendar}"><time th:text="${schedule.timeLabel}">10:00 – 11:00</time><strong th:text="${schedule.title}">일정 제목</strong><span th:text="${schedule.departmentName}">개발팀</span></a></li>
+            </ul>
+        </section>
+
+        <section class="dashboard-panel notice-panel" aria-labelledby="notice-title">
+            <div class="dashboard-panel-heading"><div><span class="dashboard-eyebrow">TEAM UPDATES</span><h2 id="notice-title">확인할 공지</h2></div><a th:href="@{/boards}">게시판 <span aria-hidden="true">↗</span></a></div>
+            <p class="dashboard-empty" th:if="${#lists.isEmpty(dashboard.notices)}">열람 가능한 공지가 없습니다.</p>
+            <ul class="dashboard-list notice-list">
+                <li th:each="notice : ${dashboard.notices}"><a th:href="@{/boards/{id}(id=${notice.boardId})}"><span class="notice-category" th:text="${notice.categoryName}">공지</span><strong th:text="${notice.title}">공지 제목</strong><time th:text="${notice.dateLabel}">09.17</time></a></li>
+            </ul>
+        </section>
+
+        <section class="dashboard-panel commute-panel" aria-labelledby="commute-title">
+            <div class="dashboard-panel-heading"><div><span class="dashboard-eyebrow">MY WORKDAY</span><h2 id="commute-title">오늘의 근무</h2></div><span class="commute-state" th:text="${dashboard.commuteState}">출근 전</span></div>
+            <div class="commute-times"><div><span>출근</span><strong th:text="${dashboard.startTime}">—</strong></div><div><span>퇴근</span><strong th:text="${dashboard.finishTime}">—</strong></div></div>
+            <a class="dashboard-primary" th:href="@{/commute}">근태 관리로 이동 <span aria-hidden="true">→</span></a>
+            <p>출퇴근 기록은 근태 관리에서 처리해요.</p>
+        </section>
+    </div>
+    <footer class="dashboard-footer"><span>COMPANY TALK <span class="heading-dot" aria-hidden="true">·</span> 함께 일하는 우리를 위한 공간</span><span>페이지를 열거나 새로고침할 때 업데이트됩니다.</span></footer>
 </main>
 
-<div class="admin-denied-toast" id="adminDeniedToast">관리자만 접속이 가능합니다</div>
-
-<script th:inline="none">
+<div class="admin-denied-toast" id="adminDeniedToast" role="status">관리자만 접속이 가능합니다</div>
+<script>
+    // 기존 관리자 접근 거절 안내 유지. 실제 데이터 조회는 서버에서 처리합니다.
     (function () {
         var params = new URLSearchParams(window.location.search);
-        if (params.get('error') !== 'admin_forbidden') {
-            return;
-        }
-
-        // 새로고침해도 토스트가 다시 뜨지 않도록 쿼리파라미터 제거
-        window.history.replaceState(null, '', window.location.pathname + window.location.hash);
-
+        if (params.get('error') !== 'admin_forbidden') return;
+        params.delete('error');
+        var query = params.toString();
+        window.history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
         var toast = document.getElementById('adminDeniedToast');
         toast.classList.add('is-visible');
-        setTimeout(function () {
-            toast.classList.remove('is-visible');
-        }, 3000);
+        setTimeout(function () { toast.classList.remove('is-visible'); }, 3000);
     })();
 </script>
-</body></html>
+</body>
+</html>
