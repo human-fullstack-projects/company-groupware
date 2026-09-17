@@ -2,10 +2,14 @@
    게시글 상세
 ========================= */
 
-.board-detail {
+/*.board-detail {*/
+/*    width: 100%;*/
+/*    max-width: 1100px;*/
+/*    margin: 0 auto;*/
+/*}*/
+.board-comment-module {
     width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
+    min-width: 0;
 }
 
 
@@ -202,6 +206,7 @@
 
 .comment-body {
     flex: 1;
+    min-width: 0;
 }
 
 .comment-header {
@@ -231,6 +236,7 @@
     line-height: 1.6;
 
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 
@@ -354,7 +360,7 @@
    작은 화면 대응
 ========================= */
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
 
     .board-header {
         flex-direction: column;
@@ -372,6 +378,15 @@
     .comment-submit {
         width: 100%;
         height: 40px;
+    }
+
+    .comment-item.comment-reply {
+        margin-left: 18px;
+        padding-left: 10px;
+    }
+
+    .comment-header {
+        flex-wrap: wrap;
     }
 }
 
