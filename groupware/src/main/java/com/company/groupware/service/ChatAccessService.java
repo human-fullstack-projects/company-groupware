@@ -38,4 +38,11 @@ public class ChatAccessService {
                     "현재 참여 중인 채팅방에서만 사용할 수 있습니다.");
         }
     }
+
+    // 관리자 전용 채팅 기능 접근 제어 (Employee.emplStat 이 관리자 여부)
+    public void requireAdmin(Employee employee) {
+        if (employee == null || !Boolean.TRUE.equals(employee.getEmplStat())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자만 사용할 수 있습니다.");
+        }
+    }
 }

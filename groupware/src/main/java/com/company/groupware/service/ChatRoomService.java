@@ -128,6 +128,15 @@ public class ChatRoomService {
     }
 
     /**
+     * 관리자용 - 참여 여부와 무관하게 활성 상태인 전체 채팅방 목록
+     */
+    public List<ChatRoomResponse> getAllRooms() {
+        return chatRoomRepository.findByRoomStatTrue().stream()
+                .map(ChatRoomResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 입장/퇴장 시스템 메시지 문구에 쓸 직원 이름 조회
      */
     public String getEmployeeName(Long emplId) {
@@ -198,6 +207,33 @@ public class ChatRoomService {
     public void closeRoom(Long roomId) {
         ChatRoom chatRoom = getChatRoomOrThrow(roomId);
         chatRoom.setRoomStat(false);
+    }
+
+    /**
+     * 관리자에 의한 강제 비활성화 - 활성 참여자 전원을 강제 퇴장(room_out_date 채움) 처리한 뒤 방을 닫음
+     * 반환값은 강제 퇴장된 참여자 목록 (실시간 알림 발송용)
+     */
+    @Transactional
+    public List<ChatRoomMemberResponse> adminCloseRoom(Long roomId) {
+        ChatRoom chatRoom = getChatRoomOrThrow(roomId);
+        if (!Boolean.TRUE.equals(chatRoom.getRoomStat())) {
+            throw new InvalidChatRoomStateException("이미 삭제(비활성화)된 방입니다. room_id=" + roomId);
+        }
+
+        List<ChatRoomAffiliation> activeMembers =
+                affiliationRepository.findByChatRoom_RoomIdAndRoomOutDateIsNull(roomId);
+
+        LocalDateTime now = LocalDateTime.now();
+        List<ChatRoomMemberResponse> removedMembers = activeMembers.stream()
+                .map(affiliation -> {
+                    affiliation.setRoomOutDate(now);
+                    return new ChatRoomMemberResponse(affiliation);
+                })
+                .collect(Collectors.toList());
+
+        chatRoom.setRoomStat(false);
+
+        return removedMembers;
     }
 
     public int checkTotalMember(Long roomId) {

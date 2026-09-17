@@ -6,6 +6,7 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="_login_empl_id" th:content="${loginEmplId}">
+    <meta name="_is_admin" th:content="${isAdmin}">
     <title>메신저</title>
     <link rel="stylesheet" th:href="@{/css/common.css}" href="../static/css/common.css">
     <link rel="stylesheet" th:href="@{/css/topinfo.css}" href="../static/css/topinfo.css">
@@ -32,11 +33,11 @@
         <div class="chat-list__rooms">
             <h2 class="chat-list__heading">내 채팅방</h2>
             <ul id="roomItems" class="chat-list__room-items">
-                <li th:each="affiliation : ${chatRoomList}" th:attr="data-room-id=${affiliation.chatRoom.roomId}">
-                    <!--<a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
-                       th:text="${affiliation.chatRoom.roomId} + ' - ' + ${affiliation.chatRoom.roomName}"></a>-->
-                    <a th:href="@{/chat/detail(roomId=${affiliation.chatRoom.roomId})}"
-                       th:text="${affiliation.chatRoom.roomName}"></a>
+                <li th:each="room : ${chatRoomList}" th:attr="data-room-id=${room.roomId}">
+                    <a th:href="@{/chat/detail(roomId=${room.roomId})}"
+                       th:text="${room.roomName}"></a>
+                    <button th:if="${isAdmin}" type="button" class="chat-list__delete-btn"
+                            th:attr="data-room-id=${room.roomId}" onclick="deleteRoom(this)">삭제</button>
                 </li>
             </ul>
             <p class="chat-list__empty">아직 참여한 채팅방이 없습니다.<br>새 채팅방을 만들어 대화를 시작하세요.</p>
@@ -66,6 +67,10 @@
 
     function loginEmplId() {
         return document.querySelector('meta[name="_login_empl_id"]').content;
+    }
+
+    function isAdmin() {
+        return document.querySelector('meta[name="_is_admin"]').content === 'true';
     }
 
     // 방 이름을 먼저 받은 뒤 동료 초대 팝업을 연다
@@ -111,6 +116,28 @@
         location.reload();
     });
 
+    // 관리자 - 채팅방 강제 삭제(비활성화). 활성 참여자 전원이 강제 퇴장됨
+    async function deleteRoom(button) {
+        const li = button.closest('li');
+        const roomId = li.getAttribute('data-room-id');
+        if (!confirm('이 채팅방을 삭제하시겠습니까? 참여 중인 모든 인원이 강제 퇴장됩니다.')) {
+            return;
+        }
+
+        const res = await fetch('/api/chat/rooms/' + roomId, {
+            method: 'DELETE',
+            headers: csrfHeader()
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert('방 삭제 실패: ' + (err.message || res.status));
+            return;
+        }
+
+        li.remove();
+    }
+
     // 방 목록 실시간 갱신 (다른 사람이 나를 새 방에 초대했을 때 새로고침 없이 반영)
     let stompClient = null;
     let reconnectTimer = null;
@@ -129,7 +156,29 @@
         link.href = '/chat/detail?roomId=' + room.roomId;
         link.textContent = room.roomName;
         li.appendChild(link);
+
+        if (isAdmin()) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'chat-list__delete-btn';
+            deleteBtn.setAttribute('data-room-id', room.roomId);
+            deleteBtn.textContent = '삭제';
+            deleteBtn.onclick = function () { deleteRoom(deleteBtn); };
+            li.appendChild(deleteBtn);
+        }
+
         list.appendChild(li);
+    }
+
+    // 관리자가 이 방을 강제 삭제해서 나도 강제 퇴장됐을 때 목록에서 즉시 제거
+    function removeRoom(evt) {
+        const list = document.getElementById('roomItems');
+        const li = list.querySelector('[data-room-id="' + evt.roomId + '"]');
+        if (!li) {
+            return; // 본인이 방금 삭제한 경우 등 이미 제거돼 있으면 무시
+        }
+        li.remove();
+        alert(evt.message || '채팅방이 삭제되어 목록에서 제거되었습니다.');
     }
 
     function connect() {
@@ -140,6 +189,9 @@
             reconnectDelay = RECONNECT_INITIAL_DELAY;
             stompClient.subscribe('/user/queue/rooms', function (frame) {
                 appendRoom(JSON.parse(frame.body));
+            });
+            stompClient.subscribe('/user/queue/rooms/removed', function (frame) {
+                removeRoom(JSON.parse(frame.body));
             });
         }, function () {
             scheduleReconnect();

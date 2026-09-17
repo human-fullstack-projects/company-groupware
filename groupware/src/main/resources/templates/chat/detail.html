@@ -290,6 +290,22 @@
         box.textContent = err.message || JSON.stringify(err);
     }
 
+    // 관리자가 이 방을 강제 삭제했을 때: 입력을 막고 안내 후 목록으로 이동
+    function handleRoomClosed(evt) {
+        document.getElementById('content').disabled = true;
+        document.getElementById('fileInput').disabled = true;
+        document.querySelector('.chat-detail__send-btn').disabled = true;
+        document.getElementById('leaveBtn').disabled = true;
+        document.getElementById('inviteBtn').disabled = true;
+
+        if (stompClient && stompClient.connected) {
+            stompClient.disconnect();
+        }
+
+        alert(evt.message || '관리자에 의해 채팅방이 삭제되었습니다.');
+        location.href = '/chat/list';
+    }
+
     async function loadHistory() {
         lastMessageDate = null; // 새로 그릴 때 날짜 추적 초기화
         // const res = await fetch(`/api/chat/rooms/${roomId()}/messages`);
@@ -333,6 +349,10 @@
             // 이 방(roomId)만 구독 - 목록 화면이 아니라 방 하나를 위한 전용 화면이라 방 이동 개념이 없음
             stompClient.subscribe(`/topic/room/${roomId()}`, function (frame) {
                 const msg = JSON.parse(frame.body);
+                if (msg.type === 'ROOM_CLOSED') {
+                    handleRoomClosed(msg);
+                    return;
+                }
                 appendMessage(msg);
                 sendReadReceipt(msg.messageId); // 방을 열어둔 채 새 메시지를 받으면 바로 읽은 것으로 처리
                 if (isSystemMessage(msg)) {

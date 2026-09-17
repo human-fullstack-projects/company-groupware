@@ -1,11 +1,11 @@
 package com.company.groupware.controller;
 
 import com.company.groupware.entity.ChatRoom;
-import com.company.groupware.entity.ChatRoomAffiliation;
 import com.company.groupware.entity.Employee;
-import com.company.groupware.repository.ChatRoomAffiliationRepository;
+import com.company.groupware.dto.ChatRoomResponse;
 import com.company.groupware.repository.ChatRoomRepository;
 import com.company.groupware.service.ChatAccessService;
+import com.company.groupware.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -20,17 +20,21 @@ import java.util.List;
 public class ChatPageController {
 
     private final ChatAccessService chatAccessService;
-    private final ChatRoomAffiliationRepository chatRoomAffiliationRepository;
+    private final ChatRoomService chatRoomService;
     private final ChatRoomRepository chatRoomRepository;
 
-    // 메신저 목록 화면: 로그인한 직원이 소속된 채팅방 리스트 + 방 생성
+    // 메신저 목록 화면: 로그인한 직원이 소속된 채팅방 리스트(관리자는 전체 방) + 방 생성
     @GetMapping("/chat/list")
     public String chatList(Authentication authentication, Model model) {
         Employee loginEmpl = chatAccessService.getHttpEmployee(authentication);
         model.addAttribute("loginEmplId", loginEmpl.getEmplId());
 
-        List<ChatRoomAffiliation> roomList =
-                chatRoomAffiliationRepository.findByEmployee_EmplIdAndRoomOutDateIsNull(loginEmpl.getEmplId());
+        boolean isAdmin = Boolean.TRUE.equals(loginEmpl.getEmplStat());
+        model.addAttribute("isAdmin", isAdmin);
+
+        List<ChatRoomResponse> roomList = isAdmin
+                ? chatRoomService.getAllRooms()
+                : chatRoomService.getMyRooms(loginEmpl.getEmplId());
         model.addAttribute("chatRoomList", roomList);
 
         // 필요한 데이터만 가져와서 model에 담아 html로 보내는 역할 + 화면 연결
