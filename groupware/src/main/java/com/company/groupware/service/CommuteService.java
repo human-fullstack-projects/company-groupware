@@ -107,7 +107,11 @@ public class CommuteService {
         long normalCount = commuteRepository.countByAttendanceDateAndStatus(date, CommuteStatus.NORMAL);
         long lateCount = commuteRepository.countByAttendanceDateAndStatus(date, CommuteStatus.LATE);
         long absentCount = commuteRepository.countByAttendanceDateAndStatus(date, CommuteStatus.ABSENT);
-        return new CommuteDailyStatsResponse(date, normalCount, lateCount, absentCount);
+
+        long totalEmployeeCount = employeeRepository.count();
+        long notCheckedInCount = Math.max(0, totalEmployeeCount - (normalCount + lateCount + absentCount));
+
+        return new CommuteDailyStatsResponse(date, normalCount, lateCount, absentCount, notCheckedInCount);
     }
 
     /**

@@ -180,7 +180,7 @@ public class CommuteController {
     private String resolveState(
             CommuteResponse today) {
 
-        if (today == null) {
+        if (today == null || today.getStartTime() == null) {
             return "NOT_CHECKED_IN";
         }
 

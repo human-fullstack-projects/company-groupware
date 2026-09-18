@@ -236,13 +236,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
-    const initialCommuteStats = /*[[${commuteStats}]]*/ {normalCount: 0, lateCount: 0, absentCount: 0, presentCount: 0};
+    const initialCommuteStats = /*[[${commuteStats}]]*/ {normalCount: 0, lateCount: 0, absentCount: 0, notCheckedInCount: 0, presentCount: 0};
     /*]]>*/
 
     let attendanceChart;
 
     function renderAttendanceChart(stats) {
-        const data = [stats.normalCount, stats.lateCount, stats.absentCount];
+        const data = [stats.normalCount, stats.lateCount, stats.absentCount, stats.notCheckedInCount];
 
         if (attendanceChart) {
             attendanceChart.data.datasets[0].data = data;
@@ -252,10 +252,10 @@
             attendanceChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['정상', '지각', '결근'],
+                    labels: ['정상', '지각', '결근', '미출근'],
                     datasets: [{
                         data: data,
-                        backgroundColor: ['#0ca30c', '#fab219', '#d03b3b'],
+                        backgroundColor: ['#0ca30c', '#fab219', '#d03b3b', '#c9ccd1'],
                         borderColor: '#fcfcfb',
                         borderWidth: 2
                     }]
